@@ -1,27 +1,27 @@
-### Скрипт бота t.me/BFGcopybot
+### Скрипт бота [@BFGcopybot](https://t.me/BFGcopybot)
 
 ## Инструкция по установке:
-Склонируйте репозиторий:
+- Склонируйте репозиторий:
 ```bash
 git clone https://github.com/Ijidishurka/kakabfg
 ```
 
-Перейдите в папку с ботом:
+- Перейдите в папку с ботом:
 ```bash
 cd kakabfg
 ```
 
-Установите зависимости:
+- Установите зависимости:
 ```bash
 pip install -r req*
 ```
 
-Установить токен бота:
+- Установить токен бота:
 ```bash
 export BOT_TOKEN=Токен
 ```
 
-Запустить бота
+- Запустить бота
 ```bash
 python -m main
 ```
@@ -35,4 +35,4 @@ python -m main
 ![скришнот 3](https://te.legra.ph/file/177aed4921e23b90507a3.jpg)
 ![скришнот 4](https://te.legra.ph/file/ad8aebb2f18746a6ba47f.jpg)
 
-Мой канал t.me/UBscripts
+Мой канал [@UBscripts](https://t.me/UBscripts)
