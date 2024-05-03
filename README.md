@@ -33,6 +33,6 @@ python -m main
 ![скришнот 1](https://te.legra.ph/file/385ffe85ba0296df9e3c0.jpg)
 ![скришнот 2](https://te.legra.ph/file/55629cbac5fe97ebb3125.jpg)
 ![скришнот 3](https://te.legra.ph/file/177aed4921e23b90507a3.jpg)
-![скришнот 4](https://te.legra.ph/file/ad8aebb2f18746a6ba47f.jpg)
+![скришнот 4](https://te.legra.ph/file/7d1b946fec2dcb89a6556.jpg)
 
 Мой канал [@UBscripts](https://t.me/UBscripts)
