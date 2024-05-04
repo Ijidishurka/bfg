@@ -3,7 +3,7 @@
 ## Инструкция по установке:
 - Склонируйте репозиторий:
 ```bash
-git clone https://github.com/Ijidishurka/kakabfg
+git clone https://github.com/Ijidishurka/bfg
 ```
 
 - Перейдите в папку с ботом:
