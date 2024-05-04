@@ -1,5 +1,5 @@
 # YT: userbotik
-import os
+import install
 from aiogram import Bot, Dispatcher, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from config import *
@@ -14,7 +14,6 @@ from commands.assets.auto import automatisation
 from commands.ore.btcs import *
 from commands.earnings.business.main import *
 from commands.ore.dig import *
-from commands.ore.sell import *
 from commands.ore.rating import *
 from commands.case.main import *
 from commands.case.buy import *
@@ -23,6 +22,7 @@ from commands.earnings.garden.main import *
 from commands.earnings.garden.potions import *
 from commands.earnings.farm.main import *
 from commands.earnings.generator.main import *
+from commands.modules import *
 
 
 bot = Bot(token=API_TOKEN)
@@ -135,13 +135,18 @@ async def my_generator_s(message: types.Message):
 
 
 @dp.message_handler(lambda message: message.text in ['построить генератор', 'Построить генератор'])
-async def buy_turbine_s(message: types.Message):
-    await buy_turbine(message)
+async def buy_generator_s(message: types.Message):
+    await buy_generator(message)
 
 
 @dp.message_handler(lambda message: message.text in ['зелья', 'Зелья'])
 async def potions_list_s(message: types.Message):
     await potions_list(message)
+
+
+@dp.message_handler(lambda message: message.text.lower().startswith('создать зелье'))
+async def bay_potions_s(message: types.Message):
+    await bay_potions(message)
 
 
 @dp.message_handler(lambda message: message.text in ['сад', 'Сад'])
@@ -395,15 +400,8 @@ async def help_clans_s(callback_query: types.CallbackQuery):
 
 
 async def main(dp):
+    load_modules(dp)
     await automatisation()
-
-
-handlers_folder = 'modules'
-for filename in os.listdir(handlers_folder):
-    if filename.endswith(".py") and filename != "__init__.py":
-        module_name = filename[:-3]
-        module = __import__(f"{handlers_folder}.{module_name}", fromlist=["register_handlers"])
-        module.register_handlers(dp)
 
 
 if __name__ == '__main__':
