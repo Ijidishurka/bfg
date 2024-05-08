@@ -1,15 +1,23 @@
 from aiogram import types
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-helpKB = InlineKeyboardMarkup()
-buttons = [
-    InlineKeyboardButton("💡 Основные", callback_data="help_osn"),
-    InlineKeyboardButton("🎲 Игры", callback_data="help_game"),
-    InlineKeyboardButton("💥 Развлекательное", callback_data="help_rz"),
-    InlineKeyboardButton("🏰 Кланы", callback_data="help_clans"),
-]
-helpKB.add(buttons[0], buttons[1])
-helpKB.add(buttons[2], buttons[3])
+
+def help_menu():
+    helpKB = InlineKeyboardMarkup()
+    buttons = [
+        InlineKeyboardButton("💡 Основные", callback_data="help_osn"),
+        InlineKeyboardButton("🎲 Игры", callback_data="help_game"),
+        InlineKeyboardButton("💥 Развлекательное", callback_data="help_rz"),
+        InlineKeyboardButton("🏰 Кланы", callback_data="help_clans"),
+    ]
+    helpKB.add(buttons[0], buttons[1])
+    helpKB.add(buttons[2], buttons[3])
+    return helpKB
+
+
+def help_back():
+    back_button = InlineKeyboardButton("Назад", callback_data="help_back")
+    return InlineKeyboardMarkup().add(back_button)
 
 
 startKB = InlineKeyboardMarkup()

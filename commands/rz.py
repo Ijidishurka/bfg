@@ -1,9 +1,9 @@
 import random
-from datetime import datetime
-from commands.db import register_users, getname, setname, bonus_db, getpofildb, getads, top_db, get_colvo_users, getstatus
+from assets.antispam import antispam
+from commands.db import getname, setname, bonus_db, getads, top_db, get_colvo_users
 from commands.main import geturl
 from commands.main import win_luser
-from commands.gettime import bonustime, kaznatime
+from assets.gettime import bonustime, kaznatime
 from commands.assets.transform import transform
 
 
@@ -13,35 +13,34 @@ async def shar_cmd(message):
     await message.answer(f"{q}")
 
 
+@antispam
 async def setname_cmd(message):
     user_name = await getname(message)
     user_id = message.from_user.id
-    result = await win_luser()
-    rwin, rloser = result
-    url = geturl(user_id, user_name)
+    rwin, rloser = await win_luser()
+    url = await geturl(user_id, user_name)
     try:
         name = " ".join(message.text.split()[2:])
     except:
-        await message.answer(f'{url}, ваш ник не может быть короче 5 символов {rloser}', parse_mode='html')
+        await message.answer(f'{url}, ваш ник не может быть короче 5 символов {rloser}')
         return
 
-    name = name.replace('<', '').replace('>', '')
+    name = name.replace('<', '').replace('>', '').replace('@', '').replace('t.me', '').replace('http', '')
     if len(name) < 5:
-        await message.answer(f'{url}, ваш ник не может быть короче 5 символов {rloser}', parse_mode='html')
+        await message.answer(f'{url}, ваш ник не может быть короче 5 символов {rloser}')
         return
     if len(name) > 20:
-        await message.answer(f'{url}, ваш ник не может быть длиннее 20 символов {rloser}', parse_mode='html')
+        await message.answer(f'{url}, ваш ник не может быть длиннее 20 символов {rloser}')
         return
     await setname(name, user_id)
-    await message.answer(f'Ваш ник изменён на «{name}»', parse_mode='html')
+    await message.answer(f'Ваш ник изменён на «{name}»')
 
 
 async def kazna_cmd(message):
-    await message.answer(
-        f'💰 На данный момент казна штата составляет 98.894.419.531.599.545$',
-        parse_mode='html')
+    await message.answer(f'💰 На данный момент казна штата составляет 98.894.419.531.599.545$')
 
 
+@antispam
 async def ogr_kazna(message):
     user_name = await getname(message)
     user_id = message.from_user.id
@@ -49,26 +48,22 @@ async def ogr_kazna(message):
 
     bt, left = await kaznatime(user_id)
     if bt == 1:
-        await message.answer(
-            f'{url}, вы уже грабили казну сегодня. Бегите скорее, полиция уже в пути 🚫',
-            parse_mode='html')
+        await message.answer(f'{url}, вы уже грабили казну сегодня. Бегите скорее, полиция уже в пути 🚫')
         return
 
     i = random.randint(1, 3)
     if i == 1:
-        await message.answer(
-            f'{url}, к сожалению вам не удалось ограбить казну ❎',
-            parse_mode='html')
+        await message.answer( f'{url}, к сожалению вам не удалось ограбить казну ❎')
+        return
 
     summ = random.randint(100000000, 400000000)
     summ2 = '{:,}'.format(summ).replace(',', '.')
 
     await bonus_db(user_id, 'users', 'balance', summ)
-    await message.answer(
-        f'{url}, вы успешно ограбили казну. На ваш баланс зачислено {summ2} ✅',
-        parse_mode='html')
+    await message.answer(f'{url}, вы успешно ограбили казну. На ваш баланс зачислено {summ2} ✅')
 
 
+@antispam
 async def bonus_cmd(message):
     user_name = await getname(message)
     user_id = message.from_user.id
@@ -79,14 +74,11 @@ async def bonus_cmd(message):
         hours = left // 3600
         minutes = (left % 3600) // 60
         if hours > 0:
-            await message.answer(
-                f'{url}, ты уже получал(-а) ежедневный бонус, следующий бонус ты сможешь получить через {hours}ч {minutes}м',
-                parse_mode='html')
+            await message.answer(f'{url}, ты уже получал(-а) ежедневный бонус, следующий бонус ты сможешь получить через {hours}ч {minutes}м')
         else:
-            await message.answer(
-                f'{url}, ты уже получал(-а) ежедневный бонус, следующий бонус ты сможешь получить через {minutes}м',
-                parse_mode='html')
+            await message.answer(f'{url}, ты уже получал(-а) ежедневный бонус, следующий бонус ты сможешь получить через {minutes}м')
         return
+
     i = random.randint(1, 4)
     if i == 1:
         table = 'users'
@@ -111,67 +103,20 @@ async def bonus_cmd(message):
         txt = f'в размере {summ} материи 🌌'
 
     await bonus_db(user_id, table, v, summ)
-    await message.answer(
-        f'{url}, вам был выдан ежедневный бонус {txt}',
-        parse_mode='html')
-
-async def profil_cmd(message):
-    user_name = await getname(message)
-    user_id = message.from_user.id
-    url = await geturl(user_id, user_name)
-    balance, btc, bank, ecoins, energy, exp, games, rating, dregister = await getpofildb(message)
-    btc = await transform(btc)
-    bank = await transform(bank)
-    energy = await transform(energy)
-    exp = await transform(exp)
-    games = await transform(games)
-    rating = await transform(rating)
-    balance = await transform(balance)
-    status = await getstatus(user_id)
-
-    if status == 0:
-        st = "Обычный"
-    elif status == 1:
-        st = "Standart VIP"
-    elif status == 2:
-        st = "Gold VIP"
-    elif status == 3:
-        st = "Platinum VIP"
-    elif status == 4:
-        st = "Администратор"
-
-    dregister = datetime.strptime(dregister, '%Y-%m-%d %H:%M:%S.%f')
-    dregister = dregister.strftime('%Y-%m-%d в %H:%M:%S')
-
-    await message.answer(f'''{url}, ваш профиль:
-🔎 ID: {user_id}
-🏆 Статус: {st}
-💰 Денег: {balance}$
-🏦 В банке: {bank}$
-💳 B-Coins: {ecoins}
-💽 Биткоины: {btc}฿
-🏋 Энергия: {energy}
-👑 Рейтинг: {rating}
-🌟 Опыт: {exp}
-🎲 Всего сыграно игр: {games}
-
-📦 Имущество:
- 💼 Бизнес: Бизнес
- 🔋 Ферма: Майнинг ферма
-
-📅 Дата регистрации:
-{dregister}''', parse_mode='html')
+    await message.answer(f'{url}, вам был выдан ежедневный бонус {txt}')
 
 
+@antispam
 async def stats_cmd(message):
     users = await get_colvo_users()
     users = '{:,}'.format(users).replace(',', '.')
 
     await message.answer(f'''📊 Кол-во пользователей бота: {users}
 📊 Общее кол-во чатов: ???
-📊 Общее кол-во игроков в беседах: ???''', parse_mode='html')
+📊 Общее кол-во игроков в беседах: ???''')
 
 
+@antispam
 async def top_command(message):
     userinfo, top_players = await top_db(message)
     user_id = message.from_user.id
@@ -188,7 +133,6 @@ async def top_command(message):
     top_message = f"{url}, топ 10 игроков:\n"
     emojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"]
 
-    # Ограничим количество выводимых игроков до топ-10
     for i, player in enumerate(top_players[:10], start=1):
         tb = await transform(player[2])
         position_emoji = emojis[i - 1]
@@ -206,8 +150,4 @@ async def top_command(message):
 
     top_message += f'\n\n{ads}'
 
-    await message.answer(top_message, parse_mode='html', disable_web_page_preview=True)
-
-
-
-
+    await message.answer(top_message, disable_web_page_preview=True)

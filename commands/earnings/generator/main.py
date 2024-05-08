@@ -4,6 +4,7 @@ from commands.main import geturl
 from commands.main import win_luser
 from commands.assets.kb import help_generatorKB
 
+
 async def generator_list(message):
     id = message.from_user.id
     name = await getname(message)
@@ -14,6 +15,7 @@ async def generator_list(message):
 🪓 Для начала тебе нужно будет создать свой генератор, он будет стоять как и прежде 2.000 материи. Введите команду "Построить генератор" и после через команду "Мой генератор" вы сможете настраивать его и улучшать повышая свою прибыль.
 
 📎 Чтобы узнать все команды генератора введите команду "Помощь" и выберите соответствующую кнопку.''', parse_mode='html')
+
 
 async def my_generator(message):
     id = message.from_user.id
@@ -39,6 +41,7 @@ async def my_generator(message):
 💸 Налоги: {nalogs}$/5.000.000$
 💰 На счету: {balance} материи''', parse_mode='html', reply_markup=help_generatorKB)
 
+
 async def buy_generator(message):
     id = message.from_user.id
     name = await getname(message)
@@ -49,12 +52,13 @@ async def buy_generator(message):
     if gen == 1:
         await message.answer(f'{url}, у вас уже есть построенный генератор. Чтобы узнать подробнее, введите "Мой генератор" {rloser}', parse_mode='html')
     else:
-        balance = await getonlimater(message)
+        balance = await getonlimater(id)
         if balance < 2000:
             await message.answer(f'{url}, у вас недостаточно материи для постройки генератора. Его стоимость 2.000 материи {rloser}', parse_mode='html')
         else:
-            await buy_henerator_db(id)
+            await buy_generator_db(id)
             await message.answer(f'{url}, вы успешно построили генератор для подробностей введите "Мой генератор" {rwin}', parse_mode='html')
+
 
 async def buy_turbine(call):
     id = call.from_user.id
@@ -67,18 +71,19 @@ async def buy_turbine(call):
         await call.message.answer(f'{url}, у вас нет своего генератора чтобы купить турбины {rloser}', parse_mode='html')
     else:
         turbine = await getturbine(id)
-        if turbine == 10:
-            await call.message.answer(
+        if turbine >= 10:
+            return await call.message.answer(
                 f'{url}, у вас уже куплено максимальное количество турбин {rloser}',
                 parse_mode='html')
-            return
         ch = 2000
-        balance = await getonlimater(message)
+        balance = await getonlimater(id)
         if balance < ch:
-            await call.message.answer(f'{url}, у вас недостаточно денег для покупки турбины. Её стоимость 2.000 материи {rloser}', parse_mode='html')
+            return await call.message.answer(f'{url}, у вас недостаточно денег для покупки турбины. Её стоимость 2.000 материи {rloser}', parse_mode='html')
         else:
-            await buy_turbine_db(id, ch)
+            ch2 = '{:,}'.format(ch).replace(',', '.')
+            await buy_turbine_db(id)
             await call.message.answer(f'{url}, вы успешно купили турбину за {ch2}$ {rwin}', parse_mode='html')
+
 
 async def snyt_pribl_generator(call):
     id = call.from_user.id
@@ -97,6 +102,7 @@ async def snyt_pribl_generator(call):
         else:
             await snyt_pribl_ferma_db(id, balance)
             await call.message.answer(f'{url}, вы успешно сняли {balance2}฿ с баланса вашей фермы {rwin}', parse_mode='html')
+
 
 async def oplata_nalogov_generator(call):
     id = call.from_user.id

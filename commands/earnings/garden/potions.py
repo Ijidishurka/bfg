@@ -36,54 +36,36 @@ async def potions_list(message):
 
 
 async def bay_potions(message):
-    id = message.from_user.id
+    user_id = message.from_user.id
     name = await getname(message)
-    url = await geturl(id, name)
+    url = await geturl(user_id, name)
     await register_users(message)
     result = await win_luser()
     rwin, rloser = result
-    corn = await getcorn(id)
+    corn = await getcorn(user_id)
+
+    potions = {
+        1: {"name": "Чай", "summ": 1, "st": 40},
+        2: {"name": "Чефир", "summ": 5, "st": 240},
+        3: {"name": "Кофе", "summ": 10, "st": 520},
+        4: {"name": "Энергетик", "summ": 20, "st": 1120},
+        5: {"name": "Крепкий кофе", "summ": 40, "st": 2400},
+        6: {"name": "Настойка из вишни", "summ": 50, "st": 3000},
+        7: {"name": "Сыворотка из плазмы", "summ": 400, "st": 30000}
+    }
+
     try:
         n = int(message.text.split()[2])
+        potion = potions[n]
     except:
-        await message.answer(f'{url}, вы не ввели номер зелья которое хотите сделать {rloser}', parse_mode='html')
+        await message.answer(f'{url}, вы ввели неверный номер зелья или не ввели его вовсе. {rloser}', parse_mode='html')
         return
 
-    if n == 1:
-        name = 'Чай'
-        summ = 1
-        st = 40
-    elif n == 2:
-        name = 'Чефир'
-        summ = 5
-        st = 240
-    elif n == 3:
-        name = 'Кофе'
-        summ = 10
-        st = 520
-    elif n == 4:
-        name = 'Энергетик'
-        summ = 20
-        st = 1120
-    elif n == 5:
-        name = 'Крепкий кофе'
-        summ = 40
-        st = 2400
-    elif n == 6:
-        name = 'Настойка из вишни'
-        summ = 50
-        st = 3000
-    elif n == 7:
-        name = 'Сыворотка из плазмы'
-        summ = 400
-        st = 30000
-    else:
-        await message.answer(f'{url}, вы ввели неверный номер зелья которое хотите купить {rloser}', parse_mode='html')
+    if corn < potion["st"]:
+        await message.answer(f'{url}, у вас недостаточно зёрен для создания данного зелья. {rloser}', parse_mode='html')
         return
 
-    if corn < st:
-        await message.answer(f'{url}, у вас недостаточно зёрен для создания данного зелья {rloser}', parse_mode='html')
-        return
-
-    await message.answer(f'{url}, Wizzi_, вы успешно создали "{name}", вам начислено {summ} энергии {rloser}', parse_mode='html')
-    await buy_postion_db(summ, st, id)
+    await message.answer(
+        f'{url}, вы успешно создали "{potion["name"]}", вам начислено {potion["summ"]} энергии. {rloser}',
+        parse_mode='html')
+    await buy_postion_db(potion["st"], potion["summ"], user_id)

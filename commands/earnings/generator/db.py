@@ -1,19 +1,17 @@
 from commands.db import conn, cursor
 
 
-async def getgenertor(id):
-    cursor.execute('SELECT turbine, balance, nalogs FROM generator WHERE user_id = ?', (id,))
-    result = cursor.fetchone()
-
+async def getgenerator(id):
+    result = cursor.execute('SELECT turbine, balance, nalogs FROM generator WHERE user_id = ?', (id,)).fetchone()
     if result:
         turbine, balance, nalogs = result
         return turbine, balance, nalogs, 1
     else:
-        return 0, 0, 0, 0, 0
+        return 0, 0, 0, 0
 
 
 async def getonlimater(id):
-    cursor.execute('SELECT matter FROM main WHERE user_id = ?', (id,))
+    cursor.execute('SELECT matter FROM mine WHERE user_id = ?', (id,))
     result = cursor.fetchone()[0]
     return result
 
@@ -34,7 +32,7 @@ async def getgenertor2(id):
         return 0
 
 
-async def buy_garden_db(id):
+async def buy_generator_db(id):
     cursor.execute('INSERT INTO generator (user_id, balance, nalogs, turbine) VALUES (?, ?, ?, ?)', (id, 0, 0, 0))
     cursor.execute('UPDATE mine SET matter = matter - 2000 WHERE user_id = ?', (id,))
     conn.commit()

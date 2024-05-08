@@ -3,31 +3,20 @@ from commands.db import register_users, getname, getads, getonlibalance, getstat
 from commands.bank.db import *
 from commands.main import geturl
 from commands.main import win_luser
-from commands.assets.transform import transform
 
 
 async def bank_pc(status):
-    if status == 0:
-        p = 6
-        c = 5
-        st = "Обычный"
-    elif status == 1:
-        p = 8
-        c = 4.5
-        st = "Standart VIP"
-    elif status == 2:
-        p = 10
-        c = 3.5
-        st = "Gold VIP"
-    elif status == 3:
-        p = 12
-        c = 3
-        st = "Platinum VIP"
-    elif status == 4:
-        p = 15
-        c = 2.5
-        st = "Администратор"
-    return p, c, st
+    status_info = {
+        1: {"p": 8, "c": 4.5, "st": "Standart VIP"},
+        2: {"p": 10, "c": 3.5, "st": "Gold VIP"},
+        3: {"p": 12, "c": 3, "st": "Platinum VIP"},
+        4: {"p": 15, "c": 2.5, "st": "Администратор"},
+        "default": {"p": 6, "c": 5, "st": "Обычный"}
+    }
+
+    info = status_info.get(status, status_info["default"])
+    return info["p"], info["c"], info["st"]
+
 
 async def bank_cmd(message):
     user_name = await getname(message)
@@ -56,7 +45,7 @@ async def bank_cmd(message):
    💵 Под депозитом: {depozit}$
    ⏳ Можно снять: {timedepozit}
 
-{ads}''', parse_mode='html', disable_web_page_preview=True)
+{ads}''', disable_web_page_preview=True)
 
 
 async def putbank(message):
@@ -69,7 +58,10 @@ async def putbank(message):
     rwin, rloser = result
 
     try:
-        summ = int(message.text.split()[2])
+        split_text = message.text.split()
+        if len(split_text) < 3: return
+        elif split_text[2] in ['все', 'всё']: summ = balance
+        else: summ = int(split_text[2])
     except:
         return
 
@@ -78,12 +70,11 @@ async def putbank(message):
     if summ <= balance:
         if summ > 0:
             await putbank_db(summ, user_id)
-            await message.answer(f'{url}, вы успешно положили на банковский счёт {summ2}$ {rwin}', parse_mode='html')
+            await message.answer(f'{url}, вы успешно положили на банковский счёт {summ2}$ {rwin}')
         else:
-            await message.answer(f'{url}, вы не можете положить в банк отрицательную сумму денег {rloser}',
-                                 parse_mode='html')
+            await message.answer(f'{url}, вы не можете положить в банк отрицательную сумму денег {rloser}')
     else:
-        await message.answer(f'{url}, вы не можете положить в банк больше чем у вас на балансе {rloser}', parse_mode='html')
+        await message.answer(f'{url}, вы не можете положить в банк больше чем у вас на балансе {rloser}')
 
 
 async def takeoffbank(message):
@@ -96,44 +87,36 @@ async def takeoffbank(message):
     rwin, rloser = result
 
     try:
-        summ = int(message.text.split()[2])
+        split_text = message.text.split()
+        if len(split_text) < 3: return
+        elif split_text[2] in ['все', 'всё']: summ = balance
+        else: summ = int(split_text[2])
     except:
-        try:
-            if message.text.split()[2] in ['все', 'всё']:
-                summ = balance
-        except:
-            return
+        return
 
     summ2 = '{:,}'.format(summ).replace(',', '.')
 
     if summ <= balance:
         if summ > 0:
             await takeoffbank_db(summ, user_id)
-            await message.answer(f'{url}, вы успешно сняли с банковского счёта {summ2}$ {rwin}', parse_mode='html')
+            await message.answer(f'{url}, вы успешно сняли с банковского счёта {summ2}$ {rwin}')
         else:
-            await message.answer(f'{url}, вы не можете снять с банка отрицательную сумму денег {rloser}',
-                                 parse_mode='html')
+            await message.answer(f'{url}, вы не можете снять с банка отрицательную сумму денег {rloser}')
     else:
-        await message.answer(f'{url}, вы не можете снять с банка больше чем у вас есть {rloser}', parse_mode='html')
+        await message.answer(f'{url}, вы не можете снять с банка больше чем у вас есть {rloser}')
 
 
 async def dep_comsa(status):
-    if status == 0:
-        c = 0.05
-        p = 5
-    elif status == 1:
-        c = 0.045
-        p = 4.5
-    elif status == 2:
-        c = 0.035
-        p = 3.5
-    elif status == 3:
-        c = 0.03
-        p = 3
-    elif status == 4:
-        c = 0.025
-        p = 2.5
-    return c, p
+    status_info = {
+        0: {"c": 0.05, "p": 5},
+        1: {"c": 0.045, "p": 4.5},
+        2: {"c": 0.035, "p": 3.5},
+        3: {"c": 0.03, "p": 3},
+        4: {"c": 0.025, "p": 2.5}
+    }
+
+    info = status_info.get(status, {"c": 0, "p": 0})
+    return info["c"], info["p"]
 
 
 async def pudepozit(message):
@@ -147,16 +130,19 @@ async def pudepozit(message):
     rwin, rloser = result
 
     try:
-        summ = int(message.text.split()[2])
+        split_text = message.text.split()
+        if len(split_text) < 3: return
+        elif split_text[2] in ['все', 'всё']: summ = balance
+        else: summ = int(split_text[2])
     except:
         return
 
     if summ < 1000:
-        await message.answer(f'{url}, ваш взнос не может быть меньше 1000$ {rloser}', parse_mode='html')
+        await message.answer(f'{url}, ваш взнос не может быть меньше 1000$ {rloser}')
         return
 
     if depozitb != 0:
-        await message.answer(f'{url}, у вас уже открыт депозит. Вы не можете дополнить его {rloser}', parse_mode='html')
+        await message.answer(f'{url}, у вас уже открыт депозит. Вы не можете дополнить его {rloser}')
         return
 
     comsa = summ * 0.15
@@ -171,9 +157,9 @@ async def pudepozit(message):
         dt = datetime.now()
         await putdep_db(csumm, user_id, dt, summ)
         await message.answer(f'{url}, вы успешно положили на депозитный счёт {summ2}$ под 6% {rwin}.\n\nВы заплатили '
-                             f'комиссию в размере {comsa2}$ (1.5%) за использование банковских услуг.', parse_mode='html')
+                             f'комиссию в размере {comsa2}$ (1.5%) за использование банковских услуг.')
     else:
-        await message.answer(f'{url}, вы не можете положить на депозит больше чем у вас на балансе {rloser}', parse_mode='html')
+        await message.answer(f'{url}, вы не можете положить на депозит больше чем у вас на балансе {rloser}')
 
 
 async def takeoffdepozit(message):
@@ -192,48 +178,41 @@ async def takeoffdepozit(message):
     c, p = await dep_comsa(status)
 
     try:
-        summ = int(message.text.split()[2])
+        split_text = message.text.split()
+        if len(split_text) < 3: return
+        elif split_text[2] in ['все', 'всё']: summ = balance
+        else: summ = int(split_text[2])
     except:
-        try:
-            if message.text.split()[2] in ['все', 'всё']:
-                summ = balance
-        except:
-            return
+        return
 
     if timedepozit > dt:
-        await message.answer(f'{url}, у вас уже открыт депозит. Вы не можете снять с него деньги раньше времени {rloser}',
-                             parse_mode='html')
+        await message.answer(f'{url}, у вас уже открыт депозит. Вы не можете снять с него деньги раньше времени {rloser}')
         return
 
     if summ > balance:
-        await message.answer(f'{url}, вы не можете снять с депозита больше чем у вас есть {rloser}',
-                             parse_mode='html')
+        await message.answer(f'{url}, вы не можете снять с депозита больше чем у вас есть {rloser}')
         return
 
     if summ <= 0:
-        await message.answer(f'{url}, вы не можете снять с депозита отрицательную сумму денег {rloser}',
-                             parse_mode='html')
+        await message.answer(f'{url}, вы не можете снять с депозита отрицательную сумму денег {rloser}')
         return
 
     if summ < 100:
-        await message.answer(f'{url}, вы не можете снять меньше 100$ {rloser}', parse_mode='html')
+        await message.answer(f'{url}, вы не можете снять меньше 100$ {rloser}')
         return
 
     if summ < balance:
         ost = balance - summ
         await getdepost(ost, user_id)
 
-    comsa = summ * int(c)
-    csumm = summ - comsa
-    comsa = int(comsa)
-    csumm = int(csumm)
-
-    summ2 = '{:,}'.format(csumm).replace(',', '.')
-    comsa2 = '{:,}'.format(comsa).replace(',', '.')
+    comsa = int(summ * int(c))
+    csumm = int(summ - comsa)
+    summ2 = '{:,.2f}'.format(csumm).replace(',', '.')
+    comsa2 = '{:,.2f}'.format(comsa).replace(',', '.')
 
     await sndep_db(csumm, user_id)
     await message.answer(f'''{url}, вы успешно сняли с депозитного счёта {summ2}$ 😁
 
 Учтите, сняв деньги вы закрыли свой депозитный счёт. Чтобы его вновь активировать положите под депозит любую сумму.
 
-Вы заплатили налог в размере {comsa2}$ ({p}%) за снятие денег с депозита.''', parse_mode='html')
+Вы заплатили налог в размере {comsa2}$ ({p}%) за снятие денег с депозита.''')

@@ -40,19 +40,13 @@ async def getcase_cmd(message):
 
 
 async def open_case(message):
-    try:
-        case = int(message.text.split()[2])
-    except:
-        return
+    try: case = int(message.text.split()[2])
+    except: return
 
-    if case == 1:
-        await open_case_1(message)
-    elif case == 2:
-        await open_case_2(message)
-    elif case == 3:
-        await open_case_3(message)
-    elif case == 4:
-        await open_case_4(message)
+    if case == 1: await open_case_1(message)
+    elif case == 2: await open_case_2(message)
+    elif case == 3: await open_case_3(message)
+    elif case == 4: await open_case_4(message)
 
 
 async def open_case_1(message):
@@ -63,10 +57,8 @@ async def open_case_1(message):
     case1, case2, case3, case4 = await getcase(message)
     result = await win_luser()
     rwin, rloser = result
-    try:
-        summ_case = int(message.text.split()[3])
-    except:
-        summ_case = 1
+    try: summ_case = int(message.text.split()[3])
+    except: summ_case = 1
 
     if case1 < summ_case:
         await message.answer(f'''{url}, у вас недостаточно кейсов для открытия {rloser}\n\n{ads}''', parse_mode='html', disable_web_page_preview=True)
@@ -74,22 +66,19 @@ async def open_case_1(message):
 
     i = random.randint(1, 3)
     if i == 1:
-        table = 'users'
-        v = 'balance'
+        table, v = 'users', 'balance'
         summ = random.randint(100000000, 400000000)
         summ = summ * summ_case
         summ2 = '{:,}'.format(summ).replace(',', '.')
         txt = f'🔥 Итого денег - {summ2}$'
     elif i == 2:
-        table = 'users'
-        v = 'rating'
+        table, v = 'users', 'rating'
         summ = random.randint(10000, 90050)
         summ = summ * summ_case
         summ2 = '{:,}'.format(summ).replace(',', '.')
         txt = f'👑 Итого рейтинга - {summ2}'
     else:
-        table = 'users'
-        v = 'exp'
+        table, v = 'users', 'exp'
         summ = random.randint(100, 999)
         summ = summ * summ_case
         summ2 = '{:,}'.format(summ).replace(',', '.')
@@ -98,7 +87,7 @@ async def open_case_1(message):
     await open_case_db(user_id, table, v, summ, 'case1', summ_case)
     await message.answer(
         f'{url}, вы открыли {summ_case} обычный кейс:\n\n{txt}\n\n{ads}',
-        parse_mode='html')
+        parse_mode='html', disable_web_page_preview=True)
 
 
 async def open_case_2(message):
@@ -109,10 +98,8 @@ async def open_case_2(message):
     case1, case2, case3, case4 = await getcase(message)
     result = await win_luser()
     rwin, rloser = result
-    try:
-        summ_case = int(message.text.split()[3])
-    except:
-        summ_case = 1
+    try: summ_case = int(message.text.split()[3])
+    except: summ_case = 1
 
     if case2 < summ_case:
         await message.answer(f'''{url}, у вас недостаточно кейсов для открытия {rloser}\n\n{ads}''', parse_mode='html', disable_web_page_preview=True)
@@ -120,22 +107,19 @@ async def open_case_2(message):
 
     i = random.randint(1, 3)
     if i == 1:
-        table = 'users'
-        v = 'balance'
+        table, v = 'users', 'balance'
         summ = random.randint(1000000000, 4000000000)
         summ = summ * summ_case
         summ2 = '{:,}'.format(summ).replace(',', '.')
         txt = f'🔥 Итого денег - {summ2}$'
     elif i == 2:
-        table = 'users'
-        v = 'rating'
+        table, v = 'users', 'rating'
         summ = random.randint(100000, 900050)
         summ = summ * summ_case
         summ2 = '{:,}'.format(summ).replace(',', '.')
         txt = f'👑 Итого рейтинга - {summ2}'
     else:
-        table = 'users'
-        v = 'exp'
+        table, v = 'users', 'exp'
         summ = random.randint(1000, 9990)
         summ = summ * summ_case
         summ2 = '{:,}'.format(summ).replace(',', '.')
@@ -144,7 +128,7 @@ async def open_case_2(message):
     await open_case_db(user_id, table, v, summ, 'case2', summ_case)
     await message.answer(
         f'{url}, вы открыли {summ_case} золотой кейс:\n\n{txt}\n\n{ads}',
-        parse_mode='html')
+        parse_mode='html', disable_web_page_preview=True)
 
 
 async def open_case_3(message):
@@ -155,10 +139,8 @@ async def open_case_3(message):
     case1, case2, case3, case4 = await getcase(message)
     result = await win_luser()
     rwin, rloser = result
-    try:
-        summ_case = int(message.text.split()[3])
-    except:
-        summ_case = 1
+    try: summ_case = int(message.text.split()[3])
+    except: summ_case = 1
 
     if case3 < summ_case:
         await message.answer(f'''{url}, у вас недостаточно кейсов для открытия {rloser}\n\n{ads}''', parse_mode='html', disable_web_page_preview=True)
@@ -166,22 +148,19 @@ async def open_case_3(message):
 
     i = random.randint(1, 3)
     if i == 1:
-        table = 'users'
-        v = 'balance'
+        table, v = 'users', 'balance'
         summ = random.randint(10000000000, 40000000000)
         summ = summ * summ_case
         summ2 = '{:,}'.format(summ).replace(',', '.')
         txt = f'🔥 Итого денег - {summ2}$'
     elif i == 2:
-        table = 'users'
-        v = 'rating'
+        table, v = 'users', 'rating'
         summ = random.randint(1000000, 9000050)
         summ = summ * summ_case
         summ2 = '{:,}'.format(summ).replace(',', '.')
         txt = f'👑 Итого рейтинга - {summ2}'
     else:
-        table = 'users'
-        v = 'exp'
+        table, v = 'users', 'exp'
         summ = random.randint(10000, 99900)
         summ = summ * summ_case
         summ2 = '{:,}'.format(summ).replace(',', '.')
@@ -190,7 +169,7 @@ async def open_case_3(message):
     await open_case_db(user_id, table, v, summ, 'case3', summ_case)
     await message.answer(
         f'{url}, вы открыли {summ_case} рудный кейс:\n\n{txt}\n\n{ads}',
-        parse_mode='html')
+        parse_mode='html', disable_web_page_preview=True)
 
 
 async def open_case_4(message):
@@ -201,10 +180,8 @@ async def open_case_4(message):
     case1, case2, case3, case4 = await getcase(message)
     result = await win_luser()
     rwin, rloser = result
-    try:
-        summ_case = int(message.text.split()[3])
-    except:
-        summ_case = 1
+    try: summ_case = int(message.text.split()[3])
+    except: summ_case = 1
 
     if case4 < summ_case:
         await message.answer(f'''{url}, у вас недостаточно кейсов для открытия {rloser}\n\n{ads}''', parse_mode='html', disable_web_page_preview=True)
@@ -212,22 +189,19 @@ async def open_case_4(message):
 
     i = random.randint(1, 3)
     if i == 1:
-        table = 'users'
-        v = 'balance'
+        table, v = 'users', 'balance'
         summ = random.randint(100000000000, 400000000000)
         summ = summ * summ_case
         summ2 = '{:,}'.format(summ).replace(',', '.')
         txt = f'🔥 Итого денег - {summ2}$'
     elif i == 2:
-        table = 'users'
-        v = 'rating'
+        table, v = 'users', 'rating'
         summ = random.randint(10000000, 90000050)
         summ = summ * summ_case
         summ2 = '{:,}'.format(summ).replace(',', '.')
         txt = f'👑 Итого рейтинга - {summ2}'
     else:
-        table = 'users'
-        v = 'exp'
+        table, v = 'users', 'exp'
         summ = random.randint(10000, 109900)
         summ = summ * summ_case
         summ2 = '{:,}'.format(summ).replace(',', '.')
@@ -236,6 +210,4 @@ async def open_case_4(message):
     await open_case_db(user_id, table, v, summ, 'case4', summ_case)
     await message.answer(
         f'{url}, вы открыли {summ_case} материальный кейс:\n\n{txt}\n\n{ads}',
-        parse_mode='html')
-
-
+        parse_mode='html', disable_web_page_preview=True)

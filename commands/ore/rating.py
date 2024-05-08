@@ -38,7 +38,7 @@ async def sellrating(message):
     if r >= summ_r:
         if r - summ_r >= 0 and summ_r > 0:
             await sellrrating_db(summ, summ_r, user_id)
-            await message.answer(f'{url}, ааааа, вы понизили количество вашего рейтинга на {summ2}👑 за {summ_r2}$ {rwin}', parse_mode='html')
+            await message.answer(f'{url}, вы понизили количество вашего рейтинга на {summ2}👑 за {summ_r2}$ {rwin}', parse_mode='html')
         else:
             await message.answer(f'{url}, вы неправильно ввели число рейтинга которое хотите продать {rloser}',
                                  parse_mode='html')

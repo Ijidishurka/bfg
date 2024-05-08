@@ -1,20 +1,39 @@
-from commands.db import register_users, getinlinename
-from commands.assets.kb import helpKB
+from aiogram import types
+from assets.antispam import antispam
+from commands.db import getinlinename
+import commands.assets.kb as kb
+import config as cfg
+from bot import bot, dp
 
+
+@antispam
 async def help_cmd(message):
-    await register_users(message)
-    await message.answer('''Игрок, выберите категорию:
+    await message.answer(f'''Игрок, выберите категорию:
    1️⃣ Основное
    2️⃣ Игры
    3️⃣ Развлекательное
    4️⃣ Кланы
 
 💬 Так же у нас есть общая беседа №1 и общая беседа №2
-🆘 По всем вопросам - @molodost_tvoya''', reply_markup=helpKB)
+🆘 По всем вопросам - {cfg.admin_username}''', reply_markup=kb.help_menu())
+
+
+async def help_back(call):
+    await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=f'''
+Игрок, выберите категорию:
+   1️⃣ Основное
+   2️⃣ Игры
+   3️⃣ Развлекательное
+   4️⃣ Кланы
+
+💬 Так же у нас есть общая беседа №1 и общая беседа №2
+🆘 По всем вопросам - {cfg.admin_username}''', reply_markup=kb.help_menu())
+
 
 async def help_osn(call):
     name = await getinlinename(call)
-    await call.message.answer(f'''{name}, основные команды:
+    await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=f'''
+{name}, основные команды:
 💡 Разное:
    📒 Профиль
    💫 Мой лимит
@@ -44,11 +63,13 @@ async def help_osn(call):
    ⚖ РП Команды - узнать РП команды
    🏆 Мой статус
    🔱 Статусы️
-   💭 !Беседа - беседа бота''')
+   💭 !Беседа - беседа бота''', reply_markup=kb.help_back())
+
 
 async def help_game(call):
     name = await getinlinename(call)
-    await call.message.answer(f'''{name}, игровые команды:
+    await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=f'''
+{name}, игровые команды:
 🚀 Игры:
    🎮 Спин [ставка]
    🎲 Кубик [число] [ставка]
@@ -57,11 +78,13 @@ async def help_game(call):
    ⚽️ Футбол [ставка]
    🎳️ Боулинг [ставка]
    📉 Трейд [вверх/вниз] [ставка]
-   🎰 Казино [ставка]''')
+   🎰 Казино [ставка]''', reply_markup=kb.help_back())
+
 
 async def help_rz(call):
     name = await getinlinename(call)
-    await call.message.answer(f'''{name}, развлекательные команды:
+    await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=f'''
+{name}, развлекательные команды:
    🔮 Шар [фраза]
    💬 Выбери [фраза] или [фраза2]
    📊 Инфа [фраза]
@@ -96,11 +119,13 @@ async def help_rz(call):
    💰 Продать сад (временно недоступно)
    💦 Сад полить
    🍸 Зелья
-   🔮 Создать зелье [номер]''')
+   🔮 Создать зелье [номер]''', reply_markup=kb.help_back())
 
-async def help_clans(call):
+
+async def help_clans(call: types.CallbackQuery):
     name = await getinlinename(call)
-    await call.message.answer(f'''{name}, клановые команды:
+    await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=f'''
+{name}, клановые команды:
 🗂 Общие команды:
    💡 Мой клан - общая информация
    🏆 Клан топ - общий рейтинг кланов(Недоступно)
@@ -132,4 +157,29 @@ async def help_clans(call):
 🛡 Клановые захваты:
    👮‍♀ Клан ограбление (недоступно) - ограбление казны штата
 
-📜 Будьте осторожнее с командами повышения и понижения, повысив игрока до определенного статуса он сможет изменять название клана и управлять им.''')
+📜 Будьте осторожнее с командами повышения и понижения, повысив игрока до определенного статуса он сможет изменять название клана и управлять им.''', reply_markup=kb.help_back())
+
+
+@dp.callback_query_handler(lambda c: c.data == 'help_back')
+async def help_back_s(callback_query: types.CallbackQuery):
+    await help_back(callback_query)
+
+
+@dp.callback_query_handler(lambda c: c.data == 'help_osn')
+async def help_osn_s(callback_query: types.CallbackQuery):
+    await help_osn(callback_query)
+
+
+@dp.callback_query_handler(lambda c: c.data == 'help_game')
+async def help_game_s(callback_query: types.CallbackQuery):
+    await help_game(callback_query)
+
+
+@dp.callback_query_handler(lambda c: c.data == 'help_rz')
+async def help_rz_s(callback_query: types.CallbackQuery):
+    await help_rz(callback_query)
+
+
+@dp.callback_query_handler(lambda c: c.data == 'help_clans')
+async def help_clans_s(callback_query: types.CallbackQuery):
+    await help_clans(callback_query)

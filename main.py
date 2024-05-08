@@ -1,14 +1,13 @@
 # YT: userbotik
 import install
-from aiogram import Bot, Dispatcher, types
-from aiogram.contrib.fsm_storage.memory import MemoryStorage
+from aiogram import types
 from config import *
 from commands.main import *
 from commands.help import *
 from commands.balance import *
 from commands.status.main import *
 from commands.rz import *
-from commands.peredat import *
+from commands.transfer import *
 from commands.games.games import *
 from commands.assets.auto import automatisation
 from commands.ore.btcs import *
@@ -22,11 +21,10 @@ from commands.earnings.garden.main import *
 from commands.earnings.garden.potions import *
 from commands.earnings.farm.main import *
 from commands.earnings.generator.main import *
-from commands.modules import *
-
-
-bot = Bot(token=API_TOKEN)
-dp = Dispatcher(bot, storage=MemoryStorage())
+from assets.modules import *
+from commands.admin.admin import give_money
+from commands.admin.promo import activ_promo
+from bot import dp
 
 
 @dp.message_handler(commands=['start'])
@@ -324,6 +322,16 @@ async def bowling_cmd_s(message: types.Message):
     await bowling_cmd(message)
 
 
+@dp.message_handler(lambda message: message.text.lower().startswith("казино"))
+async def game_casino_s(message: types.Message):
+    await game_casino(message)
+
+
+@dp.message_handler(lambda message: message.text.lower().startswith('выдать'))
+async def give_money_s(message: types.Message):
+    await give_money(message)
+
+
 @dp.callback_query_handler(lambda c: c.data == 'garden_sobrat')
 async def snyt_pribl_garden_s(callback_query: types.CallbackQuery):
     await snyt_pribl_garden(callback_query)
@@ -377,26 +385,6 @@ async def snyt_pribl_ferma_s(callback_query: types.CallbackQuery):
 @dp.callback_query_handler(lambda c: c.data == 'ferma_nalog')
 async def oplata_nalogov_ferma_S(callback_query: types.CallbackQuery):
     await oplata_nalogov_ferma(callback_query)
-
-
-@dp.callback_query_handler(lambda c: c.data == 'help_osn')
-async def help_osn_s(callback_query: types.CallbackQuery):
-    await help_osn(callback_query)
-
-
-@dp.callback_query_handler(lambda c: c.data == 'help_game')
-async def help_game_s(callback_query: types.CallbackQuery):
-    await help_game(callback_query)
-
-
-@dp.callback_query_handler(lambda c: c.data == 'help_rz')
-async def help_rz_s(callback_query: types.CallbackQuery):
-    await help_rz(callback_query)
-
-
-@dp.callback_query_handler(lambda c: c.data == 'help_clans')
-async def help_clans_s(callback_query: types.CallbackQuery):
-    await help_clans(callback_query)
 
 
 async def main(dp):

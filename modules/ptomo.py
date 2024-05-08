@@ -43,6 +43,5 @@ async def promo_start(message: types.Message):
         await message.reply(f'🎁 <b>{username}</b>, вы получили:\n1.000.000.000.000.000.000$\n1.000.000.000 Oпыта\n10.000 Зерн\n10.000 материи', parse_mode='html')
 
 
-
 def register_handlers(dp: Dispatcher):
     dp.register_message_handler(promo_start, lambda message: message.text.lower().startswith('промо start'))

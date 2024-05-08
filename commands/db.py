@@ -1,14 +1,16 @@
 import sqlite3
-import datetime
+from datetime import datetime
+import config as cfg
+from bot import bot
 
 
 conn = sqlite3.connect('users.db')
 cursor = conn.cursor()
 
 
-cursor.execute('''CREATE TABLE IF NOT EXISTS users (user_id INTEGER, name TEXT, balance INTEGER, btc INTEGER, 
+cursor.execute('''CREATE TABLE IF NOT EXISTS users (user_id INTEGER, name TEXT, balance NUMERIC, btc INTEGER, 
 bank INTEGER, depozit INTEGER, timedepozit TIMESTAMP, exp INTEGER, energy INTEGER, case1 INTEGER, case2 INTEGER, case3 INTEGER, case4 INTEGER, 
-rating INTEGER, games INTEGER, ecoins INTEGER, per INTEGER, dregister TIMESTAMP, corn INTEGER, status INTEGER)''')
+rating INTEGER, games INTEGER, ecoins INTEGER, per INTEGER, dregister TIMESTAMP, corn INTEGER, status INTEGER, issued NUMERIC, ban NUMERIC)''')
 
 
 cursor.execute('''CREATE TABLE IF NOT EXISTS mine (user_id INTEGER, iron INTEGER, gold INTEGER, diamond INTEGER, 
@@ -17,45 +19,62 @@ titanium INTEGER, cobalt INTEGER, ectoplasm INTEGER)''')
 
 
 cursor.execute('''CREATE TABLE IF NOT EXISTS ferma
-                (user_id INTEGER, ferma INTEGER, balance INTEGER, nalogs INTEGER, cards INTEGER)''')
+                (user_id INTEGER, balance NUMERIC, nalogs INTEGER, cards INTEGER)''')
 
 
 cursor.execute('''CREATE TABLE IF NOT EXISTS generator
-                (user_id INTEGER, balance INTEGER, nalogs INTEGER, turbine INTEGER)''')
+                (user_id INTEGER, balance NUMERIC, nalogs INTEGER, turbine INTEGER)''')
 
 
 cursor.execute('''CREATE TABLE IF NOT EXISTS garden
-                (user_id INTEGER, balance INTEGER, nalogs INTEGER, tree INTEGER, water INTEGER)''')
+                (user_id INTEGER, balance NUMERIC, nalogs INTEGER, tree INTEGER, water INTEGER)''')
 
 
-cursor.execute('''CREATE TABLE IF NOT EXISTS business (user_id INTEGER, business INTEGER, balance INTEGER, 
+cursor.execute('''CREATE TABLE IF NOT EXISTS business (user_id INTEGER, balance NUMERIC, 
 nalogs INTEGER, territory INTEGER, bsterritory INTEGER)''')
 
 
-cursor.execute('''CREATE TABLE IF NOT EXISTS sett
-                (ads TEXT, kursbtc INTEGER)''')
+cursor.execute('''CREATE TABLE IF NOT EXISTS promo (name TEXT, summ INTEGER, activ INTEGER)''')
+
+
+cursor.execute('''CREATE TABLE IF NOT EXISTS promo_activ (user_id INTEGER, name TEXT)''')
+
+
+cursor.execute('''CREATE TABLE IF NOT EXISTS sett (ads TEXT, kursbtc INTEGER)''')
+conn.commit()
+
+
+cursor.execute('''CREATE TABLE IF NOT EXISTS chats (chat_id INTEGER, users INTEGER)''')
 conn.commit()
 
 
 async def register_users(message):
     user_id = message.from_user.id
-
-    cursor.execute('SELECT name FROM users WHERE user_id = ?', (user_id,))
-    ex = cursor.fetchone()
+    ex = cursor.execute('SELECT name FROM users WHERE user_id = ?', (user_id,)).fetchone()
 
     if not ex:
-        dt = datetime.datetime.now()
+        dt = datetime.now()
         cursor.execute('INSERT INTO users (user_id, name, balance, btc, bank, depozit, timedepozit, exp, energy, case1, case2, case3, '
                        'case4, rating, games, ecoins, per, dregister, corn, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                       (user_id, 'Игрок', 6000000000, 200, 0, 0, dt, 5000000, 10, 0, 0, 0, 0, 0, 0, 0, 0, dt, 0, 0))
+                       (user_id, 'Игрок', cfg.start_money, 200, 0, 0, dt, 5000000, 10, 0, 0, 0, 0, 0, 0, 0, 0, dt, 0, 0))
+
         cursor.execute('INSERT INTO mine (user_id, iron, gold, diamond, amestit, aquamarine, emeralds, matter, '
                        'plasma, nickel, titanium, cobalt, ectoplasm) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                        (user_id, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
-        cursor.execute('INSERT INTO ferma (user_id, ferma, balance, nalogs, cards) VALUES (?, ?, ?, ?, ?)',
-                       (user_id, 0, 0, 0, 0))
-        cursor.execute('INSERT INTO business (user_id, business, balance, nalogs, territory, bsterritory) VALUES (?, '
-                       '?, ?, ?, ?, ?)',
-                       (user_id, 0, 0, 0, 5, 1))
+        conn.commit()
+
+
+async def reg_user(user_id):
+    ex = cursor.execute('SELECT name FROM users WHERE user_id = ?', (user_id,)).fetchone()
+    if not ex:
+        dt = datetime.now()
+        cursor.execute('INSERT INTO users (user_id, name, balance, btc, bank, depozit, timedepozit, exp, energy, case1, case2, case3, '
+                       'case4, rating, games, ecoins, per, dregister, corn, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                       (user_id, 'Игрок', cfg.start_money, 200, 0, 0, dt, 5000000, 10, 0, 0, 0, 0, 0, 0, 0, 0, dt, 0, 0))
+
+        cursor.execute('INSERT INTO mine (user_id, iron, gold, diamond, amestit, aquamarine, emeralds, matter, '
+                       'plasma, nickel, titanium, cobalt, ectoplasm) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                       (user_id, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
         conn.commit()
 
 
@@ -107,12 +126,15 @@ async def getbalance(message):
     return name, balance, btc, bank
 
 
-async def getpofildb(message):
-    user_id = message.from_user.id
-    cursor.execute('SELECT balance, btc, bank, ecoins, energy, exp, games, rating, dregister FROM users WHERE user_id = ?', (user_id,))
-    i = cursor.fetchone()
-    balance, btc, bank, ecoins, energy, exp, games, rating, dregister = i
-    return balance, btc, bank, ecoins, energy, exp, games, rating, dregister
+async def getpofildb(user_id):
+    data = cursor.execute('SELECT balance, btc, bank, ecoins, energy, exp, games, rating, dregister FROM users WHERE user_id = ?', (user_id,)).fetchone()
+
+    ferma = cursor.execute('SELECT user_id FROM ferma WHERE user_id = ?', (user_id,)).fetchone()
+    business = cursor.execute('SELECT user_id FROM business WHERE user_id = ?', (user_id,)).fetchone()
+    garden = cursor.execute('SELECT user_id FROM garden WHERE user_id = ?', (user_id,)).fetchone()
+    generator = cursor.execute('SELECT user_id FROM generator WHERE user_id = ?', (user_id,)).fetchone()
+
+    return data, (ferma, business, garden, generator)
 
 
 async def getonlibalance(message):
@@ -129,9 +151,10 @@ async def getlimitdb(message):
     return i
 
 
-async def getads(message):
-    ex = '<b>Не знаешь как сделать юзер бота?</b>\n<a href="https://t.me/userbotik/5">Скорее нажимай на это сообщение😏</a>'
-    return ex
+async def getads(message=None):
+    ads = cursor.execute("SELECT ads FROM sett").fetchone()[0]
+    ads = ads.replace(r'\n', '\n')
+    return ads
 
 
 async def setname(name, id):
@@ -162,6 +185,23 @@ async def get_colvo_users():
 
 
 async def getstatus(id):
-    cursor.execute(f"SELECT status FROM users WHERE user_id = ?", (id,))
-    i = cursor.fetchone()[0]
-    return i
+    return cursor.execute(f"SELECT status FROM users WHERE user_id = ?", (id,)).fetchone()[0]
+
+
+async def getban(id):
+    return cursor.execute(f"SELECT ban FROM users WHERE user_id = ?", (id,)).fetchone()[0]
+
+
+async def upd_chat_db(chat_id):
+    res = cursor.execute(f"SELECT users FROM chats WHERE chat_id = ?", (chat_id,)).fetchone()
+    if not res:
+        cursor.execute('INSERT INTO chats (chat_id, users) VALUES (?, ?)', (chat_id, 0))
+        conn.commit()
+        res = 0
+    else:
+        res = res[0]
+
+    count = await bot.get_chat_members_count(chat_id)
+    if res != count:
+        cursor.execute("UPDATE chats SET users = ? WHERE chat_id = ?", (count, chat_id))
+        conn.commit()
