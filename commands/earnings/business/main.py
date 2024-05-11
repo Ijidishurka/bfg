@@ -1,15 +1,16 @@
 from commands.earnings.business.db import *
-from commands.db import register_users, getname, getonlibalance, getidname
+from commands.db import getname, getonlibalance, getidname
 from commands.main import geturl
 from commands.main import win_luser
 from commands.assets.kb import help_bsKB
+from assets.antispam import antispam_earning, new_earning_msg, antispam
 
 
+@antispam
 async def business_list(message):
     id = message.from_user.id
     name = await getname(message)
     url = await geturl(id, name)
-    await register_users(message)
     await message.answer(f'''{url}, теперь ты можешь принимать решения сам и влиять на свой бизнес.
 
 🪓 Для начала я проведу тебе маленький инструктаж по поводу данных бизнесов, ты не можешь просто купить бизнес и начать зарабатывать на нём. Теперь вам предоставлена возможность самому влиять на доход, увеличить территорию бизнеса, закупать продукты и платить налоги в казну штата.
@@ -19,6 +20,7 @@ async def business_list(message):
 💫 Далее вы можете при помощи команд управлять бизнесом, увеличивать его доход, покупать улучшения и прочее. Чтобы узнать все команды введите команду "Помощь" и выберите соответствующую кнопку.''', parse_mode='html')
 
 
+@antispam
 async def my_business(message):
     id = message.from_user.id
     name = await getname(message)
@@ -39,14 +41,16 @@ async def my_business(message):
     bsterritory = '{:,}'.format(data[4]).replace(',', '.')
     dox = '{:,}'.format(dox).replace(',', '.')
 
-    await message.answer(f'''{url}, информация о вашем бизнесе "Бизнес":
+    msg = await message.answer(f'''{url}, информация о вашем бизнесе "Бизнес":
 🧱 Территория: {territory} м²
 🏢 Территория бизнеса: {bsterritory} м²
 💸 Налоги: {nalogs}$/5.000.000$
 💰 Прибыль: {balance}$
 💷 Доход: {dox}$''', parse_mode='html', reply_markup=help_bsKB)
+    await new_earning_msg(msg.chat.id, msg.message_id)
 
 
+@antispam
 async def buy_business(message):
     id = message.from_user.id
     name = await getname(message)
@@ -65,6 +69,7 @@ async def buy_business(message):
             await message.answer(f'{url}, вы успешно построили свой бизнес для подробностей введите "Мой бизнес" {rwin}', parse_mode='html')
 
 
+@antispam_earning
 async def buy_territory(call):
     id = call.from_user.id
     name = await getidname(id)
@@ -86,6 +91,7 @@ async def buy_territory(call):
             await call.message.answer(f'{url}, вы успешно увеличили территорию бизнеса на 1 м² за {ch2}$ {rwin}', parse_mode='html')
 
 
+@antispam_earning
 async def buy_bsterritory(call):
     id = call.from_user.id
     name = await getidname(id)
@@ -110,6 +116,7 @@ async def buy_bsterritory(call):
         await call.message.answer(f'{url}, вы успешно увеличили бизнес на 1 м² за {ch2}$ {rwin}', parse_mode='html')
 
 
+@antispam_earning
 async def snyt_pribl_business(call):
     id = call.from_user.id
     name = await getidname(id)
@@ -128,6 +135,7 @@ async def snyt_pribl_business(call):
         await call.message.answer(f'{url}, вы успешно сняли {balance2}$ с баланса вашего бизнеса {rwin}', parse_mode='html')
 
 
+@antispam_earning
 async def oplata_nalogov_business(call):
     id = call.from_user.id
     name = await getidname(id)

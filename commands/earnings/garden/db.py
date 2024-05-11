@@ -1,4 +1,5 @@
 from commands.db import conn, cursor
+from decimal import Decimal
 
 
 async def getgarden(id):
@@ -23,8 +24,11 @@ async def getogarden(id):
 
 
 async def buy_garden_db(id):
+    balance = cursor.execute('SELECT balance FROM users WHERE user_id = ?', (id,)).fetchone()[0]
+    summ = Decimal(balance) - Decimal('1000000000')
+
     cursor.execute('INSERT INTO garden (user_id, balance, nalogs, tree, water) VALUES (?, ?, ?, ?, ?)', (id, 0, 0, 0, 200))
-    cursor.execute('UPDATE users SET balance = balance - 1000000000 WHERE user_id = ?', (id,))
+    cursor.execute('UPDATE users SET balance = ? WHERE user_id = ?', (str(summ), id))
     conn.commit()
 
 
@@ -41,8 +45,11 @@ async def get_garden_nalogs(id):
 
 
 async def oplata_nalogs_garden_db(id, ch):
+    balance = cursor.execute('SELECT balance FROM users WHERE user_id = ?', (id,)).fetchone()[0]
+    summ = Decimal(balance) - Decimal(ch)
+
     cursor.execute('UPDATE garden SET nalogs = 0 WHERE user_id = ?', (id,))
-    cursor.execute('UPDATE users SET balance = balance - ? WHERE user_id = ?', (ch, id))
+    cursor.execute('UPDATE users SET balance = ? WHERE user_id = ?', (str(summ), id))
     conn.commit()
 
 
@@ -65,20 +72,16 @@ async def getwater(id):
 
 
 async def buy_tree_db(id, ch):
+    balance = cursor.execute('SELECT balance FROM users WHERE user_id = ?', (id,)).fetchone()[0]
+    summ = Decimal(balance) - Decimal(ch)
+
     cursor.execute('UPDATE garden SET tree = tree + 1 WHERE user_id = ?', (id,))
-    cursor.execute('UPDATE users SET balance = balance - ? WHERE user_id = ?', (ch, id))
+    cursor.execute('UPDATE users SET balance = ? WHERE user_id = ?', (str(summ), id))
     conn.commit()
 
 
 async def politderevo(id):
     cursor.execute('UPDATE garden SET water = 200 WHERE user_id = ?', (id,))
-    conn.commit()
-
-
-async def autogarden():
-    cursor.execute('UPDATE garden SET balance = balance + ((tree + 1) * 3) WHERE nalogs < 5000000')
-    cursor.execute('UPDATE garden SET water = water - 10 WHERE nalogs < 5000000')
-    cursor.execute('UPDATE garden SET nalogs = nalogs + 200000 WHERE nalogs < 5000000')
     conn.commit()
 
 
@@ -91,4 +94,11 @@ async def getcorn(id):
 async def buy_postion_db(summ, st, id):
     cursor.execute('UPDATE users SET corn = corn - ? WHERE user_id = ?', (summ, id))
     cursor.execute('UPDATE users SET energy = energy + ? WHERE user_id = ?', (st, id))
+    conn.commit()
+
+
+async def autogarden():
+    cursor.execute('UPDATE garden SET balance = balance + ((tree + 1) * 3) WHERE nalogs < 5000000')
+    cursor.execute('UPDATE garden SET water = water - 10 WHERE nalogs < 5000000')
+    cursor.execute('UPDATE garden SET nalogs = nalogs + 200000 WHERE nalogs < 5000000')
     conn.commit()

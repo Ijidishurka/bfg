@@ -1,5 +1,5 @@
-from aiogram import types
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+import config as cfg
 
 
 def help_menu():
@@ -22,9 +22,9 @@ def help_back():
 
 startKB = InlineKeyboardMarkup()
 buttons = [
-    InlineKeyboardButton("😄 Добавить в чат", url="https://t.me/BFGcopybot?startgroup=true"),
-    InlineKeyboardButton("👥 Общая беседа", url="https://t.me/+BpEAdjRMNQIzODYy"),
-    InlineKeyboardButton("👥 Общая беседа 2", url="https://t.me/+z1H30TOtFG1kZDBi"),
+    InlineKeyboardButton("😄 Добавить в чат", url=f"https://t.me/{cfg.bot_username}?startgroup=true"),
+    InlineKeyboardButton("👥 Общая беседа", url=f"{cfg.chat}"),
+    InlineKeyboardButton("👥 Наш канал", url=f"{cfg.chanell}"),
 ]
 startKB.add(buttons[0], buttons[1])
 startKB.add(buttons[2])
@@ -44,7 +44,7 @@ help_generatorKB = InlineKeyboardMarkup()
 buttons = [
     InlineKeyboardButton("💰 Собрать прибыль", callback_data="generator_sobrat"),
     InlineKeyboardButton("💸 Оплатить налоги", callback_data="generator_nalog"),
-    InlineKeyboardButton("⬆️ Купить турбину", callback_data="generator_bycards"),
+    InlineKeyboardButton("⬆️ Купить турбину", callback_data="generator_byturb"),
 ]
 help_generatorKB.add(buttons[0], buttons[1])
 help_generatorKB.add(buttons[2])

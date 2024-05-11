@@ -1,7 +1,6 @@
 import random
-
-from commands.case.db import *
-from commands.db import register_users, getname, getonlibalance, getidname, getads
+import commands.case.db as db
+from commands.db import getname, getads, getstatus, url_name
 from commands.main import geturl
 from commands.main import win_luser
 
@@ -10,7 +9,7 @@ async def getcase_cmd(message):
     user_name = await getname(message)
     user_id = message.from_user.id
     url = await geturl(user_id, user_name)
-    case1, case2, case3, case4 = await getcase(message)
+    case1, case2, case3, case4 = await db.getcase(message)
     ads = await getads(message)
     ycase = {
         "case1": {"name": "📦 Обычный кейс", "quantity": case1},
@@ -26,13 +25,14 @@ async def getcase_cmd(message):
             [f'{info["name"]} - {info["quantity"]} шт.' for name, info in positive_resources.items()])
         txt = f"{result_message}\n\n🔐 Для открытия кейсов используйте - «Кейс открыть [1/2/3/4] [кол-во]»"
     else:
-        txt = f"\n😕 У вас нету кейсов."
+        txt = f"😕 У вас нету кейсов."
 
     await message.answer(f'''{url}, доступные кейсы:
 🎁 1. Обычный кейс — 750 квдр $
 🎁 2. Золотой кейс - 5 квнт $
 🎁 3. Рудный кейс - 50 ⚙️
 🎁 4. Материальный кейс - 200 🌌
+
 {txt}
 🛒 Для покупки введите «Купить кейс [1/2/3] [кол-во]»
 
@@ -40,174 +40,187 @@ async def getcase_cmd(message):
 
 
 async def open_case(message):
+    rwin, rloser = await win_luser()
+    name = await url_name(message.from_user.id)
+    ads = await getads(message)
+
     try: case = int(message.text.split()[2])
-    except: return
+    except: return await message.answer(f'{name}, к сожалению вы ввели неверный номер кейса {rloser}')
 
-    if case == 1: await open_case_1(message)
-    elif case == 2: await open_case_2(message)
-    elif case == 3: await open_case_3(message)
-    elif case == 4: await open_case_4(message)
-
-
-async def open_case_1(message):
-    user_name = await getname(message)
-    user_id = message.from_user.id
-    url = await geturl(user_id, user_name)
-    ads = await getads(message)
-    case1, case2, case3, case4 = await getcase(message)
-    result = await win_luser()
-    rwin, rloser = result
-    try: summ_case = int(message.text.split()[3])
-    except: summ_case = 1
-
-    if case1 < summ_case:
-        await message.answer(f'''{url}, у вас недостаточно кейсов для открытия {rloser}\n\n{ads}''', parse_mode='html', disable_web_page_preview=True)
+    if case not in range(1, 5):
+        await message.answer(f'{name}, к сожалению вы ввели неверный номер кейса {rloser}')
         return
 
-    i = random.randint(1, 3)
-    if i == 1:
-        table, v = 'users', 'balance'
-        summ = random.randint(100000000, 400000000)
-        summ = summ * summ_case
-        summ2 = '{:,}'.format(summ).replace(',', '.')
-        txt = f'🔥 Итого денег - {summ2}$'
-    elif i == 2:
-        table, v = 'users', 'rating'
-        summ = random.randint(10000, 90050)
-        summ = summ * summ_case
-        summ2 = '{:,}'.format(summ).replace(',', '.')
-        txt = f'👑 Итого рейтинга - {summ2}'
-    else:
-        table, v = 'users', 'exp'
-        summ = random.randint(100, 999)
-        summ = summ * summ_case
-        summ2 = '{:,}'.format(summ).replace(',', '.')
-        txt = f'🏆 Итого опыта - {summ2}'
+    try: u = int(message.text.split()[3])
+    except: u = 1
 
-    await open_case_db(user_id, table, v, summ, 'case1', summ_case)
-    await message.answer(
-        f'{url}, вы открыли {summ_case} обычный кейс:\n\n{txt}\n\n{ads}',
-        parse_mode='html', disable_web_page_preview=True)
+    case1, case2, case3, case4 = await db.getcase(message)
+    cases = {1: case1, 2: case2, 3: case3, 4: case4}
+    ncase = cases.get(case, 0)
+
+    status_limits = {0: 10, 1: 20, 2: 40, 3: 60, 4: 100}
+    status = await getstatus(message.from_user.id)
+    climit = status_limits.get(status, status_limits[0])
+
+    if u <= 0:
+        return await message.answer(f'🎁 | {name}, нельзя открывать отрицательное количество кейсов! {rloser}\n\n{ads}', disable_web_page_preview=True)
+
+    if ncase < u:
+        return await message.answer(f'🎁 | {name}, у вас недостаточно кейсов! {rloser}\n\n{ads}', parse_mode='html', disable_web_page_preview=True)
+
+    if climit < u:
+        return await message.answer(f'🎁 | {name}, вы не можете открывать более {climit} кейсов за раз! {rloser}\n\n{ads}', disable_web_page_preview=True)
+
+    if case in [1, 2]:
+        return await open_case_12(message, u, case)
+
+    if case == 3:
+        return await open_case_3(message, u)
+
+    if case == 4:
+        return await open_case_4(message, u)
 
 
-async def open_case_2(message):
-    user_name = await getname(message)
+async def open_case_12(message, u, case):
+    coff = 1 if case == 1 else 8
     user_id = message.from_user.id
-    url = await geturl(user_id, user_name)
+    name = await url_name(message.from_user.id)
     ads = await getads(message)
-    case1, case2, case3, case4 = await getcase(message)
-    result = await win_luser()
-    rwin, rloser = result
-    try: summ_case = int(message.text.split()[3])
-    except: summ_case = 1
 
-    if case2 < summ_case:
-        await message.answer(f'''{url}, у вас недостаточно кейсов для открытия {rloser}\n\n{ads}''', parse_mode='html', disable_web_page_preview=True)
-        return
+    smoney = 0
+    srating = 0
+    sexpe = 0
+    txt = ''
 
-    i = random.randint(1, 3)
-    if i == 1:
-        table, v = 'users', 'balance'
-        summ = random.randint(1000000000, 4000000000)
-        summ = summ * summ_case
-        summ2 = '{:,}'.format(summ).replace(',', '.')
-        txt = f'🔥 Итого денег - {summ2}$'
-    elif i == 2:
-        table, v = 'users', 'rating'
-        summ = random.randint(100000, 900050)
-        summ = summ * summ_case
-        summ2 = '{:,}'.format(summ).replace(',', '.')
-        txt = f'👑 Итого рейтинга - {summ2}'
-    else:
-        table, v = 'users', 'exp'
-        summ = random.randint(1000, 9990)
-        summ = summ * summ_case
-        summ2 = '{:,}'.format(summ).replace(',', '.')
-        txt = f'🏆 Итого опыта - {summ2}'
+    for _ in range(u):
+        prize = random.randint(1, 100)
 
-    await open_case_db(user_id, table, v, summ, 'case2', summ_case)
-    await message.answer(
-        f'{url}, вы открыли {summ_case} золотой кейс:\n\n{txt}\n\n{ads}',
-        parse_mode='html', disable_web_page_preview=True)
+        if prize in range(1, 45):
+            r = random.randint(100_000_000_000_000_000, 1_000_000_000_000_000_000) * coff
+            smoney = smoney + r
+
+        elif prize in range(45, 70):
+            r = random.randint(5_000_000, 150_000_000) * coff
+            srating = srating + r
+
+        else:
+            r = random.randint(100, 250) * coff
+            sexpe = sexpe + r
+
+    if smoney > 0:
+        smoney2 = f'{smoney:,.0f}'.replace(",", ".")
+        await db.open_case_db(user_id, smoney, 'balance')
+        txt += f'🔥 Итого денег - {smoney2}₴\n'
+    if srating > 0:
+        srating2 = f'{srating:,.0f}'.replace(",", ".")
+        await db.open_case_db(user_id, srating, 'rating')
+        txt += f'👑 Итого рейтинга - {srating2}\n'
+    if sexpe > 0:
+        sexpe2 = f'{sexpe:,.0f}'.replace(",", ".")
+        await db.open_case_db(user_id, sexpe, 'exp')
+        txt += f'🏆 Итого опыта - {sexpe2}шт\n'
+
+    await db.open_case2_db(user_id, u, f'case{case}')
+    await message.answer(f'🎁 | {name}, вам выпало:\n\n{txt}\n\n{ads}', disable_web_page_preview=True)
 
 
-async def open_case_3(message):
-    user_name = await getname(message)
+async def open_case_3(message, u):
     user_id = message.from_user.id
-    url = await geturl(user_id, user_name)
+    name = await url_name(message.from_user.id)
     ads = await getads(message)
-    case1, case2, case3, case4 = await getcase(message)
-    result = await win_luser()
-    rwin, rloser = result
-    try: summ_case = int(message.text.split()[3])
-    except: summ_case = 1
 
-    if case3 < summ_case:
-        await message.answer(f'''{url}, у вас недостаточно кейсов для открытия {rloser}\n\n{ads}''', parse_mode='html', disable_web_page_preview=True)
-        return
+    smoney = 0
+    srating = 0
+    sexpe = 0
+    stitan = 0
+    txt = ''
 
-    i = random.randint(1, 3)
-    if i == 1:
-        table, v = 'users', 'balance'
-        summ = random.randint(10000000000, 40000000000)
-        summ = summ * summ_case
-        summ2 = '{:,}'.format(summ).replace(',', '.')
-        txt = f'🔥 Итого денег - {summ2}$'
-    elif i == 2:
-        table, v = 'users', 'rating'
-        summ = random.randint(1000000, 9000050)
-        summ = summ * summ_case
-        summ2 = '{:,}'.format(summ).replace(',', '.')
-        txt = f'👑 Итого рейтинга - {summ2}'
-    else:
-        table, v = 'users', 'exp'
-        summ = random.randint(10000, 99900)
-        summ = summ * summ_case
-        summ2 = '{:,}'.format(summ).replace(',', '.')
-        txt = f'🏆 Итого опыта - {summ2}'
+    for _ in range(u):
+        prize = random.randint(1, 100)
 
-    await open_case_db(user_id, table, v, summ, 'case3', summ_case)
-    await message.answer(
-        f'{url}, вы открыли {summ_case} рудный кейс:\n\n{txt}\n\n{ads}',
-        parse_mode='html', disable_web_page_preview=True)
+        if prize in range(1, 30):
+            r = random.randint(100_000_000_000_000_000, 1_000_000_000_000_000_000)
+            smoney += r
+
+        elif prize in range(30, 60):
+            r = random.randint(5_000_000, 150_000_000)
+            srating += r
+
+        elif prize in range(60, 80):
+            r = random.randint(30, 80)
+            stitan += r
+
+        else:
+            r = random.randint(100, 250)
+            sexpe += r
+
+    if smoney > 0:
+        smoney2 = f'{smoney:,.0f}'.replace(",", ".")
+        await db.open_case_db(user_id, smoney, 'balance')
+        txt += f'🔥 Итого денег - {smoney2}₴\n'
+    if srating > 0:
+        srating2 = f'{srating:,.0f}'.replace(",", ".")
+        await db.open_case_db(user_id, srating, 'rating')
+        txt += f'👑 Итого рейтинга - {srating2}\n'
+    if sexpe > 0:
+        sexpe2 = f'{sexpe:,.0f}'.replace(",", ".")
+        await db.open_case_db(user_id, sexpe, 'exp')
+        txt += f'🏆 Итого опыта - {sexpe2}шт\n'
+    if stitan > 0:
+        stitan2 = f'{stitan:,.0f}'.replace(",", ".")
+        await db.open_case_db(user_id, stitan, 'titanium', table='mine')
+        txt += f'⚙️ Итого титана - {stitan2}шт\n'
+
+    await db.open_case2_db(user_id, u, 'case3')
+    await message.answer(f'🎁 | {name}, вам выпало:\n\n{txt}\n\n{ads}', disable_web_page_preview=True)
 
 
-async def open_case_4(message):
-    user_name = await getname(message)
+async def open_case_4(message, u):
     user_id = message.from_user.id
-    url = await geturl(user_id, user_name)
+    name = await url_name(message.from_user.id)
     ads = await getads(message)
-    case1, case2, case3, case4 = await getcase(message)
-    result = await win_luser()
-    rwin, rloser = result
-    try: summ_case = int(message.text.split()[3])
-    except: summ_case = 1
 
-    if case4 < summ_case:
-        await message.answer(f'''{url}, у вас недостаточно кейсов для открытия {rloser}\n\n{ads}''', parse_mode='html', disable_web_page_preview=True)
-        return
+    smoney = 0
+    srating = 0
+    sexpe = 0
+    smatter = 0
+    txt = ''
 
-    i = random.randint(1, 3)
-    if i == 1:
-        table, v = 'users', 'balance'
-        summ = random.randint(100000000000, 400000000000)
-        summ = summ * summ_case
-        summ2 = '{:,}'.format(summ).replace(',', '.')
-        txt = f'🔥 Итого денег - {summ2}$'
-    elif i == 2:
-        table, v = 'users', 'rating'
-        summ = random.randint(10000000, 90000050)
-        summ = summ * summ_case
-        summ2 = '{:,}'.format(summ).replace(',', '.')
-        txt = f'👑 Итого рейтинга - {summ2}'
-    else:
-        table, v = 'users', 'exp'
-        summ = random.randint(10000, 109900)
-        summ = summ * summ_case
-        summ2 = '{:,}'.format(summ).replace(',', '.')
-        txt = f'🏆 Итого опыта - {summ2}'
+    for _ in range(u):
+        prize = random.randint(1, 100)
 
-    await open_case_db(user_id, table, v, summ, 'case4', summ_case)
-    await message.answer(
-        f'{url}, вы открыли {summ_case} материальный кейс:\n\n{txt}\n\n{ads}',
-        parse_mode='html', disable_web_page_preview=True)
+        if prize in range(1, 30):
+            r = random.randint(100_000_000_000_000_000, 1_000_000_000_000_000_000)
+            smoney += r
+
+        elif prize in range(30, 60):
+            r = random.randint(5_000_000, 150_000_000)
+            srating += r
+
+        elif prize in range(60, 80):
+            r = random.randint(30, 80)
+            smatter += r
+
+        else:
+            r = random.randint(100, 250)
+            sexpe += r
+
+    if smoney > 0:
+        smoney2 = f'{smoney:,.0f}'.replace(",", ".")
+        await db.open_case_db(user_id, smoney, 'balance')
+        txt += f'🔥 Итого денег - {smoney2}₴\n'
+    if srating > 0:
+        srating2 = f'{srating:,.0f}'.replace(",", ".")
+        await db.open_case_db(user_id, srating, 'rating')
+        txt += f'👑 Итого рейтинга - {srating2}\n'
+    if sexpe > 0:
+        sexpe2 = f'{sexpe:,.0f}'.replace(",", ".")
+        await db.open_case_db(user_id, sexpe, 'exp')
+        txt += f'🏆 Итого опыта - {sexpe2}шт\n'
+    if smatter > 0:
+        stitan2 = f'{smatter:,.0f}'.replace(",", ".")
+        await db.open_case_db(user_id, smatter, 'matter', table='mine')
+        txt += f'⚙️ Итого титана - {stitan2}шт\n'
+
+    await db.open_case2_db(user_id, u, 'case4')
+    await message.answer(f'🎁 | {name}, вам выпало:\n\n{txt}\n\n{ads}', disable_web_page_preview=True)

@@ -4,10 +4,42 @@ from commands.db import getinlinename
 import commands.assets.kb as kb
 import config as cfg
 from bot import bot, dp
+from datetime import datetime, timedelta
+
+
+help_msg = {}
+
+
+def antispam_help(func):
+    async def wrapper(call: types.CallbackQuery):
+        chat_id = call.message.chat.id
+        msg_id = call.message.message_id
+
+        data = help_msg.get(chat_id, 'no')
+        dt = int(datetime.now().timestamp())
+
+        if data != 'no':
+            if int(data[0]) == int(msg_id):
+                if int(dt - 120) < int(data[1]):
+                    if (int(dt) - int(data[1])) > 2:
+                        help_msg[chat_id] = (msg_id, dt)
+                        await func(call)
+                    else:
+                        await bot.answer_callback_query(call.id, text='⏳ Не так быстро! (2 сек)')
+                    return
+
+        try: await bot.delete_message(chat_id=chat_id, message_id=msg_id)
+        except: pass
+
+    return wrapper
 
 
 @antispam
 async def help_cmd(message):
+    dt = int(datetime.now().timestamp())
+    mid = message.message_id + 1
+    help_msg[message.chat.id] = (mid, (dt - 2))
+
     await message.answer(f'''Игрок, выберите категорию:
    1️⃣ Основное
    2️⃣ Игры
@@ -18,6 +50,7 @@ async def help_cmd(message):
 🆘 По всем вопросам - {cfg.admin_username}''', reply_markup=kb.help_menu())
 
 
+@antispam_help
 async def help_back(call):
     await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=f'''
 Игрок, выберите категорию:
@@ -30,6 +63,7 @@ async def help_back(call):
 🆘 По всем вопросам - {cfg.admin_username}''', reply_markup=kb.help_menu())
 
 
+@antispam_help
 async def help_osn(call):
     name = await getinlinename(call)
     await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=f'''
@@ -66,6 +100,7 @@ async def help_osn(call):
    💭 !Беседа - беседа бота''', reply_markup=kb.help_back())
 
 
+@antispam_help
 async def help_game(call):
     name = await getinlinename(call)
     await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=f'''
@@ -81,6 +116,7 @@ async def help_game(call):
    🎰 Казино [ставка]''', reply_markup=kb.help_back())
 
 
+@antispam_help
 async def help_rz(call):
     name = await getinlinename(call)
     await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=f'''
@@ -122,6 +158,7 @@ async def help_rz(call):
    🔮 Создать зелье [номер]''', reply_markup=kb.help_back())
 
 
+@antispam_help
 async def help_clans(call: types.CallbackQuery):
     name = await getinlinename(call)
     await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=f'''

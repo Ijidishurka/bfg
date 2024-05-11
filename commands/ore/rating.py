@@ -1,12 +1,11 @@
 from _decimal import Decimal
-from commands.db import register_users, getname, getonlibalance, getidname, getads
+from commands.db import getname, getonlibalance, getidname, getads
 from commands.main import geturl
 from commands.main import win_luser
 from commands.ore.db import *
 
 
 async def rrating_cmd(message):
-    await register_users(message)
     user_name = await getname(message)
     user_id = message.from_user.id
     url = await geturl(user_id, user_name)
@@ -16,7 +15,6 @@ async def rrating_cmd(message):
 
 
 async def sellrating(message):
-    await register_users(message)
     user_name = await getname(message)
     user_id = message.from_user.id
     r = await getrrating(message)

@@ -2,15 +2,17 @@ import sqlite3
 from datetime import datetime
 import config as cfg
 from bot import bot
+from decimal import Decimal
 
 
 conn = sqlite3.connect('users.db')
 cursor = conn.cursor()
 
 
-cursor.execute('''CREATE TABLE IF NOT EXISTS users (user_id INTEGER, name TEXT, balance NUMERIC, btc INTEGER, 
-bank INTEGER, depozit INTEGER, timedepozit TIMESTAMP, exp INTEGER, energy INTEGER, case1 INTEGER, case2 INTEGER, case3 INTEGER, case4 INTEGER, 
-rating INTEGER, games INTEGER, ecoins INTEGER, per INTEGER, dregister TIMESTAMP, corn INTEGER, status INTEGER, issued NUMERIC, ban NUMERIC)''')
+cursor.execute('''CREATE TABLE IF NOT EXISTS users (user_id INTEGER, name TEXT, balance TEXT, btc INTEGER, 
+bank INTEGER, depozit INTEGER, timedepozit NUMERIC, exp INTEGER, energy INTEGER, case1 INTEGER, case2 INTEGER, 
+case3 INTEGER, case4 INTEGER, rating INTEGER, games INTEGER, ecoins INTEGER, per TEXT, dregister NUMERIC, corn INTEGER,
+status INTEGER, issued NUMERIC, ban NUMERIC)''')
 
 
 cursor.execute('''CREATE TABLE IF NOT EXISTS mine (user_id INTEGER, iron INTEGER, gold INTEGER, diamond INTEGER, 
@@ -34,7 +36,7 @@ cursor.execute('''CREATE TABLE IF NOT EXISTS business (user_id INTEGER, balance 
 nalogs INTEGER, territory INTEGER, bsterritory INTEGER)''')
 
 
-cursor.execute('''CREATE TABLE IF NOT EXISTS promo (name TEXT, summ INTEGER, activ INTEGER)''')
+cursor.execute('''CREATE TABLE IF NOT EXISTS promo (name TEXT, summ TEXT, activ INTEGER)''')
 
 
 cursor.execute('''CREATE TABLE IF NOT EXISTS promo_activ (user_id INTEGER, name TEXT)''')
@@ -48,44 +50,41 @@ cursor.execute('''CREATE TABLE IF NOT EXISTS chats (chat_id INTEGER, users INTEG
 conn.commit()
 
 
-async def register_users(message):
-    user_id = message.from_user.id
-    ex = cursor.execute('SELECT name FROM users WHERE user_id = ?', (user_id,)).fetchone()
-
-    if not ex:
-        dt = datetime.now()
-        cursor.execute('INSERT INTO users (user_id, name, balance, btc, bank, depozit, timedepozit, exp, energy, case1, case2, case3, '
-                       'case4, rating, games, ecoins, per, dregister, corn, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                       (user_id, 'Игрок', cfg.start_money, 200, 0, 0, dt, 5000000, 10, 0, 0, 0, 0, 0, 0, 0, 0, dt, 0, 0))
-
-        cursor.execute('INSERT INTO mine (user_id, iron, gold, diamond, amestit, aquamarine, emeralds, matter, '
-                       'plasma, nickel, titanium, cobalt, ectoplasm) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                       (user_id, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
-        conn.commit()
+cursor.execute('''CREATE TABLE IF NOT EXISTS property (user_id INTEGER, helicopter INTEGER, 
+car INTEGER, yahta INTEGER, phone INTEGER, house INTEGER, plane INTEGER)''')
 
 
 async def reg_user(user_id):
     ex = cursor.execute('SELECT name FROM users WHERE user_id = ?', (user_id,)).fetchone()
     if not ex:
-        dt = datetime.now()
-        cursor.execute('INSERT INTO users (user_id, name, balance, btc, bank, depozit, timedepozit, exp, energy, case1, case2, case3, '
-                       'case4, rating, games, ecoins, per, dregister, corn, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        dt = int(datetime.now().timestamp())
+        cursor.execute('INSERT INTO users (user_id, name, balance, btc, bank, depozit, timedepozit, exp, energy, case1,'
+                       'case2, case3, case4, rating, games, ecoins, per, dregister, corn, status)'
+                       'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                        (user_id, 'Игрок', cfg.start_money, 200, 0, 0, dt, 5000000, 10, 0, 0, 0, 0, 0, 0, 0, 0, dt, 0, 0))
 
         cursor.execute('INSERT INTO mine (user_id, iron, gold, diamond, amestit, aquamarine, emeralds, matter, '
                        'plasma, nickel, titanium, cobalt, ectoplasm) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                        (user_id, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
+
+        cursor.execute('INSERT INTO property (user_id, helicopter, car, yahta, phone, house, plane) '
+                       'VALUES (?, ?, ?, ?, ?, ?, ?)', (user_id, 0, 0, 0, 0, 0, 0))
+
         conn.commit()
 
 
-async def getperevod(message, perevod, user_id, reply_user_id):
-    user_id = message.from_user.id
-    cursor.execute(
-        f'UPDATE users SET balance = balance - ? WHERE user_id = ?', (perevod, user_id))
-    cursor.execute(
-        f'UPDATE users SET balance = balance + ? WHERE user_id = ?', (perevod, reply_user_id))
-    cursor.execute(
-        f'UPDATE users SET per = per + ? WHERE user_id = ?', (perevod, user_id))
+async def getperevod(perevod, user_id, reply_user_id):
+    balance = cursor.execute('SELECT balance FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]
+    r_balance = cursor.execute('SELECT balance FROM users WHERE user_id = ?', (reply_user_id,)).fetchone()[0]
+    per = cursor.execute('SELECT per FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]
+
+    balance = int(Decimal(balance) - Decimal(perevod))
+    r_balance = int(Decimal(r_balance) + Decimal(perevod))
+    per = int(Decimal(per) + Decimal(perevod))
+
+    cursor.execute(f'UPDATE users SET balance = ? WHERE user_id = ?', (str(balance), user_id))
+    cursor.execute(f'UPDATE users SET balance = ? WHERE user_id = ?', (str(r_balance), reply_user_id))
+    cursor.execute(f'UPDATE users SET per = ? WHERE user_id = ?', (str(per), user_id))
     conn.commit()
 
 
@@ -118,12 +117,9 @@ async def getinlinename(callback_query):
     return ex
 
 
-async def getbalance(message):
-    user_id = message.from_user.id
-    cursor.execute('SELECT name, balance, btc, bank FROM users WHERE user_id = ?', (user_id,))
-    i = cursor.fetchone()
-    name, balance, btc, bank = i
-    return name, balance, btc, bank
+async def getbalance(user_id):
+    data = cursor.execute('SELECT name, balance, btc, bank FROM users WHERE user_id = ?', (user_id,)).fetchone()
+    return data[0], int(data[1]), data[2], data[3]
 
 
 async def getpofildb(user_id):
@@ -139,16 +135,19 @@ async def getpofildb(user_id):
 
 async def getonlibalance(message):
     user_id = message.from_user.id
-    cursor.execute('SELECT balance FROM users WHERE user_id = ?', (user_id,))
-    i = cursor.fetchone()[0]
-    return i
+    i = cursor.execute('SELECT balance FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]
+    return int(i)
+
+
+async def get_balance(user_id):
+    i = cursor.execute('SELECT balance FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]
+    return int(i)
 
 
 async def getlimitdb(message):
     user_id = message.from_user.id
-    cursor.execute('SELECT per FROM users WHERE user_id = ?', (user_id,))
-    i = cursor.fetchone()[0]
-    return i
+    i = cursor.execute('SELECT per FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]
+    return int(i)
 
 
 async def getads(message=None):
@@ -163,7 +162,12 @@ async def setname(name, id):
 
 
 async def bonus_db(user_id, table, v, summ):
-    cursor.execute(f"UPDATE {table} SET {v} = {v} + ? WHERE user_id = ?", (summ, user_id))
+    if table == 'users' and v == 'balance':
+        balance = cursor.execute('SELECT balance FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]
+        summ = Decimal(balance) + Decimal(summ)
+        cursor.execute(f"UPDATE users SET balance = ? WHERE user_id = ?", (str(summ), user_id))
+    else:
+        cursor.execute(f"UPDATE {table} SET {v} = {v} + ? WHERE user_id = ?", (summ, user_id))
     conn.commit()
 
 
@@ -179,9 +183,10 @@ async def top_db(message):
 
 
 async def get_colvo_users():
-    cursor.execute(f"SELECT COUNT(*) FROM users")
-    i = cursor.fetchone()[0]
-    return i
+    users = cursor.execute(f"SELECT COUNT(*) FROM users").fetchone()[0]
+    chats = cursor.execute(f"SELECT COUNT(*) FROM chats").fetchone()[0]
+    uchats = cursor.execute("SELECT SUM(users) FROM chats").fetchone()[0]
+    return users, chats, uchats
 
 
 async def getstatus(id):
@@ -205,3 +210,12 @@ async def upd_chat_db(chat_id):
     if res != count:
         cursor.execute("UPDATE chats SET users = ? WHERE chat_id = ?", (count, chat_id))
         conn.commit()
+
+
+async def url_name(user_id):
+    name = cursor.execute('SELECT name FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]
+    return f'<a href="tg://user?id={user_id}">{name}</a>'
+
+
+async def chek_user(user_id):
+    return cursor.execute('SELECT user_id FROM users WHERE user_id = ?', (user_id,)).fetchone()

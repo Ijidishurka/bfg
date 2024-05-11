@@ -15,7 +15,7 @@ def cinput(text, color_hex):
 def main():
     cprint("Настройка BFG", "FF00000")
     time.sleep(0.5)
-    cprint("Наш канал - @bfgcopy", "21db53")
+    cprint("Наш канал - @copybfg", "21db53")
 
     a = cinput("Вы уверены что хотите удалить файл <config> и создать новый? Y/n", "FF90044")
     load_cfg(a)
@@ -69,6 +69,7 @@ bot_name = '<edit>'
 chat = '<edit>'
 chanell = '<edit>'
 admin_username = '<edit>'
+bot_username = 'bfgcopybot'
 
 chat_log = 0"""
 

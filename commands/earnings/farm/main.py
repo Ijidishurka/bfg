@@ -1,15 +1,15 @@
 from commands.earnings.farm.db import *
-from commands.db import register_users, getname, getonlibalance, getidname
+from commands.db import getname, getonlibalance, getidname
 from commands.main import geturl
 from commands.main import win_luser
 from commands.assets.kb import help_fermaKB
+from assets.antispam import antispam_earning, new_earning_msg
 
 
 async def ferma_list(message):
     id = message.from_user.id
     name = await getname(message)
     url = await geturl(id, name)
-    await register_users(message)
     await message.answer(f'''{url}, с данного момента ты можешь сам построить свою ферму и улучшать её. Это очень весело и облегчит тебе работу.
 
 🪓 Для начала тебе нужно будет создать свою ферму, цена постройки 500.000.000$. Введите команду "Построить ферму" и после через команду "Моя ферма" вы сможете настраивать её и улучшать повышая свою прибыль.
@@ -19,7 +19,6 @@ async def ferma_list(message):
 
 async def my_ferma(message):
     id = message.from_user.id
-    await register_users(message)
     name = await getname(message)
     url = await geturl(id, name)
     result = await win_luser()
@@ -28,6 +27,7 @@ async def my_ferma(message):
     if not data:
         return await message.answer(f'{url}, у вас нет своей фермы чтобы построить введите команду "Построить ферму" {rloser}', parse_mode='html')
 
+    await new_earning_msg(message.chat.id, message.message_id + 1)
     if data[3] != 0: dox = int(3000 * (data[3] ** 2.5))
     else: dox = 3000
     balance = '{:,}'.format(int(data[1])).replace(',', '.')
@@ -60,6 +60,7 @@ async def buy_ferma(message):
             await message.answer(f'{url}, вы успешно купили ферму для подробностей введите "Моя ферма" {rwin}', parse_mode='html')
 
 
+@antispam_earning
 async def buy_cards(call):
     id = call.from_user.id
     name = await getidname(id)
@@ -80,6 +81,7 @@ async def buy_cards(call):
             await call.message.answer(f'{url}, вы успешно увеличили количество видеокарт в ферме за {ch2}$ {rwin}', parse_mode='html')
 
 
+@antispam_earning
 async def snyt_pribl_ferma(call):
     id = call.from_user.id
     name = await getidname(id)
@@ -98,6 +100,7 @@ async def snyt_pribl_ferma(call):
             await call.message.answer(f'{url}, вы успешно сняли {balance2}฿ с баланса вашей фермы {rwin}', parse_mode='html')
 
 
+@antispam_earning
 async def oplata_nalogov_ferma(call):
     id = call.from_user.id
     name = await getidname(id)

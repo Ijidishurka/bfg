@@ -22,6 +22,10 @@ class dell_promo_state(StatesGroup):
 
 
 async def promo_menu(message: types.message):
+    user_id = message.from_user.id
+    if user_id not in cfg.admin:
+        return
+
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
     keyboard.add(types.KeyboardButton("📖 Создать промо"), types.KeyboardButton("🗑 Удалить промо"))
     keyboard.add(types.KeyboardButton("ℹ️ Промо инфо"))

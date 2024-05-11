@@ -1,6 +1,6 @@
 import random
 from assets.antispam import antispam
-from commands.db import getname, setname, bonus_db, getads, top_db, get_colvo_users
+from commands.db import getname, setname, bonus_db, getads, top_db, get_colvo_users, getstatus
 from commands.main import geturl
 from commands.main import win_luser
 from assets.gettime import bonustime, kaznatime
@@ -9,8 +9,7 @@ from commands.assets.transform import transform
 
 async def shar_cmd(message):
     list = ["Мой ответ - нет", "Мне кажется - да", "Сейчас нельзя предсказать", "Мне кажется - нет", "Знаки говорят - нет", "Да", "Нет", "Можешь быть уверен в этом"]
-    q = random.choice(list)
-    await message.answer(f"{q}")
+    await message.answer(random.choice(list))
 
 
 @antispam
@@ -25,12 +24,16 @@ async def setname_cmd(message):
         await message.answer(f'{url}, ваш ник не может быть короче 5 символов {rloser}')
         return
 
+    status_limits = {0: 20, 1: 25, 2: 30, 3: 45, 4: 50}
+    status = await getstatus(message.from_user.id)
+    climit = status_limits.get(status, status_limits[0])
+
     name = name.replace('<', '').replace('>', '').replace('@', '').replace('t.me', '').replace('http', '')
     if len(name) < 5:
         await message.answer(f'{url}, ваш ник не может быть короче 5 символов {rloser}')
         return
-    if len(name) > 20:
-        await message.answer(f'{url}, ваш ник не может быть длиннее 20 символов {rloser}')
+    if len(name) > climit:
+        await message.answer(f'{url}, ваш ник не может быть длиннее {climit} символов {rloser}')
         return
     await setname(name, user_id)
     await message.answer(f'Ваш ник изменён на «{name}»')
@@ -108,12 +111,15 @@ async def bonus_cmd(message):
 
 @antispam
 async def stats_cmd(message):
-    users = await get_colvo_users()
+    users, chats, uchats = await get_colvo_users()
+
     users = '{:,}'.format(users).replace(',', '.')
+    chats = '{:,}'.format(chats).replace(',', '.')
+    uchats = '{:,}'.format(uchats).replace(',', '.')
 
     await message.answer(f'''📊 Кол-во пользователей бота: {users}
-📊 Общее кол-во чатов: ???
-📊 Общее кол-во игроков в беседах: ???''')
+📊 Общее кол-во чатов: {chats}
+📊 Общее кол-во игроков в беседах: {uchats}''')
 
 
 @antispam

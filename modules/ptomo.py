@@ -31,7 +31,6 @@ async def promo_start(message: types.Message):
     if result:
         await message.reply(f'😞 <b>{username}</b>, вы уже активировали промокод.', parse_mode='html')
     else:
-        cursor.execute("UPDATE users SET balance = balance + 1000000000000000000 WHERE user_id = ?", (user_id,))
         cursor.execute("UPDATE users SET exp = exp + 1000000000 WHERE user_id = ?", (user_id,))
         cursor.execute("UPDATE users SET corn = corn + 10000 WHERE user_id = ?", (user_id,))
         cursor.execute("UPDATE mine SET matter = matter + 10000 WHERE user_id = ?", (user_id,))
@@ -44,4 +43,4 @@ async def promo_start(message: types.Message):
 
 
 def register_handlers(dp: Dispatcher):
-    dp.register_message_handler(promo_start, lambda message: message.text.lower().startswith('промо start'))
+    dp.register_message_handler(promo_start, lambda message: message.text.lower().startswith('непромо start'))

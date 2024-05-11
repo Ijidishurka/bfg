@@ -9,7 +9,7 @@ from commands.status.main import *
 from commands.rz import *
 from commands.transfer import *
 from commands.games.games import *
-from commands.assets.auto import automatisation
+from assets.auto import automatisation
 from commands.ore.btcs import *
 from commands.earnings.business.main import *
 from commands.ore.dig import *
@@ -22,9 +22,12 @@ from commands.earnings.garden.potions import *
 from commands.earnings.farm.main import *
 from commands.earnings.generator.main import *
 from assets.modules import *
-from commands.admin.admin import give_money
 from commands.admin.promo import activ_promo
 from bot import dp
+
+import commands.property.main
+import commands.admin.admin
+import commands.property.buy
 
 
 @dp.message_handler(commands=['start'])
@@ -102,7 +105,7 @@ async def limit_cmd_s(message: types.Message):
     await limit_cmd(message)
 
 
-@dp.message_handler(lambda message: message.text in ['профиль', 'Профиль'])
+@dp.message_handler(lambda message: message.text.lower().startswith('профиль'))
 async def profil_cmd_s(message: types.Message):
     await profil_cmd(message)
 
@@ -272,7 +275,11 @@ async def digmine_s(message: types.Message):
     await digmine(message)
 
 
-@dp.message_handler(lambda message: message.text.lower().startswith('продать'))
+sell_ruda_txt = ['железо', 'золото', 'алмазы', 'аметисты', 'аквамарины', 'изумруды',
+                 'материю', 'плазму', 'никель', 'титан', 'кобальт', 'эктоплазму', 'палладий']
+
+
+@dp.message_handler(lambda message: message.text.lower().startswith('продать') and any(ruda in message.text.lower() for ruda in sell_ruda_txt))
 async def sellruda_cmd_s(message: types.Message):
     await sellruda_cmd(message)
 
@@ -327,9 +334,14 @@ async def game_casino_s(message: types.Message):
     await game_casino(message)
 
 
-@dp.message_handler(lambda message: message.text.lower().startswith('выдать'))
-async def give_money_s(message: types.Message):
-    await give_money(message)
+@dp.message_handler(lambda message: message.text.lower().startswith("спин"))
+async def game_spin_s(message: types.Message):
+    await game_spin(message)
+
+
+@dp.message_handler(lambda message: message.text.lower().startswith(("трейд вверх", "трейд вниз")))
+async def game_trade_s(message: types.Message):
+    await game_trade(message)
 
 
 @dp.callback_query_handler(lambda c: c.data == 'garden_sobrat')
@@ -387,12 +399,33 @@ async def oplata_nalogov_ferma_S(callback_query: types.CallbackQuery):
     await oplata_nalogov_ferma(callback_query)
 
 
+@dp.callback_query_handler(lambda c: c.data == 'generator_nalog')
+async def oplata_nalogov_generator_s(callback_query: types.CallbackQuery):
+    await oplata_nalogov_generator(callback_query)
+
+
+@dp.callback_query_handler(lambda c: c.data == 'generator_sobrat')
+async def snyt_pribl_generator_s(callback_query: types.CallbackQuery):
+    await snyt_pribl_generator(callback_query)
+
+
+@dp.callback_query_handler(lambda c: c.data == 'generator_byturb')
+async def buy_turbine_s(callback_query: types.CallbackQuery):
+    await buy_turbine(callback_query)
+
+
 async def main(dp):
     load_modules(dp)
+    await autokursbtc()
     await automatisation()
 
 
 if __name__ == '__main__':
     from aiogram import executor
+
+    commands.property.main.reg(dp)
+    commands.property.buy.reg(dp)
+    commands.admin.admin.reg(dp)
+
     executor.start_polling(dp, on_startup=main, skip_updates=True)
 

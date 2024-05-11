@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from commands.db import register_users, getname, getads, getonlibalance, getstatus
+from commands.db import getname, getads, getonlibalance, getstatus
 from commands.bank.db import *
 from commands.main import geturl
 from commands.main import win_luser
@@ -26,8 +26,8 @@ async def bank_cmd(message):
     status = await getstatus(user_id)
     p, c, st = await bank_pc(status)
     depozit, timedepozit, bank = await getbankdb(message)
-    timedepozit = datetime.strptime(timedepozit, '%Y-%m-%d %H:%M:%S.%f')
-    timedepozit = timedepozit + timedelta(days=3)
+    timedepozit = datetime.fromtimestamp(timedepozit)
+    timedepozit += timedelta(days=3)
     timedepozit = timedepozit.strftime('%Y-%m-%d в %H:%M:%S')
 
     if depozit == 0:
@@ -49,7 +49,6 @@ async def bank_cmd(message):
 
 
 async def putbank(message):
-    await register_users(message)
     user_name = await getname(message)
     user_id = message.from_user.id
     balance = await getonlibalance(message)
@@ -78,7 +77,6 @@ async def putbank(message):
 
 
 async def takeoffbank(message):
-    await register_users(message)
     user_name = await getname(message)
     user_id = message.from_user.id
     balance = await getbakbalance_db(message)
@@ -120,7 +118,6 @@ async def dep_comsa(status):
 
 
 async def pudepozit(message):
-    await register_users(message)
     user_name = await getname(message)
     user_id = message.from_user.id
     balance = await getonlibalance(message)
@@ -154,7 +151,7 @@ async def pudepozit(message):
     comsa2 = '{:,}'.format(comsa).replace(',', '.')
 
     if summ <= balance:
-        dt = datetime.now()
+        dt = datetime.now().timestamp()
         await putdep_db(csumm, user_id, dt, summ)
         await message.answer(f'{url}, вы успешно положили на депозитный счёт {summ2}$ под 6% {rwin}.\n\nВы заплатили '
                              f'комиссию в размере {comsa2}$ (1.5%) за использование банковских услуг.')
@@ -163,13 +160,12 @@ async def pudepozit(message):
 
 
 async def takeoffdepozit(message):
-    await register_users(message)
     user_name = await getname(message)
     user_id = message.from_user.id
     balance, timedepozit, bank = await getbankdb(message)
-    timedepozit = datetime.strptime(timedepozit, '%Y-%m-%d %H:%M:%S.%f')
-    timedepozit = timedepozit + timedelta(days=3)
-    dt = datetime.now()
+    timedepozit = datetime.fromtimestamp(timedepozit)
+    timedepozit += timedelta(days=3)
+    dt = datetime.now().timestamp()
     url = await geturl(user_id, user_name)
     result = await win_luser()
     rwin, rloser = result
@@ -185,7 +181,7 @@ async def takeoffdepozit(message):
     except:
         return
 
-    if timedepozit > dt:
+    if timedepozit.timestamp() > dt:
         await message.answer(f'{url}, у вас уже открыт депозит. Вы не можете снять с него деньги раньше времени {rloser}')
         return
 

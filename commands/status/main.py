@@ -1,10 +1,10 @@
-from commands.db import register_users, getname, getstatus
+from commands.db import getname, getstatus
 from commands.main import geturl
 from commands.status.db import *
+import config as cfg
 
 
 async def status_list(message):
-    await register_users(message)
     name = await getname(message)
     await message.answer(f'''{name}, доступные статусы в игре:
 
@@ -52,7 +52,6 @@ async def status_list(message):
 
 
 async def donat_list(message):
-    await register_users(message)
     name = await getname(message)
     user_id = message.from_user.id
     url = await geturl(user_id, name)
@@ -83,11 +82,10 @@ async def donat_list(message):
 🔝 Покупка: Купить лимит 1
 
 💰Ваш баланс: {ecoins} B-Coin
-📲 Пополнить баланс: нельзя''', parse_mode='html')
+📲 Пополнить баланс: {cfg.admin_username}''', parse_mode='html')
 
 
 async def my_status(message):
-    await register_users(message)
     name = await getname(message)
     user_id = message.from_user.id
     url = await geturl(user_id, name)

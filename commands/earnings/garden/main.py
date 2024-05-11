@@ -1,5 +1,5 @@
 from commands.earnings.garden.db import *
-from commands.db import register_users, getname, getonlibalance, getidname
+from commands.db import getname, getonlibalance, getidname
 from commands.main import geturl
 from commands.main import win_luser
 from commands.assets.kb import helpGarden_kb
@@ -8,7 +8,6 @@ async def harden_list(message):
     id = message.from_user.id
     name = await getname(message)
     url = await geturl(id, name)
-    await register_users(message)
     await message.answer(f'''{url}, с данного момента ты можешь сам построить свой сад и улучшать его. Это очень весело и облегчит тебе работу.
 
 🪓 Для начала тебе нужно будет построить свой сад, цена постройки 1.000.000.000$. Введите команду "Построить сад" и после через команду "Мой сад" вы сможете настраивать его и улучшать повышая свою прибыль.
@@ -28,7 +27,6 @@ async def my_garden(message):
     nalogs = int(nalogs)
     balance = '{:,}'.format(balance).replace(',', '.')
     nalogs = '{:,}'.format(nalogs).replace(',', '.')
-    await register_users(message)
     if garden == 0:
         await message.answer(f'{url}, у вас нет своего сада. Введите команду "Построить сад" {rloser}', parse_mode='html')
     else:

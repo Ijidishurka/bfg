@@ -1,5 +1,5 @@
 from commands.earnings.garden.db import *
-from commands.db import register_users, getname, getonlibalance, getidname
+from commands.db import getname
 from commands.main import geturl
 from commands.main import win_luser
 
@@ -8,7 +8,6 @@ async def potions_list(message):
     id = message.from_user.id
     name = await getname(message)
     url = await geturl(id, name)
-    await register_users(message)
     await message.answer(f'''{url}, доступные зелья:
 🍸 1. Чай: 40 зёрен
 Прибыль: 1 энергия
@@ -32,14 +31,13 @@ async def potions_list(message):
 Прибыль: 400 энергии
 
 🛒 Для покупки зелья введите "Создать зелье [номер]"
-⛔ При покупке зелья энергия начисляется сразу.''', parse_mode='html')
+⛔ При покупке зелья энергия начисляется сразу.''')
 
 
 async def bay_potions(message):
     user_id = message.from_user.id
     name = await getname(message)
     url = await geturl(user_id, name)
-    await register_users(message)
     result = await win_luser()
     rwin, rloser = result
     corn = await getcorn(user_id)
@@ -58,14 +56,12 @@ async def bay_potions(message):
         n = int(message.text.split()[2])
         potion = potions[n]
     except:
-        await message.answer(f'{url}, вы ввели неверный номер зелья или не ввели его вовсе. {rloser}', parse_mode='html')
+        await message.answer(f'{url}, вы ввели неверный номер зелья или не ввели его вовсе. {rloser}')
         return
 
     if corn < potion["st"]:
-        await message.answer(f'{url}, у вас недостаточно зёрен для создания данного зелья. {rloser}', parse_mode='html')
+        await message.answer(f'{url}, у вас недостаточно зёрен для создания данного зелья. {rloser}')
         return
 
-    await message.answer(
-        f'{url}, вы успешно создали "{potion["name"]}", вам начислено {potion["summ"]} энергии. {rloser}',
-        parse_mode='html')
+    await message.answer(f'{url}, вы успешно создали "{potion["name"]}", вам начислено {potion["summ"]} энергии. {rloser}')
     await buy_postion_db(potion["st"], potion["summ"], user_id)

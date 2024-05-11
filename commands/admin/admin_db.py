@@ -1,4 +1,5 @@
 from commands.db import conn, cursor
+from decimal import Decimal
 
 
 async def give_money_db(user_id, r_user_id, summ, st):
@@ -8,7 +9,10 @@ async def give_money_db(user_id, r_user_id, summ, st):
         if (per + summ) < limit: return 'limit'
         cursor.execute(f'UPDATE users SET issued = issued + ? WHERE user_id = ?', (summ, user_id))
 
-    cursor.execute(f'UPDATE users SET balance = balance + ? WHERE user_id = ?', (summ, r_user_id))
+    balance = cursor.execute('SELECT balance FROM users WHERE user_id = ?', (r_user_id,)).fetchone()[0]
+    summ = Decimal(balance) + Decimal(summ)
+
+    cursor.execute(f'UPDATE users SET balance = ? WHERE user_id = ?', (str(summ), r_user_id))
     conn.commit()
 
 
@@ -27,7 +31,7 @@ async def new_promo_db(data):
     if res:
         return 'error'
 
-    cursor.execute('INSERT INTO promo (name, summ, activ) VALUES (?, ?, ?)', (data[0], data[1], data[2]))
+    cursor.execute('INSERT INTO promo (name, summ, activ) VALUES (?, ?, ?)', (data[0], str(data[1]), data[2]))
     conn.commit()
 
 
@@ -53,8 +57,11 @@ async def activ_promo_db(name, user_id):
     if res:
         return 'used'
 
-    cursor.execute(f'UPDATE users SET balance = balance + ? WHERE user_id = ?', (data[1], user_id))
+    balance = cursor.execute('SELECT balance FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]
+    summ = int(Decimal(balance) + Decimal(int(data[1])))
+
+    cursor.execute(f'UPDATE users SET balance = ? WHERE user_id = ?', (str(summ), user_id))
     cursor.execute(f'UPDATE promo SET activ = activ - 1 WHERE name = ?', (name,))
     cursor.execute('INSERT INTO promo_activ (user_id, name) VALUES (?, ?)', (user_id, name))
     conn.commit()
-    return data[1]
+    return int(data[1])

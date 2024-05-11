@@ -1,15 +1,19 @@
-from datetime import datetime, timedelta
-from aiogram import types
+import sys
+from datetime import datetime
+from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
-
-from commands.db import register_users, getname, getads, getonlibalance, getstatus, getidname, getstatus
+from commands.db import getidname, getstatus
 from commands.admin.admin_db import *
 from commands.main import geturl
 from commands.main import win_luser
 import config as cfg
 from commands.admin.loger import new_log
-from bot import bot, dp
+from bot import bot
+
+from assets.antispam import earning_msg
+from assets.gettime import bonus_time, kazna_time
+from commands.help import help_msg
 
 
 class new_ads_state(StatesGroup):
@@ -143,26 +147,68 @@ async def admin_menu(message: types.Message):
     await message.answer('<b>👮‍♂️ Админ меню:</b>', reply_markup=keyboard)
 
 
-@dp.message_handler(commands='adm')
-async def admin_menu_s(message: types.Message):
-    await admin_menu(message)
+async def control(message: types.Message):
+    print(546546)
+    user_id = message.from_user.id
+    if user_id not in cfg.admin:
+        return
+
+    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    keyboard.add(types.KeyboardButton("🛡 Пользователи"), types.KeyboardButton("💽 ОЗУ"))
+    keyboard.add(types.KeyboardButton("👮 Вернуться в админ меню"))
+
+    await message.answer('<b>🕹️ Меню управления:</b>', reply_markup=keyboard)
 
 
-@dp.message_handler(lambda message: message.text.lower().startswith('бдать'))
-async def give_bcoins_s(message: types.Message):
-    await give_bcoins(message)
+def sizeof_fmt(num):
+    for unit in ['Б', 'КБ', 'МБ']:
+        if abs(num) < 1024.0:
+            return "%3.1f %s" % (num, unit)
+        num /= 1024.0
+    return "%.1f %s" % (num, 'ТБ')
 
 
-@dp.message_handler(lambda message: message.text == '📥 Выгрузка')
-async def unloading_s(message: types.Message):
-    await unloading(message)
+async def RAM_control(message: types.Message):
+    user_id = message.from_user.id
+    if user_id not in cfg.admin:
+        return
+
+    keyboard = types.InlineKeyboardMarkup()
+    keyboard.add(types.InlineKeyboardButton("🗑 Очистить все", callback_data="ram-clear"))
+
+    earning = sizeof_fmt(sys.getsizeof(earning_msg))
+    help_menu = sizeof_fmt(sys.getsizeof(help_msg))
+    bonus = sizeof_fmt(sys.getsizeof(bonus_time))
+    kazna = sizeof_fmt(sys.getsizeof(kazna_time))
+
+    await message.answer(f'''💽 Информация о использовании ОЗУ:
+💸 Заработок: {earning}
+🆘 Помощь: {help_menu}
+🎁 Бонусы: {bonus}
+💰 Казна: {kazna}''', reply_markup=keyboard)
 
 
-@dp.message_handler(lambda message: message.text == '⚙️ Изменить текст рекламы')
-async def edit_ads_s(message: types.Message, state: FSMContext):
-    await new_ads(message, state=state)
+async def RAM_clear(call: types.CallbackQuery):
+    user_id = call.from_user.id
+    if user_id not in cfg.admin:
+        return
+
+    global earning_msg, help_msg, bonus_time, kazna_time
+    earning_msg.clear()
+    help_msg.clear()
+    bonus_time.clear()
+    kazna_time.clear()
+
+    await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text='🗑 Очищено!')
 
 
-@dp.message_handler(state=new_ads_state.txt)
-async def edit_ads_s(message: types.Message, state: FSMContext):
-    await new_ads(message, state=state, type=1)
+def reg(dp: Dispatcher):
+    dp.register_message_handler(admin_menu, commands='adm')
+    dp.register_message_handler(give_money, lambda message: message.text.lower().startswith('выдать'))
+    dp.register_message_handler(give_bcoins, lambda message: message.text.lower().startswith('бдать'))
+    dp.register_message_handler(unloading, lambda message: message.text.lower().startswith('📥 Выгрузка'))
+    dp.register_message_handler(control, lambda message: message.text == '🕹 Управление')
+    dp.register_message_handler(RAM_control, lambda message: message.text == '💽 ОЗУ')
+    dp.register_callback_query_handler(RAM_clear, text='ram-clear')
+    dp.register_message_handler(new_ads, lambda message: message.text.lower().startswith('⚙️ Изменить текст рекламы'), state=FSMContext)
+    dp.register_message_handler(lambda message, state: new_ads(message, state, type=1), state=new_ads_state.txt)

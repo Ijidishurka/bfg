@@ -1,4 +1,4 @@
-from commands.db import register_users, getname, getonlibalance, getidname, getads
+from commands.db import getname, getstatus, getads
 from commands.main import geturl
 from commands.main import win_luser
 from commands.ore.db import *
@@ -6,7 +6,6 @@ import random
 
 
 async def energy_cmd(message):
-    await register_users(message)
     user_name = await getname(message)
     user_id = message.from_user.id
     url = await geturl(user_id, user_name)
@@ -15,7 +14,6 @@ async def energy_cmd(message):
 
 
 async def mine_cmd(message):
-    await register_users(message)
     user_name = await getname(message)
     user_id = message.from_user.id
     url = await geturl(user_id, user_name)
@@ -57,7 +55,6 @@ async def mine_cmd(message):
 
 
 async def kursrud_cmd(message):
-    await register_users(message)
     user_name = await getname(message)
     user_id = message.from_user.id
     url = await geturl(user_id, user_name)
@@ -78,7 +75,6 @@ async def kursrud_cmd(message):
 
 
 async def inventary_cmd(message):
-    await register_users(message)
     user_name = await getname(message)
     user_id = message.from_user.id
     url = await geturl(user_id, user_name)
@@ -104,8 +100,7 @@ async def inventary_cmd(message):
     positive_resources = {name: info for name, info in resources.items() if info["quantity"] > 0}
 
     if positive_resources:
-        result_message = "\n".join(
-            [f'{info["name"]}: {info["quantity"]} шт.' for name, info in positive_resources.items()])
+        result_message = "\n".join([f'{info["name"]}: {int(info["quantity"]):,} шт.' for name, info in positive_resources.items()])
         await message.answer(f"{url},\n{result_message}", parse_mode='html')
     else:
         await message.answer(f"{url}, ваш инвентарь пуст.", parse_mode='html')
@@ -133,7 +128,6 @@ async def mine_level(expe):
 
 
 async def mymine_cmd(message):
-    await register_users(message)
     user_name = await getname(message)
     user_id = message.from_user.id
     url = await geturl(user_id, user_name)
@@ -151,7 +145,6 @@ async def mymine_cmd(message):
 
 
 async def digmine(message):
-    await register_users(message)
     user_name = await getname(message)
     ads = await getads(message)
     user_id = message.from_user.id
@@ -163,6 +156,10 @@ async def digmine(message):
     if energy == 0:
         await message.answer(f'{url}, у вас недостаточно энергии для копки {rloser}', parse_mode='html')
         return
+
+    status_limits = {0: 1, 1: 2, 2: 3, 3: 5, 4: 10}
+    status = await getstatus(message.from_user.id)
+    coff = status_limits.get(status, status_limits[0])
 
     txt = message.text.split()
     if len(txt) < 2:
@@ -192,16 +189,18 @@ async def digmine(message):
             min_expe = '{:,}'.format(expe).replace(',', '.')
             await message.answer(f'{url}, чтобы копать {ruda} вам требуется {min_expe} опыта {rloser}', parse_mode='html')
             return
-        i = random.randint(min_i, min_i + 1)
+
+        i = random.randint(min_i, min_i + 5) * coff
         await digdb(i, user_id, eng_ruda, op)
-        await message.answer(f'{url}, +{i} {ruda}.\n💡 Энергия: {energy - 1}, опыт: {expe + op}\n\n{ads}',
-                             parse_mode='html', disable_web_page_preview=True)
+        opit = expe + op
+        opit = '{:,}'.format(opit).replace(',', '.')
+
+        await message.answer(f'{url}, +{i} {ruda}.\n💡 Энергия: {energy - 1}, опыт: {opit}\n\n{ads}', disable_web_page_preview=True)
     else:
-        await message.answer(f'{url}, данной руды не существует {rloser}', parse_mode='html')
+        await message.answer(f'{url}, данной руды не существует {rloser}')
 
 
 async def sellruda_cmd(message):
-    await register_users(message)
     user_name = await getname(message)
     user_id = message.from_user.id
     url = await geturl(user_id, user_name)
