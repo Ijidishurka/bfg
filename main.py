@@ -55,12 +55,12 @@ async def stats_cmd_s(message: types.Message):
     await stats_cmd(message)
 
 
-@dp.message_handler(lambda message: message.text in ['б', 'Б', 'Баланс', 'баланс'])
+@dp.message_handler(lambda message: message.text in ['б', 'Б', 'Аура', 'аура'])
 async def balance_cmd_s(message: types.Message):
     await balance_cmd(message)
 
 
-@dp.message_handler(lambda message: message.text in ['биткоины', 'Биткоины'])
+@dp.message_handler(lambda message: message.text in ['мощь', 'Мощь'])
 async def btc_cmd_s(message: types.Message):
     await btc_cmd(message)
 
@@ -95,7 +95,7 @@ async def my_status_s(message: types.Message):
     await my_status(message)
 
 
-@dp.message_handler(lambda message: message.text in ['банк', 'Банк'])
+@dp.message_handler(lambda message: message.text in ['купон', 'Купон'])
 async def bank_cmd_s(message: types.Message):
     await bank_cmd(message)
 
@@ -190,12 +190,12 @@ async def buy_business_s(message: types.Message):
     await buy_business(message)
 
 
-@dp.message_handler(lambda message: message.text.lower().startswith('банк положить'))
+@dp.message_handler(lambda message: message.text.lower().startswith('ауру в купоны'))
 async def putbank_s(message: types.Message):
     await putbank(message)
 
 
-@dp.message_handler(lambda message: message.text.lower().startswith('банк снять'))
+@dp.message_handler(lambda message: message.text.lower().startswith('купоны в ауру'))
 async def takeoffbank_s(message: types.Message):
     await takeoffbank(message)
 
@@ -220,17 +220,17 @@ async def sellrating_s(message: types.Message):
     await sellrating(message)
 
 
-@dp.message_handler(lambda message: message.text.lower().startswith('продать биткоин') or message.text.lower().startswith('биткоин продать'))
+@dp.message_handler(lambda message: message.text.lower().startswith('Продать мощь') or message.text.lower().startswith('биткоин продать'))
 async def sellbtc_s(message: types.Message):
     await sellbtc(message)
 
 
-@dp.message_handler(lambda message: message.text.lower().startswith('купить биткоин') or message.text.lower().startswith('биткоин купить'))
+@dp.message_handler(lambda message: message.text.lower().startswith('Качать мощь') or message.text.lower().startswith('биткоин купить'))
 async def buybtc_s(message: types.Message):
     await buybtc(message)
 
 
-@dp.message_handler(lambda message: message.text.lower().startswith('курс биткоин') or message.text.lower().startswith('биткоин курс'))
+@dp.message_handler(lambda message: message.text.lower().startswith('курс мощи') or message.text.lower().startswith('биткоин курс'))
 async def btc_kurs_s(message: types.Message):
     await btc_kurs(message)
 
