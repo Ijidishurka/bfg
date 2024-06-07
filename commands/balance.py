@@ -19,9 +19,9 @@ async def balance_cmd(message):
     bank = '{:,}'.format(bank).replace(',', '.')
     btc = '{:,}'.format(btc).replace(',', '.')
     await message.answer(f'''👫Ник: {name}
-💰Деньги: {balance}$
-🏦Банк: {bank}$
-💽Биткоины: {btc}🌐
+💨Аура: {balance}$
+🎫Купон: {bank}$
+💪Мощь: {btc}🌐
 
 {ads}''', parse_mode='html', disable_web_page_preview=True)
 
