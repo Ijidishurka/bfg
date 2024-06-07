@@ -19,9 +19,9 @@ async def balance_cmd(message):
     bank = '{:,}'.format(bank).replace(',', '.')
     btc = '{:,}'.format(btc).replace(',', '.')
     await message.answer(f'''👫Ник: {name}
-💰Деньги: {balance}$
-🏦Банк: {bank}$
-💽Биткоины: {btc}🌐
+💨Аура: {balance}$
+🎫Купон: {bank}$
+💪Мощь: {btc}🌐
 
 {ads}''', parse_mode='html', disable_web_page_preview=True)
 
@@ -90,10 +90,10 @@ async def profil_cmd(message):
     await message.answer(f'''{profil}
 🔎 ID: {user_id}
 🏆 Статус: {st}
-💰 Денег: {fdata[0]}$
-🏦 В банке: {fdata[2]}$
-💳 B-Coins: {fdata[3]}
-💽 Биткоины: {fdata[1]}฿
+💨 Ауры: {fdata[0]}$
+🎫 Купонов: {fdata[2]}$
+💳 Валюта: {fdata[3]}
+💪 Мощи: {fdata[1]}฿
 🏋 Энергия: {fdata[4]}
 👑 Рейтинг: {fdata[7]}
 🌟 Опыт: {fdata[5]}
