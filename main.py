@@ -60,7 +60,7 @@ async def balance_cmd_s(message: types.Message):
     await balance_cmd(message)
 
 
-@dp.message_handler(lambda message: message.text in ['биткоины', 'Биткоины'])
+@dp.message_handler(lambda message: message.text in ['мощь', 'Мощь'])
 async def btc_cmd_s(message: types.Message):
     await btc_cmd(message)
 
@@ -95,7 +95,7 @@ async def my_status_s(message: types.Message):
     await my_status(message)
 
 
-@dp.message_handler(lambda message: message.text in ['банк', 'Банк'])
+@dp.message_handler(lambda message: message.text in ['мои купоны', 'Мои купоны'])
 async def bank_cmd_s(message: types.Message):
     await bank_cmd(message)
 
