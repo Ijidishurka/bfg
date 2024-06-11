@@ -1,9 +1,8 @@
 import random
 from assets.antispam import antispam
-from commands.db import getname, setname, bonus_db, getads, top_db, get_colvo_users, getstatus
-from commands.main import geturl
+from commands.db import url_name, setname, bonus_db, getads, top_db, get_colvo_users, getstatus
 from commands.main import win_luser
-from assets.gettime import bonustime, kaznatime
+from assets.gettime import bonustime, kaznatime, lucktime
 from commands.assets.transform import transform
 
 
@@ -14,10 +13,9 @@ async def shar_cmd(message):
 
 @antispam
 async def setname_cmd(message):
-    user_name = await getname(message)
     user_id = message.from_user.id
     rwin, rloser = await win_luser()
-    url = await geturl(user_id, user_name)
+    url = await url_name(user_id)
     try:
         name = " ".join(message.text.split()[2:])
     except:
@@ -45,9 +43,8 @@ async def kazna_cmd(message):
 
 @antispam
 async def ogr_kazna(message):
-    user_name = await getname(message)
     user_id = message.from_user.id
-    url = await geturl(user_id, user_name)
+    url = await url_name(user_id)
 
     bt, left = await kaznatime(user_id)
     if bt == 1:
@@ -56,7 +53,7 @@ async def ogr_kazna(message):
 
     i = random.randint(1, 3)
     if i == 1:
-        await message.answer( f'{url}, к сожалению вам не удалось ограбить казну ❎')
+        await message.answer(f'{url}, к сожалению вам не удалось ограбить казну ❎')
         return
 
     summ = random.randint(100000000, 400000000)
@@ -67,19 +64,37 @@ async def ogr_kazna(message):
 
 
 @antispam
-async def bonus_cmd(message):
-    user_name = await getname(message)
+async def try_luck(message):
     user_id = message.from_user.id
-    url = await geturl(user_id, user_name)
+    url = await url_name(user_id)
+
+    bt, left = await lucktime(user_id)
+    if bt == 1:
+        hours = left // 3600
+        minutes = (left % 3600) // 60
+        txt = f'{hours}ч {minutes}м' if hours > 0 else f'{minutes}м'
+        await message.answer(f'{url}, ты уже испытывал свою удачу, следующий раз ты сможешь через {txt}')
+        return
+
+    summ = random.randint(10_000_000, 900_000_000)
+    summ2 = '{:,}'.format(summ).replace(',', '.')
+
+    await bonus_db(user_id, 'mine', 'biores', summ)
+    await message.answer(f'✅ Вы успешно испытали удачу и получили {summ2}кг биоресурса ☣️')
+
+
+@antispam
+async def bonus_cmd(message):
+    user_id = message.from_user.id
+    url = await url_name(user_id)
 
     bt, left = await bonustime(user_id)
     if bt == 1:
         hours = left // 3600
         minutes = (left % 3600) // 60
-        if hours > 0:
-            await message.answer(f'{url}, ты уже получал(-а) ежедневный бонус, следующий бонус ты сможешь получить через {hours}ч {minutes}м')
-        else:
-            await message.answer(f'{url}, ты уже получал(-а) ежедневный бонус, следующий бонус ты сможешь получить через {minutes}м')
+        txt = f'{hours}ч {minutes}м' if hours > 0 else f'{minutes}м'
+        await message.answer(
+            f'{url}, ты уже получал(-а) ежедневный бонус, следующий бонус ты сможешь получить через {txt}')
         return
 
     i = random.randint(1, 4)
@@ -127,8 +142,7 @@ async def top_command(message):
     userinfo, top_players = await top_db(message)
     user_id = message.from_user.id
     ads = await getads(message)
-    user_name = await getname(message)
-    url = await geturl(user_id, user_name)
+    url = await url_name(user_id)
 
     user_position = None
     for i, player in enumerate(top_players, start=1):

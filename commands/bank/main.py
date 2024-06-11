@@ -1,7 +1,6 @@
 from datetime import datetime, timedelta
-from commands.db import getname, getads, getonlibalance, getstatus
+from commands.db import url_name, getads, getonlibalance, getstatus, get_name
 from commands.bank.db import *
-from commands.main import geturl
 from commands.main import win_luser
 
 
@@ -19,9 +18,9 @@ async def bank_pc(status):
 
 
 async def bank_cmd(message):
-    user_name = await getname(message)
     user_id = message.from_user.id
-    url = await geturl(user_id, user_name)
+    url = await url_name(user_id)
+    user_name = await get_name(user_id)
     ads = await getads(message)
     status = await getstatus(user_id)
     p, c, st = await bank_pc(status)
@@ -49,12 +48,10 @@ async def bank_cmd(message):
 
 
 async def putbank(message):
-    user_name = await getname(message)
     user_id = message.from_user.id
     balance = await getonlibalance(message)
-    url = await geturl(user_id, user_name)
-    result = await win_luser()
-    rwin, rloser = result
+    url = await url_name(user_id)
+    rwin, rloser = await win_luser()
 
     try:
         split_text = message.text.split()
@@ -77,12 +74,10 @@ async def putbank(message):
 
 
 async def takeoffbank(message):
-    user_name = await getname(message)
     user_id = message.from_user.id
     balance = await getbakbalance_db(message)
-    url = await geturl(user_id, user_name)
-    result = await win_luser()
-    rwin, rloser = result
+    url = await url_name(user_id)
+    rwin, rloser = await win_luser()
 
     try:
         split_text = message.text.split()
@@ -118,13 +113,11 @@ async def dep_comsa(status):
 
 
 async def pudepozit(message):
-    user_name = await getname(message)
     user_id = message.from_user.id
     balance = await getonlibalance(message)
     depozitb = await getdepbakance_db(message)
-    url = await geturl(user_id, user_name)
-    result = await win_luser()
-    rwin, rloser = result
+    url = await url_name(user_id)
+    rwin, rloser = await win_luser()
 
     try:
         split_text = message.text.split()
@@ -160,15 +153,13 @@ async def pudepozit(message):
 
 
 async def takeoffdepozit(message):
-    user_name = await getname(message)
     user_id = message.from_user.id
     balance, timedepozit, bank = await getbankdb(message)
     timedepozit = datetime.fromtimestamp(timedepozit)
     timedepozit += timedelta(days=3)
     dt = datetime.now().timestamp()
-    url = await geturl(user_id, user_name)
-    result = await win_luser()
-    rwin, rloser = result
+    url = await url_name(user_id)
+    rwin, rloser = await win_luser()
 
     status = await getstatus(user_id)
     c, p = await dep_comsa(status)

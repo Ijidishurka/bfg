@@ -3,7 +3,7 @@ from datetime import datetime
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
-from commands.db import getidname, getstatus
+from commands.db import url_name, getstatus, get_name
 from commands.admin.admin_db import *
 from commands.main import geturl
 from commands.main import win_luser
@@ -26,13 +26,13 @@ async def give_money(message):
     if user_id not in cfg.admin and status == 0:
         return await message.answer('👮‍♂️ Вы не являетесь администратором бота чтобы использовать данную команду.\nДля покупки введи команду "Донат"')
 
-    user_name = await getidname(user_id)
+    user_name = await get_name(user_id)
     rwin, rloser = await win_luser()
     url = await geturl(user_id, user_name)
 
     try:
         r_user_id = message.reply_to_message.from_user.id
-        r_user_name = await getidname(r_user_id)
+        r_user_name = await get_name(r_user_id)
         r_url = await geturl(r_user_id, r_user_name)
     except:
         return await message.answer(f'{url}, чтобы выдать деньги нужно ответить на сообщение пользователя {rloser}')
@@ -62,13 +62,13 @@ async def give_bcoins(message):
     if user_id not in cfg.admin:
         return
 
-    user_name = await getidname(user_id)
+    user_name = await get_name(user_id)
     rwin, rloser = await win_luser()
     url = await geturl(user_id, user_name)
 
     try:
         r_user_id = message.reply_to_message.from_user.id
-        r_user_name = await getidname(r_user_id)
+        r_user_name = await get_name(r_user_id)
         r_url = await geturl(r_user_id, r_user_name)
     except:
         return await message.answer(f'{url}, чтобы выдать деньги нужно ответить на сообщение пользователя {rloser}')
@@ -210,5 +210,5 @@ def reg(dp: Dispatcher):
     dp.register_message_handler(control, lambda message: message.text == '🕹 Управление')
     dp.register_message_handler(RAM_control, lambda message: message.text == '💽 ОЗУ')
     dp.register_callback_query_handler(RAM_clear, text='ram-clear')
-    dp.register_message_handler(new_ads, lambda message: message.text.lower().startswith('⚙️ Изменить текст рекламы'), state=FSMContext)
+    dp.register_message_handler(new_ads, lambda message: message.text == '⚙️ Изменить текст рекламы')
     dp.register_message_handler(lambda message, state: new_ads(message, state, type=1), state=new_ads_state.txt)

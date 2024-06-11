@@ -1,26 +1,19 @@
 # YT: userbotik
 import install
-from aiogram import types
 from config import *
 from commands.main import *
 from commands.help import *
-from commands.balance import *
-from commands.status.main import *
 from commands.rz import *
 from commands.transfer import *
 from commands.games.games import *
 from assets.auto import automatisation
 from commands.ore.btcs import *
-from commands.earnings.business.main import *
 from commands.ore.dig import *
 from commands.ore.rating import *
 from commands.case.main import *
 from commands.case.buy import *
 from commands.bank.main import *
-from commands.earnings.garden.main import *
 from commands.earnings.garden.potions import *
-from commands.earnings.farm.main import *
-from commands.earnings.generator.main import *
 from assets.modules import *
 from commands.admin.promo import activ_promo
 from bot import dp
@@ -28,6 +21,15 @@ from bot import dp
 import commands.property.main
 import commands.admin.admin
 import commands.property.buy
+import commands.earnings.farm.main
+import commands.earnings.business.main
+import commands.earnings.garden.main
+import commands.earnings.generator.main
+import commands.earnings.tree.main
+import commands.earnings.quarry.main
+import commands.balance
+import commands.status.main
+import commands.status.buy_status
 
 
 @dp.message_handler(commands=['start'])
@@ -55,16 +57,6 @@ async def stats_cmd_s(message: types.Message):
     await stats_cmd(message)
 
 
-@dp.message_handler(lambda message: message.text in ['б', 'Б', 'Баланс', 'баланс'])
-async def balance_cmd_s(message: types.Message):
-    await balance_cmd(message)
-
-
-@dp.message_handler(lambda message: message.text in ['биткоины', 'Биткоины'])
-async def btc_cmd_s(message: types.Message):
-    await btc_cmd(message)
-
-
 @dp.message_handler(lambda message: message.text in ['энергия', 'Энергия'])
 async def energy_cmd_s(message: types.Message):
     await energy_cmd(message)
@@ -80,21 +72,6 @@ async def chat_list_s(message: types.Message):
     await chat_list(message)
 
 
-@dp.message_handler(lambda message: message.text in ['донат', 'Донат'])
-async def donat_list_s(message: types.Message):
-    await donat_list(message)
-
-
-@dp.message_handler(lambda message: message.text in ['статусы', 'Статусы'])
-async def status_list_s(message: types.Message):
-    await status_list(message)
-
-
-@dp.message_handler(lambda message: message.text in ['мой статус', 'Мой статус'])
-async def my_status_s(message: types.Message):
-    await my_status(message)
-
-
 @dp.message_handler(lambda message: message.text in ['банк', 'Банк'])
 async def bank_cmd_s(message: types.Message):
     await bank_cmd(message)
@@ -105,39 +82,9 @@ async def limit_cmd_s(message: types.Message):
     await limit_cmd(message)
 
 
-@dp.message_handler(lambda message: message.text.lower().startswith('профиль'))
-async def profil_cmd_s(message: types.Message):
-    await profil_cmd(message)
-
-
 @dp.message_handler(lambda message: message.text in ['мой ник', 'Мой ник'])
 async def myname_cmd_s(message: types.Message):
     await myname_cmd(message)
-
-
-@dp.message_handler(lambda message: message.text in ['Моя ферма', 'моя ферма'])
-async def my_ferma_s(message: types.Message):
-    await my_ferma(message)
-
-
-@dp.message_handler(lambda message: message.text in ['фермы', 'Фермы', 'ферма', 'Ферма'])
-async def ferma_list_s(message: types.Message):
-    await ferma_list(message)
-
-
-@dp.message_handler(lambda message: message.text in ['генератор', 'Генератор', 'Генераторы', 'генераторы'])
-async def generator_list_s(message: types.Message):
-    await generator_list(message)
-
-
-@dp.message_handler(lambda message: message.text in ['мой генератор', 'Мой генератор'])
-async def my_generator_s(message: types.Message):
-    await my_generator(message)
-
-
-@dp.message_handler(lambda message: message.text in ['построить генератор', 'Построить генератор'])
-async def buy_generator_s(message: types.Message):
-    await buy_generator(message)
 
 
 @dp.message_handler(lambda message: message.text in ['зелья', 'Зелья'])
@@ -148,46 +95,6 @@ async def potions_list_s(message: types.Message):
 @dp.message_handler(lambda message: message.text.lower().startswith('создать зелье'))
 async def bay_potions_s(message: types.Message):
     await bay_potions(message)
-
-
-@dp.message_handler(lambda message: message.text in ['сад', 'Сад'])
-async def harden_list_s(message: types.Message):
-    await harden_list(message)
-
-
-@dp.message_handler(lambda message: message.text in ['Мой сад', 'мой сад'])
-async def my_garden_s(message: types.Message):
-    await my_garden(message)
-
-
-@dp.message_handler(lambda message: message.text in ['Сад полить', 'сад полить'])
-async def garden_polit_s(message: types.Message):
-    await polit_dereva_garden_2(message)
-
-
-@dp.message_handler(lambda message: message.text in ['Построить сад', 'построить сад'])
-async def buy_garden_s(message: types.Message):
-    await buy_garden(message)
-
-
-@dp.message_handler(lambda message: message.text in ['бизнес', 'Бизнес', 'бизнесы', 'Бизнесы'])
-async def business_list_s(message: types.Message):
-    await business_list(message)
-
-
-@dp.message_handler(lambda message: message.text in ['Мой бизнес', 'мой бизнес'])
-async def my_business_s(message: types.Message):
-    await my_business(message)
-
-
-@dp.message_handler(lambda message: message.text in ['Построить ферму', 'построить ферму'])
-async def buy_ferma_s(message: types.Message):
-    await buy_ferma(message)
-
-
-@dp.message_handler(lambda message: message.text in ['Построить бизнес', 'построить бизнес'])
-async def buy_business_s(message: types.Message):
-    await buy_business(message)
 
 
 @dp.message_handler(lambda message: message.text.lower().startswith('банк положить'))
@@ -344,79 +251,14 @@ async def game_trade_s(message: types.Message):
     await game_trade(message)
 
 
-@dp.callback_query_handler(lambda c: c.data == 'garden_sobrat')
-async def snyt_pribl_garden_s(callback_query: types.CallbackQuery):
-    await snyt_pribl_garden(callback_query)
-
-
-@dp.callback_query_handler(lambda c: c.data == 'garden_nalog')
-async def oplata_nalogov_garden_s(callback_query: types.CallbackQuery):
-    await oplata_nalogov_garden(callback_query)
-
-
-@dp.callback_query_handler(lambda c: c.data == 'garden_baytree')
-async def buy_tree_s(callback_query: types.CallbackQuery):
-    await buy_tree(callback_query)
-
-
-@dp.callback_query_handler(lambda c: c.data == 'garden_polit')
-async def polit_dereva_garden_s(callback_query: types.CallbackQuery):
-    await polit_dereva_garden(callback_query)
-
-
-@dp.callback_query_handler(lambda c: c.data == 'business_sobrat')
-async def snyt_pribl_business_s(callback_query: types.CallbackQuery):
-    await snyt_pribl_business(callback_query)
-
-
-@dp.callback_query_handler(lambda c: c.data == 'business_nalog')
-async def business_nalog_s(callback_query: types.CallbackQuery):
-    await oplata_nalogov_business(callback_query)
-
-
-@dp.callback_query_handler(lambda c: c.data == 'business_ter')
-async def buy_territory_s(callback_query: types.CallbackQuery):
-    await buy_territory(callback_query)
-
-
-@dp.callback_query_handler(lambda c: c.data == 'business_bis')
-async def buy_bsterritory_s(callback_query: types.CallbackQuery):
-    await buy_bsterritory(callback_query)
-
-
-@dp.callback_query_handler(lambda c: c.data == 'ferma_bycards')
-async def buy_cards_s(callback_query: types.CallbackQuery):
-    await buy_cards(callback_query)
-
-
-@dp.callback_query_handler(lambda c: c.data == 'ferma_sobrat')
-async def snyt_pribl_ferma_s(callback_query: types.CallbackQuery):
-    await snyt_pribl_ferma(callback_query)
-
-
-@dp.callback_query_handler(lambda c: c.data == 'ferma_nalog')
-async def oplata_nalogov_ferma_S(callback_query: types.CallbackQuery):
-    await oplata_nalogov_ferma(callback_query)
-
-
-@dp.callback_query_handler(lambda c: c.data == 'generator_nalog')
-async def oplata_nalogov_generator_s(callback_query: types.CallbackQuery):
-    await oplata_nalogov_generator(callback_query)
-
-
-@dp.callback_query_handler(lambda c: c.data == 'generator_sobrat')
-async def snyt_pribl_generator_s(callback_query: types.CallbackQuery):
-    await snyt_pribl_generator(callback_query)
-
-
-@dp.callback_query_handler(lambda c: c.data == 'generator_byturb')
-async def buy_turbine_s(callback_query: types.CallbackQuery):
-    await buy_turbine(callback_query)
+@dp.message_handler(lambda message: message.text.lower().startswith("испытать удачу"))
+async def try_luck_s(message: types.Message):
+    await try_luck(message)
 
 
 async def main(dp):
     load_modules(dp)
-    await autokursbtc()
+    await autokursbtc_new()
     await automatisation()
 
 
@@ -426,6 +268,15 @@ if __name__ == '__main__':
     commands.property.main.reg(dp)
     commands.property.buy.reg(dp)
     commands.admin.admin.reg(dp)
+    commands.earnings.farm.main.reg(dp)
+    commands.earnings.business.main.reg(dp)
+    commands.earnings.garden.main.reg(dp)
+    commands.earnings.generator.main.reg(dp)
+    commands.earnings.quarry.main.reg(dp)
+    commands.balance.reg(dp)
+    commands.status.buy_status.reg(dp)
+    commands.status.main.reg(dp)
+    commands.earnings.tree.main.reg(dp)
 
     executor.start_polling(dp, on_startup=main, skip_updates=True)
 

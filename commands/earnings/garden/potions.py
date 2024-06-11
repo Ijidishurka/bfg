@@ -1,13 +1,11 @@
 from commands.earnings.garden.db import *
-from commands.db import getname
-from commands.main import geturl
+from commands.db import url_name
 from commands.main import win_luser
 
 
 async def potions_list(message):
-    id = message.from_user.id
-    name = await getname(message)
-    url = await geturl(id, name)
+    user_id = message.from_user.id
+    url = await url_name(user_id)
     await message.answer(f'''{url}, доступные зелья:
 🍸 1. Чай: 40 зёрен
 Прибыль: 1 энергия
@@ -36,10 +34,8 @@ async def potions_list(message):
 
 async def bay_potions(message):
     user_id = message.from_user.id
-    name = await getname(message)
-    url = await geturl(user_id, name)
-    result = await win_luser()
-    rwin, rloser = result
+    url = await url_name(user_id)
+    rwin, rloser = await win_luser()
     corn = await getcorn(user_id)
 
     potions = {
@@ -63,5 +59,5 @@ async def bay_potions(message):
         await message.answer(f'{url}, у вас недостаточно зёрен для создания данного зелья. {rloser}')
         return
 
-    await message.answer(f'{url}, вы успешно создали "{potion["name"]}", вам начислено {potion["summ"]} энергии. {rloser}')
+    await message.answer(f'{url}, вы успешно создали "{potion["name"]}", вам начислено {potion["st"]} энергии. {rwin}')
     await buy_postion_db(potion["st"], potion["summ"], user_id)

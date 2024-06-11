@@ -1,6 +1,6 @@
 from aiogram import types
 from assets.antispam import antispam
-from commands.db import getinlinename
+from commands.db import get_name
 import commands.assets.kb as kb
 import config as cfg
 from bot import bot, dp
@@ -65,7 +65,7 @@ async def help_back(call):
 
 @antispam_help
 async def help_osn(call):
-    name = await getinlinename(call)
+    name = await get_name(call.from_user.id)
     await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=f'''
 {name}, основные команды:
 💡 Разное:
@@ -102,7 +102,7 @@ async def help_osn(call):
 
 @antispam_help
 async def help_game(call):
-    name = await getinlinename(call)
+    name = await get_name(call.from_user.id)
     await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=f'''
 {name}, игровые команды:
 🚀 Игры:
@@ -118,7 +118,7 @@ async def help_game(call):
 
 @antispam_help
 async def help_rz(call):
-    name = await getinlinename(call)
+    name = await get_name(call.from_user.id)
     await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=f'''
 {name}, развлекательные команды:
    🔮 Шар [фраза]
@@ -160,7 +160,7 @@ async def help_rz(call):
 
 @antispam_help
 async def help_clans(call: types.CallbackQuery):
-    name = await getinlinename(call)
+    name = await get_name(call.from_user.id)
     await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=f'''
 {name}, клановые команды:
 🗂 Общие команды:

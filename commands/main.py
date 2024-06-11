@@ -1,5 +1,5 @@
-from commands.db import reg_user, getname
-from commands.assets.kb import startKB
+from commands.db import reg_user, get_name
+from commands.assets import kb
 import random
 import config as cfg
 from assets.antispam import antispam
@@ -16,10 +16,10 @@ async def on_start(message):
 🔍 Познакомиться со всеми моими возможностями ты можешь, введя команду «помощь».
 
 <a href="{cfg.chanell}">🔈 Наш канал</a>
-<a href="{cfg.chat}">💬 Наш чат</a>''', parse_mode='html', disable_web_page_preview=True, reply_markup=startKB)
+<a href="{cfg.chat}">💬 Наш чат</a>''', disable_web_page_preview=True, reply_markup=kb.start())
 
     await message.answer(f'''🚀 Не уверен, с чего начать своё приключение?
-Присоединяйся к нашему официальному чату {cfg.bot_name}: {cfg.chat}''', parse_mode='html', disable_web_page_preview=True)
+Присоединяйся к нашему официальному чату {cfg.bot_name}: {cfg.chat}''', disable_web_page_preview=True)
 
 
 async def chat_list(message):
@@ -28,12 +28,12 @@ async def chat_list(message):
 💭 Официальный канал разработки:
 {cfg.chanell}
 🏆 Официальный чат с розыгрышами:
-...''', parse_mode='html', disable_web_page_preview=True)
+...''', disable_web_page_preview=True)
 
 
 @antispam
 async def myname_cmd(message):
-    name = await getname(message)
+    name = await get_name(message)
     await message.answer(f'🗂 Ваш ник - «{name}»')
 
 

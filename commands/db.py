@@ -12,12 +12,12 @@ cursor = conn.cursor()
 cursor.execute('''CREATE TABLE IF NOT EXISTS users (user_id INTEGER, name TEXT, balance TEXT, btc INTEGER, 
 bank INTEGER, depozit INTEGER, timedepozit NUMERIC, exp INTEGER, energy INTEGER, case1 INTEGER, case2 INTEGER, 
 case3 INTEGER, case4 INTEGER, rating INTEGER, games INTEGER, ecoins INTEGER, per TEXT, dregister NUMERIC, corn INTEGER,
-status INTEGER, issued NUMERIC, ban NUMERIC)''')
+status INTEGER, issued NUMERIC, ban NUMERIC, yen TEXT, perlimit TEXT)''')
 
 
 cursor.execute('''CREATE TABLE IF NOT EXISTS mine (user_id INTEGER, iron INTEGER, gold INTEGER, diamond INTEGER, 
 amestit INTEGER, aquamarine INTEGER, emeralds INTEGER, matter INTEGER, plasma INTEGER, nickel INTEGER, 
-titanium INTEGER, cobalt INTEGER, ectoplasm INTEGER)''')
+titanium INTEGER, cobalt INTEGER, ectoplasm INTEGER, biores INTEGER, palladium INTEGER)''')
 
 
 cursor.execute('''CREATE TABLE IF NOT EXISTS ferma
@@ -34,6 +34,14 @@ cursor.execute('''CREATE TABLE IF NOT EXISTS garden
 
 cursor.execute('''CREATE TABLE IF NOT EXISTS business (user_id INTEGER, balance NUMERIC, 
 nalogs INTEGER, territory INTEGER, bsterritory INTEGER)''')
+
+
+cursor.execute('''CREATE TABLE IF NOT EXISTS tree (user_id INTEGER, balance NUMERIC, 
+nalogs INTEGER, territory INTEGER, tree INTEGER, yen INTEGER)''')
+
+
+cursor.execute('''CREATE TABLE IF NOT EXISTS quarry (user_id INTEGER, balance NUMERIC, 
+nalogs INTEGER, territory INTEGER, bur INTEGER, lvl INTEGER)''')
 
 
 cursor.execute('''CREATE TABLE IF NOT EXISTS promo (name TEXT, summ TEXT, activ INTEGER)''')
@@ -54,18 +62,24 @@ cursor.execute('''CREATE TABLE IF NOT EXISTS property (user_id INTEGER, helicopt
 car INTEGER, yahta INTEGER, phone INTEGER, house INTEGER, plane INTEGER)''')
 
 
+current_kurs = cursor.execute('SELECT kursbtc FROM sett').fetchone()
+if current_kurs is None:
+    cursor.execute('INSERT INTO sett (ads, kursbtc) VALUES (?, ?)', ('', 65000))
+
+
 async def reg_user(user_id):
     ex = cursor.execute('SELECT name FROM users WHERE user_id = ?', (user_id,)).fetchone()
     if not ex:
         dt = int(datetime.now().timestamp())
         cursor.execute('INSERT INTO users (user_id, name, balance, btc, bank, depozit, timedepozit, exp, energy, case1,'
-                       'case2, case3, case4, rating, games, ecoins, per, dregister, corn, status)'
-                       'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                       (user_id, 'Игрок', cfg.start_money, 200, 0, 0, dt, 5000000, 10, 0, 0, 0, 0, 0, 0, 0, 0, dt, 0, 0))
+                       'case2, case3, case4, rating, games, ecoins, per, dregister, corn, status, yen, perlimit)'
+                       'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                       (user_id, 'Игрок', cfg.start_money, 200, 0, 0, dt, 5000000, 10, 0, 0, 0, 0, 0, 0, 0, 0, dt, 0, 0, 0, 0))
 
-        cursor.execute('INSERT INTO mine (user_id, iron, gold, diamond, amestit, aquamarine, emeralds, matter, '
-                       'plasma, nickel, titanium, cobalt, ectoplasm) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                       (user_id, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
+        cursor.execute('INSERT INTO mine (user_id, iron, gold, diamond, amestit, aquamarine, emeralds, matter, plasma, '
+                       'nickel, titanium, cobalt, ectoplasm, biores, palladium)'
+                       ' VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                       (user_id, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
 
         cursor.execute('INSERT INTO property (user_id, helicopter, car, yahta, phone, house, plane) '
                        'VALUES (?, ?, ?, ?, ?, ?, ?)', (user_id, 0, 0, 0, 0, 0, 0))
@@ -88,55 +102,33 @@ async def getperevod(perevod, user_id, reply_user_id):
     conn.commit()
 
 
-async def getname(message):
-    user_id = message.from_user.id
-    cursor.execute('SELECT name FROM users WHERE user_id = ?', (user_id,))
-    try:
-        ex = cursor.fetchone()[0]
-    except:
-        ex = 'Игрок'
-    return ex
-
-
-async def getidname(user_id):
-    cursor.execute('SELECT name FROM users WHERE user_id = ?', (user_id,))
-    try:
-        ex = cursor.fetchone()[0]
-    except:
-        ex = 'Игрок'
-    return ex
-
-
-async def getinlinename(callback_query):
-    user_id = callback_query.from_user.id
-    cursor.execute('SELECT name FROM users WHERE user_id = ?', (user_id,))
-    try:
-        ex = cursor.fetchone()[0]
-    except:
-        ex = 'Игрок'
-    return ex
+async def get_name(user_id):
+    return cursor.execute('SELECT name FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]
 
 
 async def getbalance(user_id):
-    data = cursor.execute('SELECT name, balance, btc, bank FROM users WHERE user_id = ?', (user_id,)).fetchone()
-    return data[0], int(data[1]), data[2], data[3]
+    data = cursor.execute('SELECT name, balance, btc, bank, yen FROM users WHERE user_id = ?', (user_id,)).fetchone()
+    return data[0], int(float(data[1])), data[2], data[3], int(data[4])
 
 
 async def getpofildb(user_id):
-    data = cursor.execute('SELECT balance, btc, bank, ecoins, energy, exp, games, rating, dregister FROM users WHERE user_id = ?', (user_id,)).fetchone()
+    data = cursor.execute('SELECT balance, btc, bank, games, rating, yen, exp, dregister, ecoins, energy '
+                          'FROM users WHERE user_id = ?', (user_id,)).fetchone()
 
     ferma = cursor.execute('SELECT user_id FROM ferma WHERE user_id = ?', (user_id,)).fetchone()
     business = cursor.execute('SELECT user_id FROM business WHERE user_id = ?', (user_id,)).fetchone()
     garden = cursor.execute('SELECT user_id FROM garden WHERE user_id = ?', (user_id,)).fetchone()
     generator = cursor.execute('SELECT user_id FROM generator WHERE user_id = ?', (user_id,)).fetchone()
 
-    return data, (ferma, business, garden, generator)
+    property = cursor.execute('SELECT * FROM property WHERE user_id = ?', (user_id,)).fetchone()
+
+    return data, (ferma, business, garden, generator), property
 
 
 async def getonlibalance(message):
     user_id = message.from_user.id
     i = cursor.execute('SELECT balance FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]
-    return int(i)
+    return int(float(i))
 
 
 async def get_balance(user_id):
@@ -219,3 +211,7 @@ async def url_name(user_id):
 
 async def chek_user(user_id):
     return cursor.execute('SELECT user_id FROM users WHERE user_id = ?', (user_id,)).fetchone()
+
+
+async def get_doplimit(user_id):
+    return cursor.execute('SELECT perlimit FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]

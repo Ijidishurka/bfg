@@ -1,26 +1,21 @@
-from _decimal import Decimal
-from commands.db import getname, getonlibalance, getidname, getads
-from commands.main import geturl
+from commands.db import url_name
 from commands.main import win_luser
 from commands.ore.db import *
 
 
 async def rrating_cmd(message):
-    user_name = await getname(message)
     user_id = message.from_user.id
-    url = await geturl(user_id, user_name)
+    url = await url_name(user_id)
     r = await getrrating(message)
     r = '{:,}'.format(r).replace(',', '.')
     await message.answer(f'''{url}, ваш рейтинг {r}👑''', parse_mode='html', disable_web_page_preview=True)
 
 
 async def sellrating(message):
-    user_name = await getname(message)
     user_id = message.from_user.id
     r = await getrrating(message)
-    url = await geturl(user_id, user_name)
-    result = await win_luser()
-    rwin, rloser = result
+    url = await url_name(user_id)
+    rwin, rloser = await win_luser()
 
     try:
         summ_r = int(message.text.split()[2])

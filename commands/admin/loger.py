@@ -6,10 +6,10 @@ import config as cfg
 # 2 - записывать логи только в файл logs.txt
 # 3 - записывать логи в файл и отправлять в логчат
 
-promo = 3
-money_transfers = 3
-issuance_money = 3
-issuance_bcoins = 3
+promo = 3  # активация промо
+money_transfers = 3  # перевод денег
+issuance_money = 3  # выдача денег
+issuance_bcoins = 3  # выдача бкоинов
 
 
 async def new_log(txt, log_type):

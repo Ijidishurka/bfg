@@ -3,6 +3,7 @@ from aiogram import types
 from aiogram.dispatcher import Dispatcher
 from commands.db import conn, cursor  # Импорт основной бд
 
+print('!!! СОЗДАН ПРОМОКОД "непромо start". Для удаление промокода удалите файл ptomo.py из папки modules.')
 
 conn2 = sqlite3.connect('promo.db')
 cursor2 = conn2.cursor()
@@ -34,12 +35,14 @@ async def promo_start(message: types.Message):
         cursor.execute("UPDATE users SET exp = exp + 1000000000 WHERE user_id = ?", (user_id,))
         cursor.execute("UPDATE users SET corn = corn + 10000 WHERE user_id = ?", (user_id,))
         cursor.execute("UPDATE mine SET matter = matter + 10000 WHERE user_id = ?", (user_id,))
+        cursor.execute("UPDATE users SET ecoins = ecoins + 1999 WHERE user_id = ?", (user_id,))
+        cursor.execute("UPDATE mine SET biores = biores + 999999999 WHERE user_id = ?", (user_id,))
         conn.commit()
 
         cursor2.execute('INSERT INTO promo (id) VALUES (?)', (user_id,))
         conn2.commit()
 
-        await message.reply(f'🎁 <b>{username}</b>, вы получили:\n1.000.000.000.000.000.000$\n1.000.000.000 Oпыта\n10.000 Зерн\n10.000 материи', parse_mode='html')
+        await message.reply(f'🎁 <b>{username}</b>, вы получили:\n1.000.000.000.000.000.000$\n1.000.000.000 Oпыта\n10.000 Зерн\n10.000 материи\n1.999 B-coins\n999.999.999 биоресов', parse_mode='html')
 
 
 def register_handlers(dp: Dispatcher):

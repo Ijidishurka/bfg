@@ -7,7 +7,7 @@ from commands.admin.admin_db import *
 from commands.main import win_luser
 import config as cfg
 from commands.admin.loger import new_log
-from bot import bot, dp
+from bot import dp
 from assets.antispam import antispam
 
 

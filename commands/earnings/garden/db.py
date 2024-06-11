@@ -1,47 +1,19 @@
 from commands.db import conn, cursor
 from decimal import Decimal
+from bot import bot
 
 
 async def getgarden(id):
-    cursor.execute('SELECT water, tree, nalogs, balance FROM garden WHERE user_id = ?', (id,))
-    result = cursor.fetchone()
-
-    if result:
-        water, tree, nalogs, balance = result
-        return water, tree, nalogs, balance, 1
-    else:
-        return 0, 0, 0, 0, 0
-
-
-async def getogarden(id):
-    cursor.execute('SELECT balance FROM garden WHERE user_id = ?', (id,))
-    result = cursor.fetchone()
-
-    if result:
-        return 1
-    else:
-        return 0
+    return cursor.execute('SELECT water, tree, nalogs, balance FROM garden WHERE user_id = ?', (id,)).fetchone()
 
 
 async def buy_garden_db(id):
     balance = cursor.execute('SELECT balance FROM users WHERE user_id = ?', (id,)).fetchone()[0]
     summ = Decimal(balance) - Decimal('1000000000')
 
-    cursor.execute('INSERT INTO garden (user_id, balance, nalogs, tree, water) VALUES (?, ?, ?, ?, ?)', (id, 0, 0, 0, 200))
+    cursor.execute('INSERT INTO garden (user_id, balance, nalogs, tree, water) VALUES (?, ?, ?, ?, ?)', (id, 0, 0, 0, 100))
     cursor.execute('UPDATE users SET balance = ? WHERE user_id = ?', (str(summ), id))
     conn.commit()
-
-
-async def getgardenbalance(id):
-    cursor.execute('SELECT balance FROM garden WHERE user_id = ?', (id,))
-    i = cursor.fetchone()[0]
-    return i
-
-
-async def get_garden_nalogs(id):
-    cursor.execute('SELECT nalogs FROM garden WHERE user_id = ?', (id,))
-    i = cursor.fetchone()[0]
-    return i
 
 
 async def oplata_nalogs_garden_db(id, ch):
@@ -59,18 +31,6 @@ async def snyt_pribl_garden_db(id, ch):
     conn.commit()
 
 
-async def gettree(id):
-    cursor.execute('SELECT tree FROM garden WHERE user_id = ?', (id,))
-    i = cursor.fetchone()[0]
-    return i
-
-
-async def getwater(id):
-    cursor.execute('SELECT water FROM garden WHERE user_id = ?', (id,))
-    i = cursor.fetchone()[0]
-    return i
-
-
 async def buy_tree_db(id, ch):
     balance = cursor.execute('SELECT balance FROM users WHERE user_id = ?', (id,)).fetchone()[0]
     summ = Decimal(balance) - Decimal(ch)
@@ -81,7 +41,7 @@ async def buy_tree_db(id, ch):
 
 
 async def politderevo(id):
-    cursor.execute('UPDATE garden SET water = 200 WHERE user_id = ?', (id,))
+    cursor.execute('UPDATE garden SET water = 100 WHERE user_id = ?', (id,))
     conn.commit()
 
 
@@ -99,6 +59,23 @@ async def buy_postion_db(summ, st, id):
 
 async def autogarden():
     cursor.execute('UPDATE garden SET balance = balance + ((tree + 1) * 3) WHERE nalogs < 5000000')
-    cursor.execute('UPDATE garden SET water = water - 10 WHERE nalogs < 5000000')
+    cursor.execute('UPDATE garden SET water = water - 10 WHERE water >= 10')
     cursor.execute('UPDATE garden SET nalogs = nalogs + 200000 WHERE nalogs < 5000000')
     conn.commit()
+    await garden_driedup()
+
+
+async def garden_driedup():
+    users = cursor.execute('SELECT user_id FROM garden WHERE water < 10').fetchall()
+    for user_id in users:
+
+        text = '''😔 Сожалеем, но вы забыли полить сад и он засох.
+Штат отобрал вашу территорию.
+
+Вы можете построить новый сад ещё раз, но не забывайте вовремя поливать его.'''
+
+        try: await bot.send_message(chat_id=user_id[0], text=text)
+        except: pass
+
+        cursor.execute('DELETE from garden WHERE user_id = ?', (user_id[0],))
+        conn.commit()

@@ -1,17 +1,15 @@
 import random
-from commands.db import getname, getonlibalance, getstatus
+from commands.db import url_name, getonlibalance, getstatus
 from commands.main import geturl
 from commands.main import win_luser
 from commands.games.gdb import *
 
 
 async def darts_cmd(message):
-    user_name = await getname(message)
     user_id = message.from_user.id
-    result = await win_luser()
-    rwin, rloser = result
+    rwin, rloser = await win_luser()
     balance = await getonlibalance(message)
-    url = await geturl(user_id, user_name)
+    url = await url_name(user_id)
 
     try:
         summ = message.text.split()[1].replace('е', 'e')
@@ -48,12 +46,10 @@ async def darts_cmd(message):
 
 
 async def kybik_game_cmd(message):
-    user_name = await getname(message)
     user_id = message.from_user.id
-    result = await win_luser()
-    rwin, rloser = result
+    rwin, rloser = await win_luser()
+    url = await url_name(user_id)
     balance = await getonlibalance(message)
-    url = await geturl(user_id, user_name)
 
     try:
         ch1 = message.text.split()[1]
@@ -97,13 +93,10 @@ async def kybik_game_cmd(message):
 
 
 async def basketbol_cmd(message):
-    user_name = await getname(message)
     user_id = message.from_user.id
-    result = await win_luser()
-    rwin, rloser = result
+    rwin, rloser = await win_luser()
+    url = await url_name(user_id)
     balance = await getonlibalance(message)
-    url = await geturl(user_id, user_name)
-    user_id = message.from_user.id
 
     try:
         summ = message.text.split()[1].replace('е', 'e')
@@ -142,13 +135,10 @@ async def basketbol_cmd(message):
 
 
 async def bowling_cmd(message):
-    user_name = await getname(message)
     user_id = message.from_user.id
-    result = await win_luser()
-    rwin, rloser = result
+    rwin, rloser = await win_luser()
+    url = await url_name(user_id)
     balance = await getonlibalance(message)
-    url = await geturl(user_id, user_name)
-    user_id = message.from_user.id
 
     try:
         summ = message.text.split()[1].replace('е', 'e')
@@ -187,19 +177,15 @@ async def bowling_cmd(message):
 
 
 async def game_casino(message):
-    user_name = await getname(message)
     user_id = message.from_user.id
     rwin, rloser = await win_luser()
+    url = await url_name(user_id)
     balance = await getonlibalance(message)
-    url = await geturl(user_id, user_name)
-    user_id = message.from_user.id
 
     coff_dict = {
         0: [2, 1.75, 1.5, 1.25, 0.75, 0.5, 0.25, 0.1],
         1: [2, 1.75, 1.5, 1.25, 0.75, 0.5, 0.25],
-        2: [2.25, 2, 1.75, 1.5, 1.25, 0.75, 0.5],
-        3: [2.5, 2, 1.75, 1.5, 1.25, 0.75, 0.5],
-        4: [2.5, 2, 0.5]
+        4: [2.25, 1.75, 1.5, 1.25, 0.75, 0.5, 0.25],
     }
 
     try:
@@ -218,7 +204,7 @@ async def game_casino(message):
 
     if summ >= 10:
         status = await getstatus(user_id)
-        coff = coff_dict.get(status, coff_dict[0])
+        coff = coff_dict.get(status, coff_dict[1])
         x = random.choice(coff)
 
         c = int(summ * x)
@@ -231,12 +217,10 @@ async def game_casino(message):
 
 
 async def game_spin(message):
-    user_name = await getname(message)
     user_id = message.from_user.id
     rwin, rloser = await win_luser()
+    url = await url_name(user_id)
     balance = await getonlibalance(message)
-    url = await geturl(user_id, user_name)
-    user_id = message.from_user.id
 
     emojis = ['🎰', '🍓', '🍒', '💎', '🍋', '🌕', '🖕', '💰', '🍎', '🎁', '💎', '💩', '🍩', '🍗', '🍏', '🔥', '🍊']
 
@@ -280,11 +264,10 @@ async def game_spin(message):
 
 
 async def game_trade(message):
-    user_name = await getname(message)
     user_id = message.from_user.id
     rwin, rloser = await win_luser()
+    url = await url_name(user_id)
     balance = await getonlibalance(message)
-    url = await geturl(user_id, user_name)
 
     try:
         action = message.text.split()[1]

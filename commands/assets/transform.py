@@ -24,8 +24,8 @@ async def transform(value):
     ]
 
     for threshold, label in reversed(ranges):
-        if int(value) >= threshold:
-            i1 = int(value) / threshold
+        if int(float(value)) >= threshold:
+            i1 = int(float(value)) / threshold
             i2 = round(i1)
             return f'{i2} {label}'
     return value

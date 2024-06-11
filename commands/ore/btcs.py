@@ -1,17 +1,15 @@
 from _decimal import Decimal
-from commands.db import getname, getonlibalance, getidname, getads
+from commands.db import url_name, getonlibalance, getads
 from commands.main import geturl
 from commands.main import win_luser
 from commands.ore.db import *
 
 
 async def sellbtc(message):
-    user_name = await getname(message)
     user_id = message.from_user.id
     btc = await getbtc(message)
-    url = await geturl(user_id, user_name)
-    result = await win_luser()
-    rwin, rloser = result
+    url = await url_name(user_id)
+    rwin, rloser = await win_luser()
 
     try:
         summ_btc = int(message.text.split()[2])
@@ -35,12 +33,10 @@ async def sellbtc(message):
 
 
 async def buybtc(message):
-    user_name = await getname(message)
     user_id = message.from_user.id
     balance = await getonlibalance(message)
-    url = await geturl(user_id, user_name)
-    result = await win_luser()
-    rwin, rloser = result
+    url = await url_name(user_id)
+    rwin, rloser = await win_luser()
 
     try:
         summ_btc = int(message.text.split()[2])
@@ -65,9 +61,8 @@ async def buybtc(message):
 
 
 async def btc_kurs(message):
-    user_name = await getname(message)
     user_id = message.from_user.id
-    url = await geturl(user_id, user_name)
+    url = await url_name(user_id)
     kurs = await getkurs()
     ads = await getads(message)
     kurs = '{:,}'.format(kurs).replace(',', '.')

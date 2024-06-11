@@ -1,11 +1,11 @@
-from commands.db import getname, getstatus
-from commands.main import geturl
+from aiogram import Dispatcher
+from commands.db import get_name, getstatus, url_name
 from commands.status.db import *
 import config as cfg
 
 
 async def status_list(message):
-    name = await getname(message)
+    name = await get_name(message.from_user.id)
     await message.answer(f'''{name}, доступные статусы в игре:
 
 1️⃣ Standart VIP:
@@ -48,18 +48,18 @@ async def status_list(message):
 - Максимальная энергия увеличенная до 100
 - Красивая отметка в профиле
 - Увеличен лимит передачи другим игрокам до 30.000.000.000.000.000$ в сутки
-- Увеличено количество открываемых кейсов до 250''', parse_mode='html')
+- Увеличено количество открываемых кейсов до 250''')
 
 
 async def donat_list(message):
-    name = await getname(message)
     user_id = message.from_user.id
-    url = await geturl(user_id, name)
+    url = await url_name(user_id)
     ecoins = await getecoins(user_id)
+    adm_us = cfg.admin_username.replace('@', '')
     await message.answer(f'''{url}, наш магазин:
 
 💵 Текущий курс: 1 RUB = 1 B-Coin
-💸 Валюта: 1 B-Coin можно обменять на 1.000.000.000.000$
+💸 Валюта: 1 B-Coin можно обменять на 2.000.000.000.000.000$
 
 🪙 Обмен коинов на валюту: Обменять [количество]
 
@@ -71,24 +71,32 @@ async def donat_list(message):
 
 🔝Покупка: Купить привилегию [номер]
 
-⚡ Энергия:
+⚡️ Энергия:
     - 20 энергии | 15 B-Coin 
      🔝 Покупка: Купить флягу 1
     - 60 энергии | 35 B-Coin
      🔝 Покупка: Купить флягу 2
 
 🚧 Лимит:
- - 75.000.000.000.000 | 100 B-Coin
+ - 350.000.000.000.000 | 100 B-Coin
 🔝 Покупка: Купить лимит 1
 
+- 3e18 | 1000 B-Coin
+🔝 Покупка: Купить лимит 2
+
+- 1e20 | 3000 B-Coin
+🔝 Покупка: Купить лимит 3
+
+- 2e21 | 6500 B-Coin
+🔝 Покупка: Купить лимит 4
+
 💰Ваш баланс: {ecoins} B-Coin
-📲 Пополнить баланс: {cfg.admin_username}''', parse_mode='html')
+📲 Пополнить баланс: <a href="t.me/{adm_us}">{cfg.admin_username}</a>''', disable_web_page_preview=True)
 
 
 async def my_status(message):
-    name = await getname(message)
     user_id = message.from_user.id
-    url = await geturl(user_id, name)
+    url = await url_name(user_id)
     status = await getstatus(user_id)
     privileges = {
         0: "к сожалению вы не владеете какими либо привилегиями",
@@ -98,4 +106,10 @@ async def my_status(message):
         4: "🏆 Статус: Администратор\n🏦 Процент вклада: 15%\n💸 Лимит передачи: 30.000.000.000.000.000$/сутки"
     }
 
-    await message.answer(f'{url}, информация о привилегии:\n{privileges[status]}\nПодробнее об плюшках можно узнать введя команду "Статусы"', parse_mode='html')
+    await message.answer(f'{url}, информация о привилегии:\n{privileges[status]}\nПодробнее об плюшках можно узнать введя команду "Статусы"')
+
+
+def reg(dp: Dispatcher):
+    dp.register_message_handler(donat_list, lambda message: message.text.lower().startswith('донат'))
+    dp.register_message_handler(status_list, lambda message: message.text.lower().startswith('статусы'))
+    dp.register_message_handler(my_status, lambda message: message.text.lower().startswith('мой статус'))

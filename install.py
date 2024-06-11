@@ -71,7 +71,8 @@ chanell = '<edit>'
 admin_username = '<edit>'
 bot_username = 'bfgcopybot'
 
-chat_log = 0"""
+chat_log = 0
+cleaning = 60"""
 
     replacements = [str(value) for value in data]
 

@@ -1,6 +1,9 @@
 from decimal import Decimal
 from commands.db import conn, cursor
-import random
+from pycoingecko import CoinGeckoAPI
+
+
+api = CoinGeckoAPI()
 
 
 async def getbtc(message):
@@ -65,11 +68,11 @@ async def getmine(message):
     user_id = message.from_user.id
     cursor.execute(
         'SELECT iron, gold, diamond, amestit, aquamarine, emeralds, matter, plasma, nickel, titanium, cobalt, '
-        'ectoplasm FROM mine WHERE user_id = ?',
+        'ectoplasm, biores, palladium FROM mine WHERE user_id = ?',
         (user_id,))
     i = cursor.fetchone()
-    iron, gold, diamond, amestit, aquamarine, emeralds, matter, plasma, nickel, titanium, cobalt, ectoplasm = i
-    return iron, gold, diamond, amestit, aquamarine, emeralds, matter, plasma, nickel, titanium, cobalt, ectoplasm
+    iron, gold, diamond, amestit, aquamarine, emeralds, matter, plasma, nickel, titanium, cobalt, ectoplasm, biores, palladium = i
+    return iron, gold, diamond, amestit, aquamarine, emeralds, matter, plasma, nickel, titanium, cobalt, ectoplasm, biores, palladium
 
 
 async def getenergy(message):
@@ -109,18 +112,27 @@ async def autoenergy():
     conn.commit()
 
 
-async def autokursbtc():
-    cursor.execute('SELECT kursbtc FROM sett')
-    current_kurs = cursor.fetchone()
-    if current_kurs is None:
-        cursor.execute('INSERT INTO sett (ads, kursbtc) VALUES (?, ?)', ('', 40000))
-        current_kurs = 40000
-    else:
-        current_kurs = current_kurs[0]
+# async def autokursbtc():
+#     cursor.execute('SELECT kursbtc FROM sett')
+#     current_kurs = cursor.fetchone()
+#     if current_kurs is None:
+#         cursor.execute('INSERT INTO sett (ads, kursbtc) VALUES (?, ?)', ('', 40000))
+#         current_kurs = 40000
+#     else:
+#         current_kurs = current_kurs[0]
+#
+#     random_change = random.randint(1, 3)
+#     s = random.choice([-1, 1])
+#     new_kurs = current_kurs + (s * random_change)
+#
+#     cursor.execute('UPDATE sett SET kursbtc = ?', (new_kurs,))
+#     conn.commit()
 
-    random_change = random.randint(1, 3)
-    s = random.choice([-1, 1])
-    new_kurs = current_kurs + (s * random_change)
 
-    cursor.execute('UPDATE sett SET kursbtc = ?', (new_kurs,))
-    conn.commit()
+async def autokursbtc_new():
+    try: new_kurs = api.get_price(ids='bitcoin', vs_currencies='usd')['bitcoin']['usd']
+    except: return print('error upd btc price')
+
+    if isinstance(new_kurs, (int, float)):
+        cursor.execute('UPDATE sett SET kursbtc = ?', (int(new_kurs),))
+        conn.commit()
