@@ -8,17 +8,12 @@ git clone https://github.com/Ijidishurka/bfg
 
 - Перейдите в папку с ботом:
 ```bash
-cd kakabfg
+cd bfg
 ```
 
 - Установите зависимости:
 ```bash
 pip install -r req*
-```
-
-- Установить токен бота:
-```bash
-export BOT_TOKEN=Токен
 ```
 
 - Запустить бота
