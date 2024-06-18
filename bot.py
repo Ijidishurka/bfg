@@ -1,3 +1,5 @@
+# bot version: 1.3-beta
+
 from aiogram import Bot, Dispatcher
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 import config as cfg

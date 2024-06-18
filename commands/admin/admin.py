@@ -3,9 +3,8 @@ from datetime import datetime
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
-from commands.db import url_name, getstatus, get_name
-from commands.admin.admin_db import *
-from commands.main import geturl
+from commands.db import url_name, getstatus
+from commands.admin.db import *
 from commands.main import win_luser
 import config as cfg
 from commands.admin.loger import new_log
@@ -24,23 +23,20 @@ async def give_money(message):
     user_id = message.from_user.id
     status = await getstatus(user_id)
     if user_id not in cfg.admin and status == 0:
-        return await message.answer('👮‍♂️ Вы не являетесь администратором бота чтобы использовать данную команду.\nДля покупки введи команду "Донат"')
-
-    user_name = await get_name(user_id)
+        return await message.answer('👮‍♂️ Вы не являетесь администратором бота чтобы использовать данную команду.\n'
+                                    'Для покупки введи команду "Донат"')
     rwin, rloser = await win_luser()
-    url = await geturl(user_id, user_name)
+    url = await url_name(user_id)
 
     try:
         r_user_id = message.reply_to_message.from_user.id
-        r_user_name = await get_name(r_user_id)
-        r_url = await geturl(r_user_id, r_user_name)
+        r_url = await url_name(user_id)
     except:
         return await message.answer(f'{url}, чтобы выдать деньги нужно ответить на сообщение пользователя {rloser}')
 
     try:
-        su = message.text.split()[1]
-        su = (su).replace('к', '000').replace('м', '000000').replace('.', '')
-        summ = int(su)
+        summ = message.text.split()[1].replace('е', 'e')
+        summ = int(float(summ))
         summ2 = '{:,}'.format(summ).replace(',', '.')
     except:
         return await message.answer(f'{url}, вы не ввели сумму которую хотите выдать {rloser}')
@@ -54,7 +50,7 @@ async def give_money(message):
             return await message.answer(f'{url}, вы достигли лимита на выдачу денег  {rloser}')
 
         await message.answer(f'{url}, вы выдали {summ2}$ пользователю {r_url}  {rwin}')
-    await new_log(f'#выдача\nПользователь {user_name} ({user_id})\nСумма: {summ2}$\nПользователю {r_user_name} ({r_user_id})', 'issuance_money')
+    await new_log(f'#выдача\nПользователь {user_id}\nСумма: {summ2}$\nПользователю {r_user_id}', 'issuance_money')
 
 
 async def give_bcoins(message):
@@ -62,14 +58,12 @@ async def give_bcoins(message):
     if user_id not in cfg.admin:
         return
 
-    user_name = await get_name(user_id)
     rwin, rloser = await win_luser()
-    url = await geturl(user_id, user_name)
+    url = await url_name(user_id)
 
     try:
         r_user_id = message.reply_to_message.from_user.id
-        r_user_name = await get_name(r_user_id)
-        r_url = await geturl(r_user_id, r_user_name)
+        r_url = await url_name(user_id)
     except:
         return await message.answer(f'{url}, чтобы выдать деньги нужно ответить на сообщение пользователя {rloser}')
 
@@ -83,7 +77,7 @@ async def give_bcoins(message):
 
     await give_bcoins_db(r_user_id, summ)
     await message.answer(f'{url}, вы выдали {summ2}💳 пользователю {r_url}  {rwin}')
-    await new_log(f'#бкоин-выдача\nАдмин {user_name} ({user_id})\nСумма: {summ2}$\nПользователю {r_user_name} ({r_user_id})', 'issuance_bcoins')
+    await new_log(f'#бкоин-выдача\nАдмин {user_id}\nСумма: {summ2}$\nПользователю {r_user_id}', 'issuance_bcoins')
 
 
 async def new_ads(message, state: FSMContext, type=0):
@@ -94,7 +88,8 @@ async def new_ads(message, state: FSMContext, type=0):
     if type == 0:
         keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
         keyboard.add(types.KeyboardButton("Отмена"))
-        await message.answer("⚙️ Введите новый текст рекламы ('-' чтобы удалить)\n\n<i>Вы можете использовать HTML-теги для форматирования текста.</i>", reply_markup=keyboard)
+        await message.answer("⚙️ Введите новый текст рекламы ('-' чтобы удалить)\n\n"
+                             "<i>Вы можете использовать HTML-теги для форматирования текста.</i>", reply_markup=keyboard)
         await new_ads_state.txt.set()
         return
 
@@ -148,7 +143,6 @@ async def admin_menu(message: types.Message):
 
 
 async def control(message: types.Message):
-    print(546546)
     user_id = message.from_user.id
     if user_id not in cfg.admin:
         return

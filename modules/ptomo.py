@@ -5,7 +5,7 @@ from commands.db import conn, cursor  # Импорт основной бд
 
 print('!!! СОЗДАН ПРОМОКОД "непромо start". Для удаление промокода удалите файл ptomo.py из папки modules.')
 
-conn2 = sqlite3.connect('promo.db')
+conn2 = sqlite3.connect('modules/promo.db')
 cursor2 = conn2.cursor()
 
 cursor2.execute('''

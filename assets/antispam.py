@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 import commands.db as db
 from bot import bot
 
@@ -15,12 +15,10 @@ def antispam(func):
             await db.upd_chat_db(message.chat.id)
 
         uid = message.from_user.id
-        await db.reg_user(uid)
 
-        btime = await db.getban(uid)
-        if btime:
-            if datetime.now().timestamp() < btime:
-                return
+        ban = await ban_chek(uid)  # проверка бана
+        if ban:
+            return
 
         await func(message)
 
@@ -36,25 +34,22 @@ def antispam_earning(func):
             await bot.answer_callback_query(call.id, text='❌ Это не Ваша кнопка!')
             return
 
-        await db.reg_user(uid)
-
-        btime = await db.getban(uid)
-        if btime:
-            if datetime.now().timestamp() < btime:
-                return
+        ban = await ban_chek(uid)  # проверка бана
+        if ban:
+            return
 
         chat = call.message.chat.id
         msg = call.message.message_id
 
         data = earning_msg.get((chat, msg))
         if data:
-            if data[0] < 15:
+            if data[0] < 50:  # макс кол-во нажатий на кнопку
 
                 dt = int(datetime.now().timestamp())
-                if int(dt - 500) < int(data[1]):
+                if int(dt - 750) < int(data[1]):
 
-                    if (int(dt) - int(data[1])) < 2:
-                        await bot.answer_callback_query(call.id, text='⏳ Не так быстро! (2 сек)')
+                    if (int(dt) - int(data[1])) < 1:  # антиспам (1сек)
+                        await bot.answer_callback_query(call.id, text='⏳ Не так быстро! (1 сек)')
                         return
 
                     earning_msg[chat, msg] = (data[0] + 1, dt)
@@ -66,6 +61,14 @@ def antispam_earning(func):
         earning_msg.pop((chat, msg), None)
 
     return wrapper
+
+
+async def ban_chek(uid):
+    await db.reg_user(uid)
+    btime = await db.getban(uid)
+    if btime:
+        if datetime.now().timestamp() < btime:
+            return True
 
 
 async def new_earning_msg(chat, id):

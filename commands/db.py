@@ -51,7 +51,19 @@ cursor.execute('''CREATE TABLE IF NOT EXISTS promo_activ (user_id INTEGER, name 
 
 
 cursor.execute('''CREATE TABLE IF NOT EXISTS sett (ads TEXT, kursbtc INTEGER)''')
-conn.commit()
+
+
+cursor.execute('''CREATE TABLE IF NOT EXISTS wedlock
+                (user1 INTEGER, user2 NUMERIC, rtime INTEGER)''')
+
+
+cursor.execute('''CREATE TABLE IF NOT EXISTS clans
+                (clan_id INTEGER PRIMARY KEY, balance TEXT, name TEXT, inv INT, kick INT, ranks INT, kazna INT,
+                 robbery INT, war INT, upd_name INT, type INT, shield INT, ratting INT, win INT, lose INT)''')
+
+
+cursor.execute('''CREATE TABLE IF NOT EXISTS clan
+                (user_id INTEGER, clan_id INTEGER, rank INT)''')
 
 
 cursor.execute('''CREATE TABLE IF NOT EXISTS chats (chat_id INTEGER, users INTEGER)''')
@@ -163,15 +175,19 @@ async def bonus_db(user_id, table, v, summ):
     conn.commit()
 
 
-async def top_db(message):
-    id = message.from_user.id
-
-    cursor.execute("SELECT * FROM users ORDER BY rating DESC LIMIT 100")
+async def top_db(id, st, table='users'):
+    cursor.execute(f"SELECT * FROM {table} ORDER BY CAST({st} AS REAL) DESC LIMIT 1000")
     top_players = cursor.fetchall()
 
-    cursor.execute("SELECT * FROM users WHERE user_id = ?", (id,))
+    cursor.execute(f"SELECT * FROM {table} WHERE user_id = ?", (id,))
     userinfo = cursor.fetchone()
     return userinfo, top_players
+
+
+async def top_clans_db(id):
+    top_clans = cursor.execute(f"SELECT * FROM clans ORDER BY CAST(ratting AS REAL) DESC LIMIT 1000").fetchall()
+    claninfo = cursor.execute(f"SELECT * FROM clan WHERE user_id = ?", (id,)).fetchone()
+    return claninfo, top_clans
 
 
 async def get_colvo_users():

@@ -1,27 +1,37 @@
 import random
+
+from aiogram import types
+
 from commands.db import url_name, getonlibalance, getstatus
-from commands.main import geturl
 from commands.main import win_luser
 from commands.games.gdb import *
 
 
-async def darts_cmd(message):
+def get_summ(msg, balance):
+    if msg.text.lower().split()[1] in ['все', 'всё']:
+        return balance
+
+    summ = msg.text.split()[1].replace('е', 'e')
+    return int(float(summ))
+
+
+async def darts_cmd(message: types.Message):
     user_id = message.from_user.id
     rwin, rloser = await win_luser()
     balance = await getonlibalance(message)
     url = await url_name(user_id)
 
     try:
-        summ = message.text.split()[1].replace('е', 'e')
-        summ = int(float(summ))
+        summ = get_summ(message, balance)
     except:
         await message.answer(f'{url}, вы не ввели ставку для игры {rloser}')
         return
+
     if balance >= summ:
         if summ >= 10:
             gt = await gametime(user_id)
             if gt == 1:
-                await message.answer(f'{url}, играть можно каждые 5 секунд. Подождите немного {rloser}')  # {round(left1)}
+                await message.answer(f'{url}, играть можно каждые 5 секунд. Подождите немного {rloser}')
                 return
 
             rx1 = await message.reply_dice(emoji="🎯")
@@ -29,12 +39,14 @@ async def darts_cmd(message):
 
             if int(rx) == 5:
                 await message.answer(f'{url}, вы были на волоске от победы! 🎯\n💰 Ваши средства в безопасности! (х1)')
+
             elif int(rx) == 6:
                 c = Decimal(summ * 2)
                 c2 = round(c)
-                c2 = '{:,}'.format(c2)
-                await gXX(user_id, summ, c)
+                c2 = '{:,}'.format(c2).replace(',', '.')
+                await gXX(user_id, c, 1)
                 await message.answer(f'{url}, в яблочко! 🎯\n💰 Ваш приз: {c2}$!')
+
             else:
                 await gXX(user_id, summ, 0)
                 await message.answer(f'{rloser} | К сожалению Ваша победа ускользнула от Вас! 🎯️')
@@ -45,17 +57,15 @@ async def darts_cmd(message):
         await message.answer(f'{url}, ваша ставка не может быть больше вашего баланса {rloser}')
 
 
-async def kybik_game_cmd(message):
+async def kybik_game_cmd(message: types.Message):
     user_id = message.from_user.id
     rwin, rloser = await win_luser()
     url = await url_name(user_id)
     balance = await getonlibalance(message)
 
     try:
-        ch1 = message.text.split()[1]
-        ch = int(ch1)
-        summ = message.text.split()[2].replace('е', 'e')
-        summ = int(float(summ))
+        ch = int(message.text.split()[1])
+        summ = get_summ(message, balance)
     except:
         await message.answer(f'{rloser} | Ошибка. Вы не ввели ставку для игры.')
         return
@@ -75,7 +85,7 @@ async def kybik_game_cmd(message):
                     c = Decimal(summ * 4)
                     c2 = round(c)
                     c2 = '{:,}'.format(c2).replace(',', '.')
-                    await gXX(user_id, summ, c)
+                    await gXX(user_id, c, 1)
                     await message.answer(f'{rwin} | Поздравляю! Вы угадали число. Ваш выигрыш составил - {c2}$')
                     return
                 else:
@@ -92,15 +102,14 @@ async def kybik_game_cmd(message):
         await message.answer(f'{rloser} | Ошибка. Вы не можете поставить на число {t}.')
 
 
-async def basketbol_cmd(message):
+async def basketbol_cmd(message: types.Message):
     user_id = message.from_user.id
     rwin, rloser = await win_luser()
     url = await url_name(user_id)
     balance = await getonlibalance(message)
 
     try:
-        summ = message.text.split()[1].replace('е', 'e')
-        summ = int(float(summ))
+        summ = get_summ(message, balance)
     except:
         await message.reply(f'{url}, вы не ввели ставку для игры 😞')
         return
@@ -121,8 +130,8 @@ async def basketbol_cmd(message):
         if int(rx) == 5:
             c = Decimal(summ * 2)
             c2 = round(c)
-            c2 = '{:,}'.format(c2)
-            await gXX(user_id, summ, c)
+            c2 = '{:,}'.format(c2).replace(',', '.')
+            await gXX(user_id, c, 1)
             await message.answer(f'{url}, мяч в кольце, ура! 🏀\n💰 Ваш приз: {c2}$!')
 
         elif int(rx) == 4:
@@ -134,15 +143,14 @@ async def basketbol_cmd(message):
         await message.answer(f'{url}, ваша ставка не может быть меньше 10 {rloser}')
 
 
-async def bowling_cmd(message):
+async def bowling_cmd(message: types.Message):
     user_id = message.from_user.id
     rwin, rloser = await win_luser()
     url = await url_name(user_id)
     balance = await getonlibalance(message)
 
     try:
-        summ = message.text.split()[1].replace('е', 'e')
-        summ = int(float(summ))
+        summ = get_summ(message, balance)
     except:
         await message.reply(f'{url}, вы не ввели ставку для игры 😞')
         return
@@ -163,8 +171,8 @@ async def bowling_cmd(message):
         if int(rx) == 6:
             c = Decimal(summ * 2)
             c2 = round(c)
-            c2 = '{:,}'.format(c2)
-            await gXX(user_id, summ, c)
+            c2 = '{:,}'.format(c2).replace(',', '.')
+            await gXX(user_id, c, 1)
             await message.answer(f'{url}, страйк! Полная победа! 🎳️\n💰 Ваш приз: {c2}$!')
 
         elif int(rx) == 5:
@@ -176,7 +184,7 @@ async def bowling_cmd(message):
         await message.answer(f'{url}, ваша ставка не может быть меньше 10 {rloser}')
 
 
-async def game_casino(message):
+async def game_casino(message: types.Message):
     user_id = message.from_user.id
     rwin, rloser = await win_luser()
     url = await url_name(user_id)
@@ -189,8 +197,7 @@ async def game_casino(message):
     }
 
     try:
-        summ = message.text.split()[1].replace('е', 'e')
-        summ = int(float(summ))
+        summ = get_summ(message, balance)
     except:
         return await message.answer(f'{url}, вы не ввели ставку для игры {rloser}')
 
@@ -207,16 +214,23 @@ async def game_casino(message):
         coff = coff_dict.get(status, coff_dict[1])
         x = random.choice(coff)
 
-        c = int(summ * x)
+        if x > 1:
+            c = int(summ * x - summ)
+            txt = f'{url}, вы выиграли <summ>$ (x{x})  {rwin}'
+            await gXX(user_id, c, 1)
+        else:
+            c = summ - int(summ * x)
+            txt = f'{url}, вы проиграли <summ>$ (x{x})  {rloser}'
+            await gXX(user_id, c, 0)
+
         c2 = '{:,}'.format(c).replace(',', '.')
-        txt = f'{url}, вы выиграли {c2}$ (x{x})  {rwin}' if x > 1 else f'{url}, вы проиграли {c2}$ (x{x})  {rloser}'
-        await gXX(user_id, summ, c)
-        await message.answer(txt)
+        await message.answer(txt.replace('<summ>', c2))
+
     else:
         await message.answer(f'{url}, ваша ставка не может быть меньше 10 {rloser}')
 
 
-async def game_spin(message):
+async def game_spin(message: types.Message):
     user_id = message.from_user.id
     rwin, rloser = await win_luser()
     url = await url_name(user_id)
@@ -225,8 +239,7 @@ async def game_spin(message):
     emojis = ['🎰', '🍓', '🍒', '💎', '🍋', '🌕', '🖕', '💰', '🍎', '🎁', '💎', '💩', '🍩', '🍗', '🍏', '🔥', '🍊']
 
     try:
-        summ = message.text.split()[1].replace('е', 'e')
-        summ = int(float(summ))
+        summ = get_summ(message, balance)
     except:
         return await message.answer(f'{url}, вы не ввели ставку для игры {rloser}')
 
@@ -254,7 +267,7 @@ async def game_spin(message):
 
         if payout != 0:
             c2 = '{:,}'.format(int(summ + payout)).replace(',', '.')
-            await gXX(user_id, 0, payout)
+            await gXX(user_id, payout, 1)
             await message.answer(f'{url}\n{emj} выигрыш: {c2}$')
         else:
             await message.answer(f'{url}\n{emj} Удача не на твоей стороне. Выигрыш: 0$')
@@ -263,7 +276,7 @@ async def game_spin(message):
         await message.answer(f'{url}, ваша ставка не может быть меньше 10 {rloser}')
 
 
-async def game_trade(message):
+async def game_trade(message: types.Message):
     user_id = message.from_user.id
     rwin, rloser = await win_luser()
     url = await url_name(user_id)
@@ -271,8 +284,7 @@ async def game_trade(message):
 
     try:
         action = message.text.split()[1]
-        summ = message.text.split()[2].replace('е', 'e')
-        summ = int(float(summ))
+        summ = get_summ(message, balance)
     except:
         return await message.answer(f'{url}, вы не ввели ставку для игры {rloser}')
 
@@ -300,7 +312,7 @@ async def game_trade(message):
             payout = int(summ + (summ * random_number / 100))
             c2 = '{:,}'.format(payout).replace(',', '.')
             await message.answer(f'{url}\n📈 Курс пошёл {result} на {random_number}%\n✅ Ваш выигрыш составил - {c2}$')
-            await gXX(user_id, 0, payout)
+            await gXX(user_id, payout, 1)
         else:
             payout = int(summ - (summ * random_number / 100))
             await message.answer(f'{url}\n📈 Курс пошёл {result} на {random_number}%\n❌ Ваш выигрыш составил - 0$')

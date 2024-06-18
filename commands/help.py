@@ -1,11 +1,13 @@
-from aiogram import types
+from aiogram import types, Dispatcher
 from assets.antispam import antispam
 from commands.db import get_name
-import commands.assets.kb as kb
+from assets import kb
 import config as cfg
-from bot import bot, dp
-from datetime import datetime, timedelta
+from bot import bot
+from datetime import datetime
 
+adm_us = cfg.admin_username.replace('@', '')
+adm = f'<a href="t.me/{adm_us}">{cfg.admin_username}</a>'
 
 help_msg = {}
 
@@ -47,7 +49,7 @@ async def help_cmd(message):
    4️⃣ Кланы
 
 💬 Так же у нас есть общая беседа №1 и общая беседа №2
-🆘 По всем вопросам - {cfg.admin_username}''', reply_markup=kb.help_menu())
+🆘 По всем вопросам - {adm}''', reply_markup=kb.help_menu(), disable_web_page_preview=True)
 
 
 @antispam_help
@@ -60,7 +62,7 @@ async def help_back(call):
    4️⃣ Кланы
 
 💬 Так же у нас есть общая беседа №1 и общая беседа №2
-🆘 По всем вопросам - {cfg.admin_username}''', reply_markup=kb.help_menu())
+🆘 По всем вопросам - {adm}''', reply_markup=kb.help_menu(), disable_web_page_preview=True)
 
 
 @antispam_help
@@ -197,26 +199,10 @@ async def help_clans(call: types.CallbackQuery):
 📜 Будьте осторожнее с командами повышения и понижения, повысив игрока до определенного статуса он сможет изменять название клана и управлять им.''', reply_markup=kb.help_back())
 
 
-@dp.callback_query_handler(lambda c: c.data == 'help_back')
-async def help_back_s(callback_query: types.CallbackQuery):
-    await help_back(callback_query)
-
-
-@dp.callback_query_handler(lambda c: c.data == 'help_osn')
-async def help_osn_s(callback_query: types.CallbackQuery):
-    await help_osn(callback_query)
-
-
-@dp.callback_query_handler(lambda c: c.data == 'help_game')
-async def help_game_s(callback_query: types.CallbackQuery):
-    await help_game(callback_query)
-
-
-@dp.callback_query_handler(lambda c: c.data == 'help_rz')
-async def help_rz_s(callback_query: types.CallbackQuery):
-    await help_rz(callback_query)
-
-
-@dp.callback_query_handler(lambda c: c.data == 'help_clans')
-async def help_clans_s(callback_query: types.CallbackQuery):
-    await help_clans(callback_query)
+def reg(dp: Dispatcher):
+    dp.register_message_handler(help_cmd, lambda message: message.text.lower().startswith(('помощь', '/help')))
+    dp.register_callback_query_handler(help_back, text_startswith='help_back')
+    dp.register_callback_query_handler(help_osn, text_startswith='help_osn')
+    dp.register_callback_query_handler(help_game, text_startswith='help_game')
+    dp.register_callback_query_handler(help_rz, text_startswith='help_rz')
+    dp.register_callback_query_handler(help_clans, text_startswith='help_clans')

@@ -2,34 +2,35 @@
 import install
 from config import *
 from commands.main import *
-from commands.help import *
-from commands.rz import *
-from commands.transfer import *
+from commands.basic.transfer import *
 from commands.games.games import *
 from assets.auto import automatisation
-from commands.ore.btcs import *
-from commands.ore.dig import *
-from commands.ore.rating import *
-from commands.case.main import *
-from commands.case.buy import *
-from commands.bank.main import *
-from commands.earnings.garden.potions import *
+from commands.basic.ore.dig import *
+from commands.entertaining.case.main import *
+from commands.entertaining.case.buy import *
+from commands.basic.bank.main import *
+from commands.entertaining.earnings.garden.potions import *
+from assets.filters import FilterAdmin
 from assets.modules import *
-from commands.admin.promo import activ_promo
 from bot import dp
 
-import commands.property.main
+import commands.basic.property.main
 import commands.admin.admin
-import commands.property.buy
-import commands.earnings.farm.main
-import commands.earnings.business.main
-import commands.earnings.garden.main
-import commands.earnings.generator.main
-import commands.earnings.tree.main
-import commands.earnings.quarry.main
-import commands.balance
-import commands.status.main
-import commands.status.buy_status
+import commands.entertaining.earnings.farm.main
+import commands.entertaining.earnings.business.main
+import commands.entertaining.earnings.garden.main
+import commands.entertaining.earnings.generator.main
+import commands.entertaining.earnings.tree.main
+import commands.entertaining.earnings.quarry.main
+import commands.entertaining.wedlock
+import commands.basic.balance
+import commands.basic.status.main
+import commands.basic.ore.main
+import commands.help
+import commands.entertaining.rz
+import commands.basic.top
+import commands.clans.main
+import commands.admin.promo
 
 
 @dp.message_handler(commands=['start'])
@@ -37,39 +38,9 @@ async def on_start_s(message: types.Message):
     await on_start(message)
 
 
-@dp.message_handler(lambda message: message.text in ['помощь', 'Помощь', '/help'])
-async def help_cmd_s(message: types.Message):
-    await help_cmd(message)
-
-
-@dp.message_handler(lambda message: message.text in ['топ', 'Топ'])
-async def top_command_s(message: types.Message):
-    await top_command(message)
-
-
-@dp.message_handler(lambda message: message.text in ['казна', 'Казна'])
-async def kazna_cmd_s(message: types.Message):
-    await kazna_cmd(message)
-
-
-@dp.message_handler(lambda message: message.text in ['статистика бота', 'Статистика бота'])
-async def stats_cmd_s(message: types.Message):
-    await stats_cmd(message)
-
-
 @dp.message_handler(lambda message: message.text in ['энергия', 'Энергия'])
 async def energy_cmd_s(message: types.Message):
     await energy_cmd(message)
-
-
-@dp.message_handler(lambda message: message.text in ['рейтинг', 'Рейтинг'])
-async def rrating_cmd_s(message: types.Message):
-    await rrating_cmd(message)
-
-
-@dp.message_handler(lambda message: message.text in ['!Беседа', '!беседа'])
-async def chat_list_s(message: types.Message):
-    await chat_list(message)
 
 
 @dp.message_handler(lambda message: message.text in ['банк', 'Банк'])
@@ -80,11 +51,6 @@ async def bank_cmd_s(message: types.Message):
 @dp.message_handler(lambda message: message.text in ['мой лимит', 'Мой лимит'])
 async def limit_cmd_s(message: types.Message):
     await limit_cmd(message)
-
-
-@dp.message_handler(lambda message: message.text in ['мой ник', 'Мой ник'])
-async def myname_cmd_s(message: types.Message):
-    await myname_cmd(message)
 
 
 @dp.message_handler(lambda message: message.text in ['зелья', 'Зелья'])
@@ -117,31 +83,6 @@ async def takeoffdepozit_s(message: types.Message):
     await takeoffdepozit(message)
 
 
-@dp.message_handler(lambda message: message.text.lower().startswith('ограбить мэрию') or message.text.lower().startswith('ограбить казну'))
-async def ogr_kazna_s(message: types.Message):
-    await ogr_kazna(message)
-
-
-@dp.message_handler(lambda message: message.text.lower().startswith('продать рейтинг'))
-async def sellrating_s(message: types.Message):
-    await sellrating(message)
-
-
-@dp.message_handler(lambda message: message.text.lower().startswith('продать биткоин') or message.text.lower().startswith('биткоин продать'))
-async def sellbtc_s(message: types.Message):
-    await sellbtc(message)
-
-
-@dp.message_handler(lambda message: message.text.lower().startswith('купить биткоин') or message.text.lower().startswith('биткоин купить'))
-async def buybtc_s(message: types.Message):
-    await buybtc(message)
-
-
-@dp.message_handler(lambda message: message.text.lower().startswith('курс биткоин') or message.text.lower().startswith('биткоин курс'))
-async def btc_kurs_s(message: types.Message):
-    await btc_kurs(message)
-
-
 @dp.message_handler(lambda message: message.text in ['курс руды', 'Курс руды'])
 async def kursrud_cmd_s(message: types.Message):
     await kursrud_cmd(message)
@@ -160,11 +101,6 @@ async def open_case_s(message: types.Message):
 @dp.message_handler(lambda message: message.text.lower().startswith('купить кейс'))
 async def buy_case_s(message: types.Message):
     await buy_case(message)
-
-
-@dp.message_handler(lambda message: message.text in ['Ежедневный бонус', 'ежедневный бонус'])
-async def bonus_cmd_s(message: types.Message):
-    await bonus_cmd(message)
 
 
 @dp.message_handler(lambda message: message.text in ['Моя шахта', 'моя шахта'])
@@ -199,16 +135,6 @@ async def inventary_cmd_s(message: types.Message):
 @dp.message_handler(lambda message: message.text in ['курс руды', 'Курс руды'])
 async def kursrud_cmd_s(message: types.Message):
     await kursrud_cmd(message)
-
-
-@dp.message_handler(lambda message: message.text.startswith("шар ") or message.text.startswith("Шар "))
-async def shar_cmd_s(message: types.Message):
-    await shar_cmd(message)
-
-
-@dp.message_handler(lambda message: message.text.startswith("сменить ник") or message.text.startswith("Сменить ник"))
-async def setname_cmd_s(message: types.Message):
-    await setname_cmd(message)
 
 
 @dp.message_handler(lambda message: message.text.startswith("дать") or message.text.startswith("Дать"))
@@ -251,11 +177,6 @@ async def game_trade_s(message: types.Message):
     await game_trade(message)
 
 
-@dp.message_handler(lambda message: message.text.lower().startswith("испытать удачу"))
-async def try_luck_s(message: types.Message):
-    await try_luck(message)
-
-
 async def main(dp):
     load_modules(dp)
     await autokursbtc_new()
@@ -265,18 +186,25 @@ async def main(dp):
 if __name__ == '__main__':
     from aiogram import executor
 
-    commands.property.main.reg(dp)
-    commands.property.buy.reg(dp)
+    dp.filters_factory.bind(FilterAdmin)
+
+    commands.basic.property.main.reg(dp)
     commands.admin.admin.reg(dp)
-    commands.earnings.farm.main.reg(dp)
-    commands.earnings.business.main.reg(dp)
-    commands.earnings.garden.main.reg(dp)
-    commands.earnings.generator.main.reg(dp)
-    commands.earnings.quarry.main.reg(dp)
-    commands.balance.reg(dp)
-    commands.status.buy_status.reg(dp)
-    commands.status.main.reg(dp)
-    commands.earnings.tree.main.reg(dp)
+    commands.entertaining.earnings.farm.main.reg(dp)
+    commands.entertaining.earnings.business.main.reg(dp)
+    commands.entertaining.earnings.garden.main.reg(dp)
+    commands.entertaining.earnings.generator.main.reg(dp)
+    commands.entertaining.earnings.quarry.main.reg(dp)
+    commands.basic.balance.reg(dp)
+    commands.basic.status.main.reg(dp)
+    commands.entertaining.earnings.tree.main.reg(dp)
+    commands.basic.ore.main.reg(dp)
+    commands.help.reg(dp)
+    commands.entertaining.rz.reg(dp)
+    commands.basic.top.reg(dp)
+    commands.entertaining.wedlock.reg(dp)
+    commands.clans.main.reg(dp)
+    commands.admin.promo.reg(dp)
 
     executor.start_polling(dp, on_startup=main, skip_updates=True)
 

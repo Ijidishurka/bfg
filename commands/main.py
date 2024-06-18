@@ -1,8 +1,7 @@
-from commands.db import reg_user, get_name
-from commands.assets import kb
+from commands.db import reg_user
+from assets import kb
 import random
 import config as cfg
-from assets.antispam import antispam
 
 
 async def on_start(message):
@@ -20,21 +19,6 @@ async def on_start(message):
 
     await message.answer(f'''🚀 Не уверен, с чего начать своё приключение?
 Присоединяйся к нашему официальному чату {cfg.bot_name}: {cfg.chat}''', disable_web_page_preview=True)
-
-
-async def chat_list(message):
-    await message.answer(f'''💭 Официальная беседа бота:
-{cfg.chat}
-💭 Официальный канал разработки:
-{cfg.chanell}
-🏆 Официальный чат с розыгрышами:
-...''', disable_web_page_preview=True)
-
-
-@antispam
-async def myname_cmd(message):
-    name = await get_name(message)
-    await message.answer(f'🗂 Ваш ник - «{name}»')
 
 
 async def win_luser():

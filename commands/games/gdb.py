@@ -31,9 +31,13 @@ async def upgames(user_id):
     conn.commit()
 
 
-async def gXX(user_id, summ, c):
+async def gXX(user_id, summ, res):
     balance = cursor.execute('SELECT balance FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]
-    summ = (Decimal(balance) - Decimal(summ)) + Decimal(c)
+
+    if res == 1:
+        summ = Decimal(balance) + Decimal(summ)
+    else:
+        summ = Decimal(balance) - Decimal(summ)
 
     cursor.execute("UPDATE users SET balance = ? where user_id = ?", (str(int(summ)), user_id))
     cursor.execute("UPDATE users SET games = games + 1 where user_id = ?", (user_id,))

@@ -1,14 +1,13 @@
-import asyncio
 from datetime import datetime
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-from commands.earnings.farm.db import autoferma
-from commands.earnings.business.db import autobusiness
-from commands.ore.db import autoenergy, autokursbtc_new
-from commands.bank.db import autobank
-from commands.earnings.garden.db import autogarden
-from commands.earnings.generator.db import autogen
-from commands.earnings.tree.db import autotree
+from commands.entertaining.earnings.farm.db import autoferma
+from commands.entertaining.earnings.business.db import autobusiness
+from commands.basic.ore.db import autoenergy, autokursbtc_new
+from commands.basic.bank.db import autobank
+from commands.entertaining.earnings.garden.db import autogarden
+from commands.entertaining.earnings.generator.db import autogen
+from commands.entertaining.earnings.tree.db import autotree
 
 from bot import bot
 import config as cfg
