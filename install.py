@@ -8,48 +8,55 @@ def cprint(text, color_hex):
 
 def cinput(text, color_hex):
     print("\033[38;2;{};{};{}m{}\033[0m".format(*tuple(int(color_hex[i:i + 2], 16) for i in (0, 2, 4)), text))
-    return input()
+    a = input("\033[38;2;{};{};{}m{}\033[0m".format(*tuple(int('59c3e3'[i:i + 2], 16) for i in (0, 2, 4)), '> '))
+    return a
 
 
-def main(a='n'):
-    cprint("Настройка BFG", "FF0000")
+def main():
+    cprint("Настройка BFG", "FF00000")
     time.sleep(0.5)
     cprint("Наш канал - @copybfg", "21db53")
 
-    if chek_config():
-        a = cinput("Вы уверены что хотите удалить файл config.py и создать новый? Y/n", "FF9004")
-
+    a = cinput("Вы уверены что хотите удалить файл <config> и создать новый? Y/n", "FF90044")
     load_cfg(a)
 
 
 def load_cfg(a):
     if a.lower() not in ['y', 'yes', 'да', 'д']:
-        if chek_config():
-            return cprint("Конфиг найден! Можете запускать бота.", "FF0000")
+        cprint("Поиск конфига...", "FF00000")
+        time.sleep(1)
+        res = chek_config()
+        if res:
+            return cprint("Конифг найден! Можете запускать бота.", "FF00000")
         else:
-            cprint("Конфиг не найден! Создаю новый.", "FF0000")
+            cprint("Конфиг не найден! Создаю новый.", "FF00000")
             return load_cfg('y')
 
-    name = cinput("Введите имя вашего бота", "FF9004")
-    start_money = cinput("Введите начальный баланс", "FF9004")
-    admin = cinput("Введите айди админа", "FF9004")
-    token = cinput("Введите токен бота", "FF9004")
-    adm_username = cinput("Введите юзернейм админа", "FF9004")
-    chat = cinput("Введите ссылку на официальный чат бота", "FF9004")
-    chanell = cinput("Введите ссылку на официальный канал бота", "FF9004")
+    name = cinput("Введите имя вашего бота", "FF90044")
+    start_money = cinput("Введите начальный баланс", "FF90044")
+    admin = cinput("Введите айди админа", "FF90044")
+    token = cinput("Введите токен бота", "FF90044")
+    adm_username = cinput("Введите юзерйнем админа", "FF90044")
+    chat = cinput("Введите ссылку на официальный чат бота", "FF90044")
+    chanell = cinput("Введите ссылку на официальный канал бота", "FF90044")
+
+    confirm = cinput(
+        f"Все данные введены правильно?\n * Имя бота: {name}\n * Начальный баланс: {start_money}\n * Айди админа: {admin}\n * Токен бота: {token}"
+        f"\n * Юз админа: {adm_username}\n * Чат: {chat}\n * Канал: {chanell}\nВведите Y чтобы продолжить, n чтобы ввести данные заново.",
+        "FF90044")
 
     data = (token, admin, start_money, name, chat, chanell, adm_username)
-    cheker(data)
+
+    cheker(confirm, data)
 
 
-def cheker(data):
-    cprint("\nСохраняю...", "FF0000")
+def cheker(a, data):
+    if a not in ['y', 'yes', 'да', 'д']:
+        return load_cfg('да')
 
-    try:
-        create_config_file(data)
-        cprint("Конфиг успешно сохранён.", "FF0000")
-    except Exception as e:
-        cprint(f"Произошла ошибка при сохранении конфига: {e}", "FF0000")
+    cprint("\nСохраняю...", "FF00000")
+    create_config_file(data)
+    cprint("Конфиг успешно сохранён.", "FF00000")
 
 
 def create_config_file(data):
@@ -78,15 +85,9 @@ cleaning = 60"""
 
 def chek_config():
     if not os.path.isfile('config.py'):
-        return False
-    return True
-
-
-def main_chek():
-    if not os.path.isfile('config.py'):
-        a = cinput("Файл config.py не найден.\nХотите создать его сейчас? Y/n", "FF0000")
-        if a.lower() in ['y', 'yes', 'да', 'д']:
-            cprint("Для создания конфига вам нужно ответить на пару вопросов!", "f59b42")
+        a = cinput("Файл config.py не найден.\nХотите создать его сейчас? Y/n", "FF00000")
+        if a in ['y', 'yes', 'да', 'д']:
+            cprint("Для создания конфига вам нужно ответить на пару вопросов...", "f59b42")
             time.sleep(0.5)
             main()
     else:
@@ -96,4 +97,4 @@ def main_chek():
 if __name__ == '__main__':
     main()
 else:
-    main_chek()
+    chek_config()
