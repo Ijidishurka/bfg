@@ -1,3 +1,4 @@
+import install
 import importlib
 from aiogram import executor
 from assets.filters import FilterAdmin
