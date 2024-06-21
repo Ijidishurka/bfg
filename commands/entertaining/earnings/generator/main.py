@@ -1,7 +1,7 @@
 from aiogram import types, Dispatcher
 from bot import bot
 import commands.entertaining.earnings.generator.db as db
-from commands.db import url_name, getonlibalance, get_name
+from commands.db import url_name, get_balance, get_name
 from commands.main import win_luser
 from assets import kb
 from assets.antispam import new_earning_msg, antispam, antispam_earning
@@ -24,6 +24,7 @@ async def my_generator(message):
     url = await url_name(user_id)
     rwin, rloser = await win_luser()
     data = await db.getgenerator(user_id)
+
     if not data:
         await message.answer(f'{url}, у вас нет своего генератора {rloser}')
         return
@@ -47,6 +48,7 @@ async def edit_generator_msg(call: types.CallbackQuery):
     user_id = call.from_user.id
     url = await url_name(user_id)
     data = await db.getgenerator(user_id)
+
     if not data:
         return
 
@@ -71,15 +73,17 @@ async def buy_generator(message):
     url = await url_name(user_id)
     rwin, rloser = await win_luser()
     data = await db.getgenerator(user_id)
+
     if data:
         await message.answer(f'{url}, у вас уже есть построенный генератор. Чтобы узнать подробнее, введите "Мой генератор" {rloser}')
+        return
+
+    balance = await db.getonlimater(user_id)
+    if balance < 2000:
+        await message.answer(f'{url}, у вас недостаточно материи для постройки генератора. Его стоимость 2.000 материи {rloser}')
     else:
-        balance = await db.getonlimater(user_id)
-        if balance < 2000:
-            await message.answer(f'{url}, у вас недостаточно материи для постройки генератора. Его стоимость 2.000 материи {rloser}')
-        else:
-            await db.buy_generator_db(user_id)
-            await message.answer(f'{url}, вы успешно построили генератор для подробностей введите "Мой генератор" {rwin}')
+        await db.buy_generator_db(user_id)
+        await message.answer(f'{url}, вы успешно построили генератор для подробностей введите "Мой генератор" {rwin}')
 
 
 @antispam_earning
@@ -90,23 +94,23 @@ async def buy_turbine(call):
     gen = await db.getgenerator(user_id)
 
     if not gen:
-        await bot.answer_callback_query(call.id, text=f'{url}, у вас нет своего генератора чтобы купить турбины {rloser}')
-    else:
-        if gen[0] >= 10:
-            await bot.answer_callback_query(call.id, text=f'{url}, у вас уже куплено максимальное количество турбин {rloser}')
-            return
+        return
 
-        ch = 2000
-        balance = await db.getonlimater(user_id)
+    if gen[0] >= 10:
+        await bot.answer_callback_query(call.id, text=f'{url}, у вас уже куплено максимальное количество турбин {rloser}')
+        return
 
-        if balance < ch:
-            await bot.answer_callback_query(call.id, text=f'{url}, у вас недостаточно денег для покупки турбины. Её стоимость 2.000 материи {rloser}')
-            return
+    ch = 2000  # стоимость 1 турбины
+    balance = await db.getonlimater(user_id)
 
-        ch2 = '{:,}'.format(ch).replace(',', '.')
-        await db.buy_turbine_db(user_id)
-        await bot.answer_callback_query(call.id, text=f'{url}, вы успешно купили турбину за {ch2}🌌 {rwin}')
-        await edit_generator_msg(call)
+    if balance < ch:
+        await bot.answer_callback_query(call.id, text=f'{url}, у вас недостаточно денег для покупки турбины. Её стоимость 2.000 материи {rloser}')
+        return
+
+    ch2 = '{:,}'.format(ch).replace(',', '.')
+    await db.buy_turbine_db(user_id)
+    await bot.answer_callback_query(call.id, text=f'{url}, вы успешно купили турбину за {ch2}🌌 {rwin}')
+    await edit_generator_msg(call)
 
 
 @antispam_earning
@@ -115,8 +119,8 @@ async def snyt_pribl(call):
     url = await get_name(user_id)
     rwin, rloser = await win_luser()
     gen = await db.getgenerator(user_id)
+
     if not gen:
-        await bot.answer_callback_query(call.id, text=f'{url}, у вас нет своего генератора чтобы собрать с него приыбль {rloser}')
         return
 
     if gen[1] <= 0:
@@ -135,11 +139,11 @@ async def oplata_nalogov(call):
     url = await get_name(user_id)
     rwin, rloser = await win_luser()
     gen = await db.getgenerator(user_id)
+
     if not gen:
-        await bot.answer_callback_query(call.id, text=f'{url}, у вас нет своего генератора чтобы платить за него налоги {rloser}')
         return
 
-    balance = await getonlibalance(call)
+    balance = await get_balance(user_id)
     if balance < gen[2]:
         await bot.answer_callback_query(call.id, text=f'{url}, у вас недостаточно денег чтоб оплатить налоги {rloser}')
         return

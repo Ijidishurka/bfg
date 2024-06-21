@@ -1,17 +1,21 @@
 from commands.db import url_name, getstatus, getads
+from aiogram import types, Dispatcher
 from commands.main import win_luser
+from assets.antispam import antispam
 from commands.basic.ore.db import *
 import random
 
 
-async def energy_cmd(message):
+@antispam
+async def energy_cmd(message: types.Message):
     user_id = message.from_user.id
     url = await url_name(user_id)
     i = await getenergy(message)
     await message.answer(f'''{url}, на данный момент у тебя {i} ⚡''', disable_web_page_preview=True)
 
 
-async def mine_cmd(message):
+@antispam
+async def mine_cmd(message: types.Message):
     user_id = message.from_user.id
     url = await url_name(user_id)
     await message.answer(f'''{url}, добро пожаловать на вашу шахту! 🏞️
@@ -51,7 +55,8 @@ async def mine_cmd(message):
 - Моя шахта''')
 
 
-async def kursrud_cmd(message):
+@antispam
+async def kursrud_cmd(message: types.Message):
     user_id = message.from_user.id
     url = await url_name(user_id)
     await message.answer(f'''{url}, курс руды:
@@ -70,7 +75,8 @@ async def kursrud_cmd(message):
 ⚗ 1 палладий - 2.000.000.000.000.000$''')
 
 
-async def inventary_cmd(message):
+@antispam
+async def inventary_cmd(message: types.Message):
     user_id = message.from_user.id
     url = await url_name(user_id)
     corn = await getcorn_garden(user_id)
@@ -123,7 +129,8 @@ async def mine_level(expe):
             return level, next_level, limit
 
 
-async def mymine_cmd(message):
+@antispam
+async def mymine_cmd(message: types.Message):
     user_id = message.from_user.id
     url = await url_name(user_id)
     expe, energy = await getexpe(message)
@@ -139,7 +146,8 @@ async def mymine_cmd(message):
 ⭐️ Требуется {tr} опыта''')
 
 
-async def digmine(message):
+@antispam
+async def digmine(message: types.Message):
     ads = await getads(message)
     user_id = message.from_user.id
     url = await url_name(user_id)
@@ -193,7 +201,8 @@ async def digmine(message):
         await message.answer(f'{url}, данной руды не существует {rloser}')
 
 
-async def sellruda_cmd(message):
+@antispam
+async def sellruda_cmd(message: types.Message):
     user_id = message.from_user.id
     url = await url_name(user_id)
     txt = message.text.split()
@@ -235,3 +244,16 @@ async def sellruda_cmd(message):
         i2 = '{:,}'.format(i).replace(',', '.')
         await sell_ruda_db(i, user_id, ruda_data[ruda][0], kolvo)
         await message.answer(f'{url}, вы продали {kolvo} {ruda} за {i2}$ ✅')
+
+
+ruds = ['железо', 'золото', 'алмазы', 'аметисты', 'аквамарины', 'изумруды', 'материю',
+        'плазму', 'никель', 'титан','кобальт', 'эктоплазму', 'палладий']
+
+
+def reg(dp: Dispatcher):
+    dp.register_message_handler(energy_cmd, lambda message: message.text.lower() == 'энергия')
+    dp.register_message_handler(kursrud_cmd, lambda message: message.text.lower() == 'курс руды')
+    dp.register_message_handler(mymine_cmd, lambda message: message.text.lower() == 'моя шахта')
+    dp.register_message_handler(digmine, lambda message: message.text.lower().startswith('копать '))
+    dp.register_message_handler(sellruda_cmd, lambda message: message.text.lower().startswith('продать') and any(ruda in message.text.lower() for ruda in ruds))
+    dp.register_message_handler(inventary_cmd, lambda message: message.text.lower() == 'инвентарь')

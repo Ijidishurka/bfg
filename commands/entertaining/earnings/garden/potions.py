@@ -1,3 +1,4 @@
+from aiogram import Dispatcher
 from commands.entertaining.earnings.garden.db import *
 from commands.db import url_name
 from commands.main import win_luser
@@ -5,7 +6,7 @@ from commands.main import win_luser
 
 async def potions_list(message):
     user_id = message.from_user.id
-    url = await url_name(user_id)
+    url = await url_name(message.from_user.id)
     await message.answer(f'''{url}, доступные зелья:
 🍸 1. Чай: 40 зёрен
 Прибыль: 1 энергия
@@ -35,7 +36,7 @@ async def potions_list(message):
 async def bay_potions(message):
     user_id = message.from_user.id
     url = await url_name(user_id)
-    rwin, rloser = await win_luser()
+    win, lose = await win_luser()
     corn = await getcorn(user_id)
 
     potions = {
@@ -52,12 +53,17 @@ async def bay_potions(message):
         n = int(message.text.split()[2])
         potion = potions[n]
     except:
-        await message.answer(f'{url}, вы ввели неверный номер зелья или не ввели его вовсе. {rloser}')
+        await message.answer(f'{url}, вы ввели неверный номер зелья или не ввели его вовсе. {lose}')
         return
 
     if corn < potion["st"]:
-        await message.answer(f'{url}, у вас недостаточно зёрен для создания данного зелья. {rloser}')
+        await message.answer(f'{url}, у вас недостаточно зёрен для создания данного зелья. {lose}')
         return
 
-    await message.answer(f'{url}, вы успешно создали "{potion["name"]}", вам начислено {potion["st"]} энергии. {rwin}')
+    await message.answer(f'{url}, вы успешно создали "{potion["name"]}", вам начислено {potion["st"]} энергии. {win}')
     await buy_postion_db(potion["st"], potion["summ"], user_id)
+
+
+def reg(dp: Dispatcher):
+    dp.register_message_handler(potions_list, lambda message: message.text.lower == 'зелья')
+    dp.register_message_handler(bay_potions, lambda message: message.text.lower().startswith('создать зелье'))

@@ -1,7 +1,7 @@
 from aiogram import types, Dispatcher
 from bot import bot
 from commands.entertaining.earnings.tree import db
-from commands.db import url_name, getonlibalance, get_name
+from commands.db import url_name, get_balance, get_name
 from commands.main import win_luser
 from assets import kb
 from assets.antispam import new_earning_msg, antispam, antispam_earning
@@ -13,6 +13,7 @@ async def my_tree(message):
     url = await url_name(user_id)
     rwin, rloser = await win_luser()
     data = await db.gettree(user_id)
+
     if not data:
         await message.answer(f'{url}, у вас нет своего участка денежного дерева {rloser}')
         return
@@ -45,6 +46,7 @@ async def edit_tree_msg(call: types.CallbackQuery):
     user_id = call.from_user.id
     url = await url_name(user_id)
     data = await db.gettree(user_id)
+
     if not data:
         return
 
@@ -78,17 +80,19 @@ async def buy_tree(message):
     url = await url_name(user_id)
     rwin, rloser = await win_luser()
     data = await db.gettree(user_id)
+
     if data:
         await message.answer(f'{url}, у вас уже есть свой участок. Для подробностей введите "Моё дерево" {rwin}')
-    else:
-        balance = await db.getonlibiores(user_id)
-        if balance < 500_000_000:
-            await message.answer(f'{url}, у вас недостаточно биоресурсов для постройки участка денежного дерева. '
-                                 f'Его стоимость 500.000.000 кг биоресурса {rloser}')
-            return
+        return
 
-        await db.buy_tree_db(user_id)
-        await message.answer(f'{url}, вы успешно построили свой участок для подробностей введите "Моё дерево" {rwin}')
+    balance = await db.getonlibiores(user_id)
+    if balance < 500_000_000:
+        await message.answer(f'{url}, у вас недостаточно биоресурсов для постройки участка денежного дерева. '
+                             f'Его стоимость 500.000.000 кг биоресурса {rloser}')
+        return
+
+    await db.buy_tree_db(user_id)
+    await message.answer(f'{url}, вы успешно построили свой участок для подробностей введите "Моё дерево" {rwin}')
 
 
 @antispam_earning
@@ -97,6 +101,7 @@ async def snyt_pribl(call):
     url = await get_name(user_id)
     rwin, rloser = await win_luser()
     data = await db.gettree(user_id)
+
     if not data:
         return
 
@@ -118,10 +123,11 @@ async def oplata_nalogov(call):
     url = await get_name(user_id)
     rwin, rloser = await win_luser()
     data = await db.gettree(user_id)
+    balance = await get_balance(user_id)
+
     if not data:
         return
 
-    balance = await getonlibalance(call)
     if balance < data[1]:
         await bot.answer_callback_query(call.id, text=f'{url}, у вас недостаточно денег чтоб оплатить налоги {rloser}')
         return
@@ -142,6 +148,7 @@ async def buy_ter(call):
     url = await get_name(user_id)
     rwin, rloser = await win_luser()
     data = await db.gettree(user_id)
+
     if not data:
         return
 
@@ -164,6 +171,7 @@ async def buy_tree_call(call):
     url = await get_name(user_id)
     rwin, rloser = await win_luser()
     data = await db.gettree(user_id)
+
     if not data:
         return
 

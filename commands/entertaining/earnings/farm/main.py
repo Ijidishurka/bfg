@@ -1,6 +1,6 @@
 from aiogram import Dispatcher, types
 from commands.entertaining.earnings.farm.db import *
-from commands.db import getonlibalance, url_name, get_name
+from commands.db import get_balance, url_name, get_name
 from commands.main import win_luser
 from assets import kb
 from assets.antispam import antispam_earning, new_earning_msg, antispam
@@ -9,8 +9,8 @@ from bot import bot
 
 @antispam
 async def ferma_list(message):
-    id = message.from_user.id
-    url = await url_name(id)
+    user_id = message.from_user.id
+    url = await url_name(user_id)
     await message.answer(f'''{url}, с данного момента ты можешь сам построить свою ферму и улучшать её. Это очень весело и облегчит тебе работу.
 
 🪓 Для начала тебе нужно будет создать свою ферму, цена постройки 500.000.000$. Введите команду "Построить ферму" и после через команду "Моя ферма" вы сможете настраивать её и улучшать повышая свою прибыль.
@@ -76,79 +76,84 @@ async def upd_ferma_text(call: types.CallbackQuery):
 
 @antispam
 async def buy_ferma(message):
-    id = message.from_user.id
-    url = await url_name(id)
-    data = await getferm(id)
+    user_id = message.from_user.id
+    url = await url_name(user_id)
+    data = await getferm(user_id)
     rwin, rloser = await win_luser()
     if data:
         await message.answer(f'{url}, у вас уже есть построенная ферма. Чтобы узнать подробнее, введите "Моя ферма" {rloser}')
     else:
-        balance = await getonlibalance(message)
+        balance = await get_balance(user_id)
         if balance < 500000000:
             await message.answer(f'{url}, у вас недостаточно денег для постройки фермы. Её стоимость 500.000.000$ {rloser}')
         else:
-            await buy_ferma_db(id)
+            await buy_ferma_db(user_id)
             await message.answer(f'{url}, вы успешно купили ферму для подробностей введите "Моя ферма" {rwin}')
 
 
 @antispam_earning
 async def buy_cards(call: types.CallbackQuery):
-    id = call.from_user.id
-    url = await get_name(id)
-    data = await getferm(id)
+    user_id = call.from_user.id
+    url = await get_name(user_id)
+    data = await getferm(user_id)
     rwin, rloser = await win_luser()
+
     if not data:
-        await bot.answer_callback_query(call.id, text=f'{url}, у вас нет своей фермы чтобы увеличить её видеокарты {rloser}', parse_mode='html')
+        return
+
+    ch = int(500000000 * (1 + 0.15) ** (data[3] - 1))
+    ch2 = '{:,}'.format(ch).replace(',', '.')
+    balance = await get_balance(user_id)
+    if balance < ch:
+        await bot.answer_callback_query(call.id, text=f'{url}, у вас недостаточно денег для увеличения видеокарт. Её стоимость {ch2}$ {rloser}')
     else:
-        ch = int(500000000 * (1 + 0.15) ** (data[3] - 1))
-        ch2 = '{:,}'.format(ch).replace(',', '.')
-        balance = await getonlibalance(call)
-        if balance < ch:
-            await bot.answer_callback_query(call.id, text=f'{url}, у вас недостаточно денег для увеличения видеокарт. Её стоимость {ch2}$ {rloser}')
-        else:
-            await buy_cards_db(id, ch)
-            await bot.answer_callback_query(call.id, text=f'{url}, вы успешно увеличили количество видеокарт в ферме за {ch2}$ {rwin}')
-            await upd_ferma_text(call)
+        await buy_cards_db(user_id, ch)
+        await bot.answer_callback_query(call.id, text=f'{url}, вы успешно увеличили количество видеокарт в ферме за {ch2}$ {rwin}')
+        await upd_ferma_text(call)
 
 
 @antispam_earning
 async def snyt_pribl_ferma(call):
-    id = call.from_user.id
-    url = await get_name(id)
-    data = await getferm(id)
+    user_id = call.from_user.id
+    url = await get_name(user_id)
+    data = await getferm(user_id)
     rwin, rloser = await win_luser()
+
     if not data:
-        await bot.answer_callback_query(call.id, text=f'{url}, у вас нет своей фермы чтобы собрать с неё приыбль {rloser}')
+        return
+
+    if data[1] == 0:
+        await bot.answer_callback_query(call.id, text=f'{url}, на данный момент на балансе вашей фермы нет прибыли {rloser}')
     else:
-        if data[1] == 0:
-            await bot.answer_callback_query(call.id, text=f'{url}, на данный момент на балансе вашей фермы нет прибыли {rloser}')
-        else:
-            balance2 = '{:,}'.format(data[1]).replace(',', '.')
-            await snyt_pribl_ferma_db(id, data[1])
-            await bot.answer_callback_query(call.id, text=f'{url}, вы успешно сняли {balance2}฿ с баланса вашей фермы {rwin}')
-            await upd_ferma_text(call)
+        balance2 = '{:,}'.format(data[1]).replace(',', '.')
+        await snyt_pribl_ferma_db(user_id, data[1])
+        await bot.answer_callback_query(call.id, text=f'{url}, вы успешно сняли {balance2}฿ с баланса вашей фермы {rwin}')
+        await upd_ferma_text(call)
 
 
 @antispam_earning
 async def oplata_nalogov_ferma(call):
-    id = call.from_user.id
-    url = await get_name(id)
-    data = await getferm(id)
+    user_id = call.from_user.id
+    url = await get_name(user_id)
+    data = await getferm(user_id)
     rwin, rloser = await win_luser()
+
     if not data:
-        await bot.answer_callback_query(call.id, text=f'{url}, у вас нет своей фермы чтобы платить за неё налоги {rloser}')
+        return
+
+    nalogs2 = '{:,}'.format(data[2]).replace(',', '.')
+    balance = await get_balance(user_id)
+
+    if balance < data[2]:
+        await bot.answer_callback_query(call.id, text=f'{url}, у вас недостаточно денег чтоб оплатить налоги {rloser}')
+        return
+
+    if data[2] == 0:
+        await bot.answer_callback_query(call.id, text=f'{url}, у вас нет налогов чтобы их оплатить {rwin}')
     else:
-        nalogs2 = '{:,}'.format(data[2]).replace(',', '.')
-        balance = await getonlibalance(call)
-        if balance < data[2]:
-            await bot.answer_callback_query(call.id, text=f'{url}, у вас недостаточно денег чтоб оплатить налоги {rloser}')
-            return
-        if data[2] == 0:
-            await bot.answer_callback_query(call.id, text=f'{url}, у вас нет налогов чтобы их оплатить {rwin}')
-        else:
-            await oplata_nalogs_ferma_db(id, data[2])
-            await bot.answer_callback_query(call.id, text=f'{url}, вы успешно оплатили налоги на сумму {nalogs2}$ с вашего игрового баланса {rwin}')
-            await upd_ferma_text(call)
+        await oplata_nalogs_ferma_db(user_id, data[2])
+        await bot.answer_callback_query(call.id, text=f'{url}, вы успешно оплатили налоги на сумму {nalogs2}$ с вашего игрового баланса {rwin}')
+        await upd_ferma_text(call)
 
 
 def reg(dp: Dispatcher):

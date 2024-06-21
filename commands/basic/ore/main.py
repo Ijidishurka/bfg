@@ -1,7 +1,8 @@
 from aiogram import Dispatcher, types
-from commands.db import url_name, getonlibalance, getads
+from commands.db import url_name, get_balance, getads
 from commands.main import win_luser
 from commands.basic.ore.db import *
+import commands.basic.ore.dig
 
 
 async def sellbtc(message: types.Message):
@@ -33,7 +34,7 @@ async def sellbtc(message: types.Message):
 
 async def buybtc(message: types.Message):
     user_id = message.from_user.id
-    balance = await getonlibalance(message)
+    balance = await get_balance(user_id)
     url = await url_name(user_id)
     win, lose = await win_luser()
 
@@ -42,6 +43,7 @@ async def buybtc(message: types.Message):
     except:
         await message.answer(f'{url}, вы не ввели количество BTC которое хотите купить {lose}')
         return
+
     summ_btc = Decimal(summ_btc)
 
     kurs = await getkurs()
@@ -86,6 +88,7 @@ async def sellrating(message: types.Message):
         summ_r = int(message.text.split()[2])
     except:
         summ_r = r
+
     summ_r = Decimal(summ_r)
 
     kurs = 100_000_000  # сумма за 1 рейтинг
@@ -105,7 +108,7 @@ async def sellrating(message: types.Message):
 
 async def buy_ratting(message: types.Message):
     user_id = message.from_user.id
-    balance = await getonlibalance(message)
+    balance = await get_balance(user_id)
     url = await url_name(user_id)
     win, lose = await win_luser()
 
@@ -138,3 +141,5 @@ def reg(dp: Dispatcher):
     dp.register_message_handler(rrating_cmd, lambda message: message.text.lower() == 'рейтинг')
     dp.register_message_handler(buy_ratting, lambda message: message.text.lower().startswith('рейтинг'))
     dp.register_message_handler(sellrating, lambda message: message.text.lower().startswith('продать рейтинг'))
+
+    commands.basic.ore.dig.reg(dp)

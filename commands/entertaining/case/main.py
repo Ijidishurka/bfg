@@ -1,7 +1,9 @@
 import random
+from aiogram import Dispatcher
 import commands.entertaining.case.db as db
 from commands.db import getads, getstatus, url_name
 from commands.main import win_luser
+import commands.entertaining.case.buy
 
 
 async def getcase_cmd(message):
@@ -9,6 +11,7 @@ async def getcase_cmd(message):
     url = await url_name(user_id)
     case1, case2, case3, case4 = await db.getcase(message)
     ads = await getads(message)
+
     ycase = {
         "case1": {"name": "📦 Обычный кейс", "quantity": case1},
         "case2": {"name": "🏵 Золотой кейс", "quantity": case2},
@@ -34,23 +37,28 @@ async def getcase_cmd(message):
 {txt}
 🛒 Для покупки введите «Купить кейс [1/2/3] [кол-во]»
 
-{ads}''', parse_mode='html', disable_web_page_preview=True)
+{ads}''', disable_web_page_preview=True)
 
 
 async def open_case(message):
-    rwin, rloser = await win_luser()
+    win, lose = await win_luser()
     name = await url_name(message.from_user.id)
-    ads = await getads(message)
+    ads = await getads()
 
-    try: case = int(message.text.split()[2])
-    except: return await message.answer(f'{name}, к сожалению вы ввели неверный номер кейса {rloser}')
-
-    if case not in range(1, 5):
-        await message.answer(f'{name}, к сожалению вы ввели неверный номер кейса {rloser}')
+    try:
+        case = int(message.text.split()[2])
+    except:
+        await message.answer(f'{name}, к сожалению вы ввели неверный номер кейса {lose}')
         return
 
-    try: u = int(message.text.split()[3])
-    except: u = 1
+    if case not in range(1, 5):
+        await message.answer(f'{name}, к сожалению вы ввели неверный номер кейса {lose}')
+        return
+
+    try:
+        u = int(message.text.split()[3])
+    except:
+        u = 1
 
     case1, case2, case3, case4 = await db.getcase(message)
     cases = {1: case1, 2: case2, 3: case3, 4: case4}
@@ -61,13 +69,16 @@ async def open_case(message):
     climit = status_limits.get(status, status_limits[0])
 
     if u <= 0:
-        return await message.answer(f'🎁 | {name}, нельзя открывать отрицательное количество кейсов! {rloser}\n\n{ads}', disable_web_page_preview=True)
+        await message.answer(f'🎁 | {name}, нельзя открывать отрицательное количество кейсов! {lose}\n\n{ads}', disable_web_page_preview=True)
+        return
 
     if ncase < u:
-        return await message.answer(f'🎁 | {name}, у вас недостаточно кейсов! {rloser}\n\n{ads}', parse_mode='html', disable_web_page_preview=True)
+        await message.answer(f'🎁 | {name}, у вас недостаточно кейсов! {lose}\n\n{ads}', disable_web_page_preview=True)
+        return
 
     if climit < u:
-        return await message.answer(f'🎁 | {name}, вы не можете открывать более {climit} кейсов за раз! {rloser}\n\n{ads}', disable_web_page_preview=True)
+        await message.answer(f'🎁 | {name}, вы не можете открывать более {climit} кейсов за раз! {lose}\n\n{ads}', disable_web_page_preview=True)
+        return
 
     if case in [1, 2]:
         return await open_case_12(message, u, case)
@@ -80,7 +91,7 @@ async def open_case(message):
 
 
 async def open_case_12(message, u, case):
-    coff = 1 if case == 1 else 8
+    coff = 1 if case == 1 else 11
     user_id = message.from_user.id
     name = await url_name(message.from_user.id)
     ads = await getads(message)
@@ -109,10 +120,12 @@ async def open_case_12(message, u, case):
         smoney2 = f'{smoney:,.0f}'.replace(",", ".")
         await db.open_case_db(user_id, smoney, 'balance')
         txt += f'🔥 Итого денег - {smoney2}₴\n'
+
     if srating > 0:
         srating2 = f'{srating:,.0f}'.replace(",", ".")
         await db.open_case_db(user_id, srating, 'rating')
         txt += f'👑 Итого рейтинга - {srating2}\n'
+
     if sexpe > 0:
         sexpe2 = f'{sexpe:,.0f}'.replace(",", ".")
         await db.open_case_db(user_id, sexpe, 'exp')
@@ -220,14 +233,17 @@ async def open_case_4(message, u):
         smoney2 = f'{smoney:,.0f}'.replace(",", ".")
         await db.open_case_db(user_id, smoney, 'balance')
         txt += f'🔥 Итого денег - {smoney2}₴\n'
+
     if srating > 0:
         srating2 = f'{srating:,.0f}'.replace(",", ".")
         await db.open_case_db(user_id, srating, 'rating')
         txt += f'👑 Итого рейтинга - {srating2}\n'
+
     if sexpe > 0:
         sexpe2 = f'{sexpe:,.0f}'.replace(",", ".")
         await db.open_case_db(user_id, sexpe, 'exp')
         txt += f'🏆 Итого опыта - {sexpe2}шт\n'
+
     if smatter > 0:
         smatter2 = f'{smatter:,.0f}'.replace(",", ".")
         await db.open_case_db(user_id, smatter, 'matter', table='mine')
@@ -235,3 +251,10 @@ async def open_case_4(message, u):
 
     await db.open_case2_db(user_id, u, 'case4')
     await message.answer(f'🎁 | {name}, вам выпало:\n\n{txt}\n\n{ads}', disable_web_page_preview=True)
+
+
+def reg(dp: Dispatcher):
+    dp.register_message_handler(getcase_cmd, lambda message: message.text.lower() == 'кейсы')
+    dp.register_message_handler(open_case, lambda message: message.text.lower().startswith('открыть кейс'))
+
+    commands.entertaining.case.buy.reg(dp)

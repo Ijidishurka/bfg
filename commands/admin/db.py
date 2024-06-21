@@ -31,7 +31,7 @@ async def new_promo_db(data):
     if res:
         return 'error'
 
-    cursor.execute('INSERT INTO promo (name, summ, activ) VALUES (?, ?, ?)', (data[0], str(data[1]), data[2]))
+    cursor.execute('INSERT INTO promo (name, summ, activ, data) VALUES (?, ?, ?, ?)', (data[0], str(data[1]), data[2], data[3]))
     conn.commit()
 
 
@@ -57,15 +57,27 @@ async def activ_promo_db(name, user_id):
     if res:
         return 'used'
 
-    balance = cursor.execute('SELECT balance FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]
+    parts = data[3].split()[0].split('/')
+    table, column = parts[0], parts[1]
+
+    balance = cursor.execute(f'SELECT {column} FROM {table} WHERE user_id = ?', (user_id,)).fetchone()[0]
     summ = int(Decimal(balance) + Decimal(int(data[1])))
 
-    cursor.execute(f'UPDATE users SET balance = ? WHERE user_id = ?', (str(summ), user_id))
+    if table == 'users' and column in ['balance']:
+        summ = str(summ)
+
+    cursor.execute(f'UPDATE {table} SET {column} = ? WHERE user_id = ?', (summ, user_id))
     cursor.execute(f'UPDATE promo SET activ = activ - 1 WHERE name = ?', (name,))
     cursor.execute('INSERT INTO promo_activ (user_id, name) VALUES (?, ?)', (user_id, name))
     conn.commit()
-    return int(data[1])
+    return data
 
 
 async def promo_info_db(name):
     return cursor.execute(f"SELECT * FROM promo WHERE name = ?", (name,)).fetchone()
+
+
+async def get_users_chats():
+    d1 = cursor.execute(f"SELECT user_id FROM users").fetchall()
+    d2 = cursor.execute(f"SELECT chat_id FROM chats").fetchall()
+    return d1, d2

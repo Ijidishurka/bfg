@@ -1,7 +1,7 @@
 from aiogram import types, Dispatcher
 from bot import bot
 from commands.entertaining.earnings.quarry import db
-from commands.db import url_name
+from commands.db import url_name, get_name, get_balance
 from commands.main import win_luser
 from assets import kb
 from assets.antispam import new_earning_msg, antispam, antispam_earning
@@ -93,7 +93,61 @@ async def buy_quarry(message):
             await message.answer(f'{url}, вы успешно построили карьер для подробностей введите "Мой карьер" {rwin}')
 
 
+@antispam_earning
+async def snyt_pribl(call):
+    user_id = call.from_user.id
+    url = await get_name(user_id)
+    data = await db.getquarry(user_id)
+    win, lose = await win_luser()
+
+    if not data:
+        return
+
+    summ = int(data[1])
+
+    if summ == 0:
+        await bot.answer_callback_query(call.id, text=f'{url}, на данный момент на балансе вашего карьера нету прибыли {lose}')
+    else:
+        await db.snyt_pribl_quarry_db(user_id, summ)
+        await bot.answer_callback_query(call.id, text=f'{url}, вы успешно сняли {summ}⚗️ с баланса вашего карьера {win}')
+        await edit_quarry_msg(call)
+
+
+@antispam_earning
+async def oplata_nalogov(call):
+    user_id = call.from_user.id
+    url = await get_name(user_id)
+    data = await db.getquarry(user_id)
+    balance = await get_balance(user_id)
+    win, lose = await win_luser()
+
+    if not data:
+        return
+
+    if balance < data[2]:
+        await bot.answer_callback_query(call.id, text=f'{url}, у вас недостаточно денег чтоб оплатить налоги {lose}')
+        return
+
+    if data[2] == 0:
+        await bot.answer_callback_query(call.id, text=f'{url}, у вас нет налогов чтобы их оплатить {win}')
+        return
+
+    nalogs2 = '{:,}'.format(data[2]).replace(',', '.')
+    await db.oplata_nalogs_db(user_id, data[2])
+    await bot.answer_callback_query(call.id, text=f'{url}, вы успешно оплатили налоги на сумму {nalogs2}$ с вашего игрового баланса {win}')
+    await edit_quarry_msg(call)
+
+
+@antispam_earning
+async def up_level(call):
+    url = await get_name(call.from_user.id)
+    await bot.answer_callback_query(call.id, text=f'{url}, на данный момент у Вас максимальный уровень карьера.')
+
+
 def reg(dp: Dispatcher):
     dp.register_message_handler(my_quarry, lambda message: message.text.lower().startswith('мой карьер'))
     dp.register_message_handler(quarry_list, lambda message: message.text.lower().startswith('карьер'))
     dp.register_message_handler(buy_quarry, lambda message: message.text.lower().startswith('построить карьер'))
+    dp.register_callback_query_handler(snyt_pribl, text_startswith='quarry-sobrat')
+    dp.register_callback_query_handler(oplata_nalogov, text_startswith='quarry-nalog')
+    dp.register_callback_query_handler(up_level, text_startswith='quarry-lvl')

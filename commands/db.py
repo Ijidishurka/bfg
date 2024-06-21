@@ -44,7 +44,7 @@ cursor.execute('''CREATE TABLE IF NOT EXISTS quarry (user_id INTEGER, balance NU
 nalogs INTEGER, territory INTEGER, bur INTEGER, lvl INTEGER)''')
 
 
-cursor.execute('''CREATE TABLE IF NOT EXISTS promo (name TEXT, summ TEXT, activ INTEGER)''')
+cursor.execute('''CREATE TABLE IF NOT EXISTS promo (name TEXT, summ TEXT, activ INTEGER, data TEXT)''')
 
 
 cursor.execute('''CREATE TABLE IF NOT EXISTS promo_activ (user_id INTEGER, name TEXT)''')
@@ -137,15 +137,9 @@ async def getpofildb(user_id):
     return data, (ferma, business, garden, generator), property
 
 
-async def getonlibalance(message):
-    user_id = message.from_user.id
-    i = cursor.execute('SELECT balance FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]
-    return int(float(i))
-
-
 async def get_balance(user_id):
     i = cursor.execute('SELECT balance FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]
-    return int(i)
+    return int(Decimal(i))
 
 
 async def getlimitdb(message):

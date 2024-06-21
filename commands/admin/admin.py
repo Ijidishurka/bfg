@@ -1,13 +1,12 @@
+import asyncio
 import sys
 from datetime import datetime
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
-from commands.db import url_name, getstatus
+from aiogram.types import InlineKeyboardMarkup
 from commands.admin.db import *
-from commands.main import win_luser
 import config as cfg
-from commands.admin.loger import new_log
 from bot import bot
 
 from assets.antispam import earning_msg
@@ -19,65 +18,9 @@ class new_ads_state(StatesGroup):
     txt = State()
 
 
-async def give_money(message):
-    user_id = message.from_user.id
-    status = await getstatus(user_id)
-    if user_id not in cfg.admin and status == 0:
-        return await message.answer('👮‍♂️ Вы не являетесь администратором бота чтобы использовать данную команду.\n'
-                                    'Для покупки введи команду "Донат"')
-    rwin, rloser = await win_luser()
-    url = await url_name(user_id)
-
-    try:
-        r_user_id = message.reply_to_message.from_user.id
-        r_url = await url_name(user_id)
-    except:
-        return await message.answer(f'{url}, чтобы выдать деньги нужно ответить на сообщение пользователя {rloser}')
-
-    try:
-        summ = message.text.split()[1].replace('е', 'e')
-        summ = int(float(summ))
-        summ2 = '{:,}'.format(summ).replace(',', '.')
-    except:
-        return await message.answer(f'{url}, вы не ввели сумму которую хотите выдать {rloser}')
-
-    if user_id in cfg.admin:
-        await give_money_db(user_id, r_user_id, summ, 'rab')
-        await message.answer(f'{url}, вы выдали {summ2}$ пользователю {r_url}  {rwin}')
-    else:
-        res = await give_money_db(user_id, r_user_id, summ, 'adm')
-        if res == 'limit':
-            return await message.answer(f'{url}, вы достигли лимита на выдачу денег  {rloser}')
-
-        await message.answer(f'{url}, вы выдали {summ2}$ пользователю {r_url}  {rwin}')
-    await new_log(f'#выдача\nПользователь {user_id}\nСумма: {summ2}$\nПользователю {r_user_id}', 'issuance_money')
-
-
-async def give_bcoins(message):
-    user_id = message.from_user.id
-    if user_id not in cfg.admin:
-        return
-
-    rwin, rloser = await win_luser()
-    url = await url_name(user_id)
-
-    try:
-        r_user_id = message.reply_to_message.from_user.id
-        r_url = await url_name(user_id)
-    except:
-        return await message.answer(f'{url}, чтобы выдать деньги нужно ответить на сообщение пользователя {rloser}')
-
-    try:
-        su = message.text.split()[1]
-        su = (su).replace('к', '000').replace('м', '000000').replace('.', '')
-        summ = int(su)
-        summ2 = '{:,}'.format(summ).replace(',', '.')
-    except:
-        return await message.answer(f'{url}, вы не ввели сумму которую хотите выдать {rloser}')
-
-    await give_bcoins_db(r_user_id, summ)
-    await message.answer(f'{url}, вы выдали {summ2}💳 пользователю {r_url}  {rwin}')
-    await new_log(f'#бкоин-выдача\nАдмин {user_id}\nСумма: {summ2}$\nПользователю {r_user_id}', 'issuance_bcoins')
+class Mailing(StatesGroup):
+    mailing_text = State()
+    mailing_conf = State()
 
 
 async def new_ads(message, state: FSMContext, type=0):
@@ -196,13 +139,83 @@ async def RAM_clear(call: types.CallbackQuery):
     await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text='🗑 Очищено!')
 
 
+async def rassilka(message: types.Message):
+    await Mailing.mailing_text.set()
+    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    keyboard.add(types.KeyboardButton("Отмена"))
+    await message.answer('📂 Пришлите мне готовое сообщение для рассылки:', reply_markup=keyboard)
+
+
+async def process_rassilka(message, state: FSMContext):
+    text = message.text
+    if text == 'Отмена':
+        await state.finish()
+        await message.answer('Отменено.')
+        await admin_menu(message)
+        return
+
+    inline_keyboard = None
+    if message.reply_markup and message.reply_markup.inline_keyboard:
+        inline_keyboard = message.reply_markup.inline_keyboard
+        inline_keyboard = InlineKeyboardMarkup(inline_keyboard=inline_keyboard)
+
+    await state.update_data(text=text, inline_keyboard=inline_keyboard)
+    await message.answer("✅ Сообщение сохранено.\nВы уверены что хотите начать рассылку? (да/нет)")
+    await Mailing.mailing_conf.set()
+
+
+async def process_rassilka2(message, state: FSMContext):
+    data = await state.get_data()
+    await state.finish()
+
+    if message.text.lower() != 'да':
+        await message.answer("Рассылка отменена.")
+        return
+
+    users, chats = await get_users_chats()
+
+    ucount, uerror = 0, 0,
+    ucount2, uerror2 = 0, 0
+
+    await message.answer("✨ Рассылка запущена!")
+    await admin_menu(message)
+
+    for user_id in users:
+        try:
+            await bot.send_message(user_id[0], data['text'], reply_markup=data['inline_keyboard'])
+            await asyncio.sleep(0.05)
+            ucount += 1
+        except:
+            uerror += 1
+
+    for chat_id in chats:
+        try:
+            await bot.send_message(chat_id[0], data['text'], reply_markup=data['inline_keyboard'])
+            await asyncio.sleep(0.05)
+            ucount2 += 1
+        except:
+            uerror2 += 1
+
+    await message.answer(f'''📡 <b>Рассылка завершена.</b>
+    
+<i>Личные сообщения:</i>
+  Получено: {ucount:,}
+  Не получено: {uerror:,}
+
+<i>Чаты:</i>
+  Получено: {ucount2:,}
+  Не получено: {uerror2:,}''')
+
+
 def reg(dp: Dispatcher):
     dp.register_message_handler(admin_menu, commands='adm')
-    dp.register_message_handler(give_money, lambda message: message.text.lower().startswith('выдать'))
-    dp.register_message_handler(give_bcoins, lambda message: message.text.lower().startswith('бдать'))
-    dp.register_message_handler(unloading, lambda message: message.text.lower().startswith('📥 Выгрузка'))
+    dp.register_message_handler(unloading, lambda message: message.text == '📥 Выгрузка')
     dp.register_message_handler(control, lambda message: message.text == '🕹 Управление')
     dp.register_message_handler(RAM_control, lambda message: message.text == '💽 ОЗУ')
     dp.register_callback_query_handler(RAM_clear, text='ram-clear')
     dp.register_message_handler(new_ads, lambda message: message.text == '⚙️ Изменить текст рекламы')
     dp.register_message_handler(lambda message, state: new_ads(message, state, type=1), state=new_ads_state.txt)
+
+    dp.register_message_handler(rassilka, lambda message: message.text == '📍 Рассылка')
+    dp.register_message_handler(process_rassilka, state=Mailing.mailing_text)
+    dp.register_message_handler(process_rassilka2, state=Mailing.mailing_conf)

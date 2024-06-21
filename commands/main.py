@@ -1,10 +1,11 @@
+from aiogram import Dispatcher, types
 from commands.db import reg_user
 from assets import kb
 import random
 import config as cfg
 
 
-async def on_start(message):
+async def on_start(message: types.Message):
     await reg_user(message.from_user.id)
     sticker_id = 'CAACAgQAAxkBAAEKs6JlSQUtGTtSzXGVcJGBe0PwnWkI9QACRwkAAm0NeFIe5FE9nk15XTME'
     await message.answer_sticker(sticker=sticker_id)
@@ -32,3 +33,7 @@ async def win_luser():
 async def geturl(id, txt):
     url = f'<a href="tg://user?id={id}">{txt}</a>'
     return url
+
+
+def reg(dp: Dispatcher):
+    dp.register_message_handler(on_start, commands=['start'])

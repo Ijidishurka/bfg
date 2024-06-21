@@ -1,6 +1,6 @@
 from aiogram import types, Dispatcher
 import commands.entertaining.earnings.garden.db as db
-from commands.db import url_name, getonlibalance, get_name
+from commands.db import url_name, get_balance, get_name
 from commands.main import win_luser
 from assets import kb
 from assets.antispam import antispam_earning, antispam, new_earning_msg
@@ -24,6 +24,7 @@ async def my_garden(message):
     url = await url_name(user_id)
     rwin, rloser = await win_luser()
     data = await db.getgarden(user_id)
+
     if not data:
         await message.answer(f'{url}, у вас нет своего сада. Введите команду "Построить сад" {rloser}')
         return
@@ -56,6 +57,7 @@ async def upd_garden_text(call: types.CallbackQuery):
     uid = call.from_user.id
     url = await url_name(uid)
     data = await db.getgarden(uid)
+
     if not data:
         return
 
@@ -90,15 +92,17 @@ async def buy_garden(message):
     url = await url_name(user_id)
     rwin, rloser = await win_luser()
     data = await db.getgarden(user_id)
+
     if data:
         await message.answer(f'{url}, у вас уже есть построенный сад. Чтобы узнать подробнее, введите "Мой сад" {rloser}')
+        return
+
+    balance = await get_balance(user_id)
+    if balance < 1000000000:
+        await message.answer(f'{url}, у вас недостаточно денег для постройки Сада. Его стоимость 1.00.000.000$ {rloser}')
     else:
-        balance = await getonlibalance(message)
-        if balance < 1000000000:
-            await message.answer(f'{url}, у вас недостаточно денег для постройки Сада. Его стоимость 1.00.000.000$ {rloser}')
-        else:
-            await db.buy_garden_db(user_id)
-            await message.answer(f'{url}, вы успешно купили сад для подробностей введите "Мой сад" {rwin}')
+        await db.buy_garden_db(user_id)
+        await message.answer(f'{url}, вы успешно купили сад для подробностей введите "Мой сад" {rwin}')
 
 
 @antispam_earning
@@ -107,21 +111,24 @@ async def buy_tree(call):
     url = await get_name(user_id)
     rwin, rloser = await win_luser()
     data = await db.getgarden(user_id)
+
     if not data:
-        await bot.answer_callback_query(call.id, text=f'{url}, у вас нет своего сада чтобы покупать деревья {rloser}')
+        return
+
+    if data[1] == 10:
+        await bot.answer_callback_query(call.id, text=f'{url}, у вас уже куплено максимальное количество деревьев {rloser}')
+        return
+
+    ch = int(1000000000 * (1 + 0.15) ** (data[1] + 1))
+    ch2 = '{:,}'.format(ch).replace(',', '.')
+    balance = await get_balance(user_id)
+
+    if balance < ch:
+        await bot.answer_callback_query(call.id, text=f'{url}, у вас недостаточно денег для покупки дерева. Её стоимость {ch2}$ {rloser}')
     else:
-        if data[1] == 10:
-            await bot.answer_callback_query(call.id, text=f'{url}, у вас уже куплено максимальное количество деревьев {rloser}')
-            return
-        ch = int(1000000000 * (1 + 0.15) ** (data[1] + 1))
-        ch2 = '{:,}'.format(ch).replace(',', '.')
-        balance = await getonlibalance(call)
-        if balance < ch:
-            await bot.answer_callback_query(call.id, text=f'{url}, у вас недостаточно денег для покупки дерева. Её стоимость {ch2}$ {rloser}')
-        else:
-            await db.buy_tree_db(user_id, ch)
-            await bot.answer_callback_query(call.id, text=f'{url}, вы успешно увеличили количество деревьев в вашем саду за {ch2}$ {rwin}')
-            await upd_garden_text(call)
+        await db.buy_tree_db(user_id, ch)
+        await bot.answer_callback_query(call.id, text=f'{url}, вы успешно увеличили количество деревьев в вашем саду за {ch2}$ {rwin}')
+        await upd_garden_text(call)
 
 
 @antispam_earning
@@ -130,16 +137,17 @@ async def snyt_pribl_garden(call):
     url = await get_name(user_id)
     rwin, rloser = await win_luser()
     data = await db.getgarden(user_id)
+
     if not data:
-        await bot.answer_callback_query(call.id, text=f'{url}, у вас нет своего сада чтобы собирать с него приыбль {rloser}')
+        return
+
+    if data[3] == 0:
+        await bot.answer_callback_query(call.id, text=f'{url}, на данный момент на балансе вашего сада нет прибыли {rloser}')
     else:
-        if data[3] == 0:
-            await bot.answer_callback_query(call.id, text=f'{url}, на данный момент на балансе вашего сада нет прибыли {rloser}')
-        else:
-            balance2 = '{:,}'.format(data[3]).replace(',', '.')
-            await db.snyt_pribl_garden_db(user_id, data[3])
-            await bot.answer_callback_query(call.id, text=f'{url}, вы успешно сняли {balance2} зёрен с баланса вашего сада {rwin}')
-            await upd_garden_text(call)
+        balance2 = '{:,}'.format(data[3]).replace(',', '.')
+        await db.snyt_pribl_garden_db(user_id, data[3])
+        await bot.answer_callback_query(call.id, text=f'{url}, вы успешно сняли {balance2} зёрен с баланса вашего сада {rwin}')
+        await upd_garden_text(call)
 
 
 @antispam_earning
@@ -148,15 +156,16 @@ async def polit_dereva_garden(call):
     url = await get_name(user_id)
     rwin, rloser = await win_luser()
     data = await db.getgarden(user_id)
+
     if not data:
-        await bot.answer_callback_query(call.id, text=f'{url}, у вас нет своего сада чтобы поливать деревья {rloser}')
+        return
+
+    if data[0] == 100:
+        await bot.answer_callback_query(call.id, text=f'{url}, вы уже полили свой сад {rloser}')
     else:
-        if data[0] == 100:
-            await bot.answer_callback_query(call.id, text=f'{url}, вы уже полили свой сад {rloser}')
-        else:
-            await db.politderevo(user_id)
-            await bot.answer_callback_query(call.id, text=f'{url}, вы успешно полили свой сад {rwin}')
-            await upd_garden_text(call)
+        await db.politderevo(user_id)
+        await bot.answer_callback_query(call.id, text=f'{url}, вы успешно полили свой сад {rwin}')
+        await upd_garden_text(call)
 
 
 @antispam
@@ -165,14 +174,16 @@ async def polit_dereva_garden_2(message):
     url = await url_name(user_id)
     rwin, rloser = await win_luser()
     data = await db.getgarden(user_id)
+
     if not data:
         await message.answer(f'{url}, у вас нет своего сада чтобы поливать деревья {rloser}')
+        return
+
+    if data[0] == 100:
+        await message.answer(f'{url}, вы уже полили свой сад {rloser}')
     else:
-        if data[0] == 100:
-            await message.answer(f'{url}, вы уже полили свой сад {rloser}')
-        else:
-            await db.politderevo(user_id)
-            await message.answer(f'{url}, вы успешно полили свой сад {rwin}')
+        await db.politderevo(user_id)
+        await message.answer(f'{url}, вы успешно полили свой сад {rwin}')
 
 
 @antispam_earning
@@ -181,21 +192,23 @@ async def oplata_nalogov_garden(call):
     url = await get_name(user_id)
     rwin, rloser = await win_luser()
     data = await db.getgarden(user_id)
-    if not data:
-        await bot.answer_callback_query(call.id, text=f'{url}, у вас нет своего сада чтобы платить за него налоги {rloser}')
-    else:
-        balance = await getonlibalance(call)
-        if balance < data[2]:
-            await bot.answer_callback_query(call.id, text=f'{url}, у вас недостаточно денег чтоб оплатить налоги {rloser}')
-            return
+    balance = await get_balance(user_id)
 
-        if data[2] == 0:
-            await bot.answer_callback_query(call.id, text=f'{url}, у вас нет налогов чтобы их оплатить {rwin}')
-        else:
-            nalogs2 = '{:,}'.format(data[2]).replace(',', '.')
-            await db.oplata_nalogs_garden_db(user_id, data[2])
-            await bot.answer_callback_query(call.id, text=f'{url}, вы успешно оплатили налоги на сумму {nalogs2}$ с вашего игрового баланса {rwin}')
-            await upd_garden_text(call)
+    if not data:
+        return
+
+    if balance < data[2]:
+        await bot.answer_callback_query(call.id, text=f'{url}, у вас недостаточно денег чтоб оплатить налоги {rloser}')
+        return
+
+    if data[2] == 0:
+        await bot.answer_callback_query(call.id, text=f'{url}, у вас нет налогов чтобы их оплатить {rwin}')
+        return
+
+    nalogs2 = '{:,}'.format(data[2]).replace(',', '.')
+    await db.oplata_nalogs_garden_db(user_id, data[2])
+    await bot.answer_callback_query(call.id, text=f'{url}, вы успешно оплатили налоги на сумму {nalogs2}$ с вашего игрового баланса {rwin}')
+    await upd_garden_text(call)
 
 
 def reg(dp: Dispatcher):

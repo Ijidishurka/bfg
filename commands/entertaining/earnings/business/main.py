@@ -1,6 +1,6 @@
 from aiogram import Dispatcher, types
 from commands.entertaining.earnings.business.db import *
-from commands.db import getonlibalance, url_name, get_name
+from commands.db import get_balance, url_name, get_name
 from commands.main import win_luser
 from assets import kb
 from assets.antispam import antispam_earning, new_earning_msg, antispam
@@ -94,15 +94,17 @@ async def buy_business(message):
     url = await url_name(user_id)
     rwin, rloser = await win_luser()
     data = await getbusiness(user_id)
+
     if data:
-        return await message.answer(f'{url}, у вас уже есть построенная территория под бизнес. Чтобы узнать подробнее, введите "Мой бизнес" {rloser}')
+        await message.answer(f'{url}, у вас уже есть построенная территория под бизнес. Чтобы узнать подробнее, введите "Мой бизнес" {rloser}')
+        return
+
+    balance = await get_balance(user_id)
+    if balance < 500000000:
+        await message.answer(f'{url}, у вас недостаточно денег для постройки территории бизнеса. Её стоимость 500 млн$ {rloser}')
     else:
-        balance = await getonlibalance(message)
-        if balance < 500000000:
-            await message.answer(f'{url}, у вас недостаточно денег для постройки территории бизнеса. Её стоимость 500 млн$ {rloser}')
-        else:
-            await buy_business_db(user_id)
-            await message.answer(f'{url}, вы успешно построили свой бизнес для подробностей введите "Мой бизнес" {rwin}')
+        await buy_business_db(user_id)
+        await message.answer(f'{url}, вы успешно построили свой бизнес для подробностей введите "Мой бизнес" {rwin}')
 
 
 @antispam_earning
@@ -111,18 +113,20 @@ async def buy_territory(call: types.CallbackQuery):
     url = await get_name(user_id)
     rwin, rloser = await win_luser()
     data = await getbusiness(user_id)
+
     if not data:
-        await bot.answer_callback_query(call.id, text=f'{url}, у вас нету своего бизнеса чтобы увеличивать его территорию {rloser}')
+       return
+
+    ch = int(22000000 * (1 + 0.15) ** (data[3] - 4))
+    ch2 = '{:,}'.format(ch).replace(',', '.')
+    balance = await get_balance(user_id)
+
+    if balance < ch:
+        await bot.answer_callback_query(call.id, text=f'{url}, у вас недостаточно денег на балансе чтобы увеличить территорию бизнеса {rloser}')
     else:
-        ch = int(22000000 * (1 + 0.15) ** (data[3] - 4))
-        ch2 = '{:,}'.format(ch).replace(',', '.')
-        balance = await getonlibalance(call)
-        if balance < ch:
-            await bot.answer_callback_query(call.id, text=f'{url}, у вас недостаточно денег на балансе чтобы увеличить территорию бизнеса {rloser}')
-        else:
-            await buy_territory_db(user_id, ch)
-            await bot.answer_callback_query(call.id, text=f'{url}, вы успешно увеличили территорию бизнеса на 1 м² за {ch2}$ {rwin}')
-            await upd_business_text(call)
+        await buy_territory_db(user_id, ch)
+        await bot.answer_callback_query(call.id, text=f'{url}, вы успешно увеличили территорию бизнеса на 1 м² за {ch2}$ {rwin}')
+        await upd_business_text(call)
 
 
 @antispam_earning
@@ -131,8 +135,8 @@ async def buy_bsterritory(call: types.CallbackQuery):
     url = await get_name(user_id)
     rwin, rloser = await win_luser()
     data = await getbusiness(user_id)
+
     if not data:
-        await bot.answer_callback_query(call.id, text=f'{url}, у вас нет своего бизнеса чтобы увеличить бизнес {rloser}')
         return
 
     if data[3] <= data[4]:
@@ -141,7 +145,8 @@ async def buy_bsterritory(call: types.CallbackQuery):
 
     ch = int(22000000 * (1 + 0.15) ** (data[4] - 1))
     ch2 = '{:,}'.format(ch).replace(',', '.')
-    balance = await getonlibalance(call)
+    balance = await get_balance(user_id)
+
     if balance < ch:
         await bot.answer_callback_query(call.id, text=f'{url}, у вас недостаточно денег на балансе чтобы увеличить бизнес {rloser}')
     else:
@@ -156,8 +161,8 @@ async def snyt_pribl_business(call: types.CallbackQuery):
     url = await get_name(user_id)
     rwin, rloser = await win_luser()
     data = await getbusiness(user_id)
+
     if not data:
-        await bot.answer_callback_query(call.id, text=f'{url}, у вас нет своего бизнеса чтобы собирать с него приыбль {rloser}')
         return
 
     if data[1] == 0:
@@ -175,12 +180,12 @@ async def oplata_nalogov_business(call: types.CallbackQuery):
     url = await get_name(user_id)
     rwin, rloser = await win_luser()
     data = await getbusiness(user_id)
+
     if not data:
-        await bot.answer_callback_query(call.id, text=f'{url}, у вас нет своего бизнеса чтобы платить за него налоги {rloser}')
         return
 
     nalogs2 = '{:,}'.format(data[2]).replace(',', '.')
-    balance = await getonlibalance(call)
+    balance = await get_balance(user_id)
 
     if balance < data[2]:
         await bot.answer_callback_query(call.id, text=f'{url}, у вас недостаточно денег чтоб оплатить налоги {rloser}')
