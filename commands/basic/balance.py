@@ -2,9 +2,9 @@ from datetime import datetime
 from aiogram import Dispatcher, types
 from commands.db import getstatus, getbalance, getads, getpofildb, url_name, chek_user
 from assets.antispam import antispam, new_earning_msg, antispam_earning
-from assets.transform import transform
+from assets.transform import transform as trt
+from assets.transform import transform_int as tr
 from commands.basic.property import lists
-from decimal import Decimal
 from assets import kb
 from bot import bot
 
@@ -14,20 +14,10 @@ async def balance_cmd(message):
     name, balance, btc, bank, yen = await getbalance(message.from_user.id)
     ads = await getads()
 
-    if len(str(balance)) < 21:
-        balance = '{:,}'.format(balance).replace(',', '.')
-    else:
-        balance = Decimal(balance)
-        balance = f"{balance:1.1e}"
-
-    bank = '{:,}'.format(bank).replace(',', '.')
-    btc = '{:,}'.format(btc).replace(',', '.')
-    yen = '{:,}'.format(yen).replace(',', '.')
-
     await message.answer(f'''👫 Ник: {name}
-💰 Деньги: {balance}$
-💴 Йены: {yen}¥
-🏦 Банк: {bank}$
+💰 Деньги: {tr(balance)}$
+💴 Йены: {tr(yen)}¥
+🏦 Банк: {tr(bank)}$
 💽 Биткоины: {btc}🌐
 
 {ads}''', disable_web_page_preview=True)
@@ -36,8 +26,7 @@ async def balance_cmd(message):
 @antispam
 async def btc_cmd(message):
     name, _, btc, _, _ = await getbalance(message.from_user.id)
-    btc = '{:,}'.format(btc).replace(',', '.')
-    await message.answer(f'{name}, на вашем балансе {btc} BTC 🌐', disable_web_page_preview=True)
+    await message.answer(f'{name}, на вашем балансе {tr(btc)} BTC 🌐', disable_web_page_preview=True)
 
 
 async def creat_help_msg(user_id, profil):
@@ -47,27 +36,22 @@ async def creat_help_msg(user_id, profil):
 
     data, _, _ = await getpofildb(user_id)
 
-    fdata = []
-    for item in data[:7]:
-        transformed_item = await transform(int(item))
-        fdata.append(transformed_item)
-
     status_dict = {0: "Обычный", 1: "Standart VIP", 2: "Gold VIP", 3: "Platinum VIP", 4: "Администратор"}
     st = status_dict.get(status, status_dict[0])
-    dregister = datetime.fromtimestamp(data[7]).strftime('%Y-%m-%d в %H:%M:%S')
+    dregister = datetime.fromtimestamp(data[6]).strftime('%Y-%m-%d в %H:%M:%S')
 
     text = f'''{profil}
 🪪 ID: {user_id}
 🏆 Статус: {st}
-💰 Денег: {fdata[0]}$
-💴 Йены: {data[5]}¥
-🏦 В банке: {fdata[2]}$
-💳 B-Coins: {data[8]}
-💽 Биткоины: {fdata[1]}฿
-🏋 Энергия: {data[9]}
-👑 Рейтинг: {fdata[4]}
-🌟 Опыт: {fdata[6]}
-🎲 Всего сыграно игр: {fdata[3]}
+💰 Денег: {trt(data[2])}$
+💴 Йены: {trt(data[22])}¥
+🏦 В банке: {trt(data[4])}$
+💳 B-Coins: {trt(data[15])}
+💽 Биткоины: {trt(data[3])}฿
+🏋 Энергия: {data[8]}
+👑 Рейтинг: {trt(data[13])}
+🌟 Опыт: {tr(data[7])}
+🎲 Всего сыграно игр: {tr(data[14])}
 
 <blockquote>📅 Дата регистрации:\n{dregister}</blockquote>'''
     return text

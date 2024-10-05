@@ -3,6 +3,7 @@ from commands.db import url_name, get_balance, getads
 from commands.main import win_luser
 from commands.basic.ore.db import *
 import commands.basic.ore.dig
+from assets.transform import transform_int as tr
 
 
 async def sellbtc(message: types.Message):
@@ -19,13 +20,11 @@ async def sellbtc(message: types.Message):
 
     kurs = await getkurs()
     summ = summ_btc * kurs
-    summ2 = '{:,}'.format(summ).replace(',', '.')
-    summ_btc2 = '{:,}'.format(summ_btc).replace(',', '.')
 
     if btc >= summ_btc:
         if btc - summ_btc >= 0 and summ_btc > 0:
             await sellbtc_db(summ, summ_btc, user_id)
-            await message.answer(f'{url}, вы успешно продали {summ_btc2} BTC за {summ2}$ {win}')
+            await message.answer(f'{url}, вы успешно продали {tr(summ_btc)} BTC за {tr(summ)}$ {win}')
         else:
             await message.answer(f'{url}, нельзя продавать отрицательно или же нулевое количество BTC {lose}')
     else:
@@ -48,13 +47,11 @@ async def buybtc(message: types.Message):
 
     kurs = await getkurs()
     summ = summ_btc * kurs
-    summ2 = '{:,}'.format(summ).replace(',', '.')
-    summ_btc2 = '{:,}'.format(summ_btc).replace(',', '.')
 
     if balance >= summ:
         if summ_btc > 0:
             await bybtc_db(summ, summ_btc, user_id)
-            await message.answer(f'{url}, вы успешно купили {summ_btc2} BTC за {summ2}$ {win}')
+            await message.answer(f'{url}, вы успешно купили {tr(summ_btc)} BTC за {tr(summ)}$ {win}')
         else:
             await message.answer(f'{url}, нельзя покупать отрицательно или же нулевое количество BTC {lose}')
     else:
@@ -66,16 +63,14 @@ async def btc_kurs(message: types.Message):
     url = await url_name(user_id)
     kurs = await getkurs()
     ads = await getads(message)
-    kurs = '{:,}'.format(kurs).replace(',', '.')
-    await message.answer(f'{url}, на данный момент курс 1 BTC составляет - {kurs}$ 🌐\n\n{ads}', disable_web_page_preview=True)
+    await message.answer(f'{url}, на данный момент курс 1 BTC составляет - {tr(kurs)}$ 🌐\n\n{ads}', disable_web_page_preview=True)
 
 
 async def rrating_cmd(message: types.Message):
     user_id = message.from_user.id
     url = await url_name(user_id)
     r = await getrrating(message)
-    r = '{:,}'.format(r).replace(',', '.')
-    await message.answer(f'''{url}, ваш рейтинг {r}👑''', disable_web_page_preview=True)
+    await message.answer(f'''{url}, ваш рейтинг {tr(r)}👑''', disable_web_page_preview=True)
 
 
 async def sellrating(message: types.Message):
@@ -93,13 +88,11 @@ async def sellrating(message: types.Message):
 
     kurs = 100_000_000  # сумма за 1 рейтинг
     summ = summ_r * kurs
-    summ2 = '{:,}'.format(summ).replace(',', '.')
-    summ_r2 = '{:,}'.format(summ_r).replace(',', '.')
 
     if r >= summ_r:
         if r - summ_r >= 0 and summ_r > 0:
             await sellrrating_db(summ, summ_r, user_id)
-            await message.answer(f'{url}, вы понизили количество вашего рейтинга на {summ_r2}👑 за {summ2}$ {win}')
+            await message.answer(f'{url}, вы понизили количество вашего рейтинга на {tr(summ_r)}👑 за {tr(summ)}$ {win}')
         else:
             await message.answer(f'{url}, вы неправильно ввели число рейтинга которое хотите продать {lose}')
     else:
@@ -121,13 +114,11 @@ async def buy_ratting(message: types.Message):
     r_summ = Decimal(r_summ)
     kurs = 150_000_000  # стоимость 1 рейтинга
     summ = r_summ * kurs
-    summ2 = '{:,}'.format(summ).replace(',', '.')
-    r_summ2 = '{:,}'.format(r_summ).replace(',', '.')
 
     if balance >= summ:
         if r_summ > 0:
             await byratting_db(summ, r_summ, user_id)
-            await message.answer(f'{url}, вы повысили количество вашего рейтинга на {r_summ2}👑 за {summ2}$ {win}')
+            await message.answer(f'{url}, вы повысили количество вашего рейтинга на {tr(r_summ)}👑 за {tr(summ)}$ {win}')
         else:
             await message.answer(f'{url}, вы неправильно ввели число рейтинга которое хотите купить {lose}')
     else:

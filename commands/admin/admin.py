@@ -53,9 +53,25 @@ async def new_ads(message, state: FSMContext, type=0):
 
     await state.finish()
     await admin_menu(message)
+    
+
+async def unloading(message: types.Message):
+    user_id = message.from_user.id
+    if user_id not in cfg.admin:
+        return
+
+    keyboard = types.ReplyKeyboardMarkup(
+        keyboard=[
+            [types.KeyboardButton(text='💾 Бд'), types.KeyboardButton(text='❗️ Ошибки'), types.KeyboardButton(text='📋 Логи')],
+            [types.KeyboardButton(text='🔙 Назад')]
+        ],
+        resize_keyboard=True
+    )
+
+    await message.answer('<b>⚠️ Выберите файл для выгрузки:</b>', reply_markup=keyboard)
 
 
-async def unloading(message):
+async def unloading_db(message):
     user_id = message.from_user.id
     if user_id not in cfg.admin:
         return
@@ -66,6 +82,32 @@ async def unloading(message):
     time = datetime.now().strftime("%Y-%m-%d в %H:%M:%S")
     with open('users.db', 'rb') as file:
         await bot.send_document(message.chat.id, file, caption=f'🛡 Копия бд создана <blockquote>{time}</blockquote>')
+        
+        
+async def unloading_errors(message):
+    user_id = message.from_user.id
+    if user_id not in cfg.admin:
+        return
+
+    if message.chat.type != 'private':
+        return
+
+    time = datetime.now().strftime("%Y-%m-%d в %H:%M:%S")
+    with open('commands/admin/bot_errors.txt', 'rb') as file:
+        await bot.send_document(message.chat.id, file, caption=f'‼️ Ошибки бота на момент <blockquote>{time}</blockquote>')
+        
+        
+async def unloading_logs(message):
+    user_id = message.from_user.id
+    if user_id not in cfg.admin:
+        return
+
+    if message.chat.type != 'private':
+        return
+
+    time = datetime.now().strftime("%Y-%m-%d в %H:%M:%S")
+    with open('commands/admin/logs.txt', 'rb') as file:
+        await bot.send_document(message.chat.id, file, caption=f'📋 Логи бота на момент <blockquote>{time}</blockquote>')
 
 
 async def admin_menu(message: types.Message):
@@ -75,14 +117,30 @@ async def admin_menu(message: types.Message):
 
     keyboard = types.ReplyKeyboardMarkup(
         keyboard=[
-            [types.KeyboardButton(text='📍 Рассылка'), types.KeyboardButton(text='🕹 Управление')],
+            [types.KeyboardButton(text='📣 Реклама'), types.KeyboardButton(text='🕹 Управление')],
             [types.KeyboardButton(text='✨ Промокоды'), types.KeyboardButton(text='📥 Выгрузка')],
-            [types.KeyboardButton(text='⚙️ Изменить текст рекламы')]
+            [types.KeyboardButton(text='🌟 Модули')]
         ],
         resize_keyboard=True
     )
 
     await message.answer('<b>👮‍♂️ Админ меню:</b>', reply_markup=keyboard)
+    
+    
+async def ads_menu(message: types.Message):
+    user_id = message.from_user.id
+    if user_id not in cfg.admin:
+        return
+
+    keyboard = types.ReplyKeyboardMarkup(
+        keyboard=[
+            [types.KeyboardButton(text='📍 Рассылка'), types.KeyboardButton(text='🪪 Текст рекламы')],
+            [types.KeyboardButton(text='🔙 Назад')]
+        ],
+        resize_keyboard=True
+    )
+
+    await message.answer('<b>😇 Меню рекламы:</b>', reply_markup=keyboard)
 
 
 async def control(message: types.Message):
@@ -209,13 +267,20 @@ async def process_rassilka2(message, state: FSMContext):
 
 def reg(dp: Dispatcher):
     dp.register_message_handler(admin_menu, commands='adm')
+    dp.register_message_handler(admin_menu, lambda message: message.text == '🔙 Назад')
+    
     dp.register_message_handler(unloading, lambda message: message.text == '📥 Выгрузка')
+    dp.register_message_handler(unloading_logs, lambda message: message.text == '📋 Логи')
+    dp.register_message_handler(unloading_errors, lambda message: message.text == '❗️ Ошибки')
+    dp.register_message_handler(unloading_db, lambda message: message.text == '💾 Бд')
+
     dp.register_message_handler(control, lambda message: message.text == '🕹 Управление')
     dp.register_message_handler(RAM_control, lambda message: message.text == '💽 ОЗУ')
     dp.register_callback_query_handler(RAM_clear, text='ram-clear')
-    dp.register_message_handler(new_ads, lambda message: message.text == '⚙️ Изменить текст рекламы')
+    
+    dp.register_message_handler(ads_menu, lambda message: message.text == '📣 Реклама')
+    dp.register_message_handler(new_ads, lambda message: message.text == '🪪 Текст рекламы')
     dp.register_message_handler(lambda message, state: new_ads(message, state, type=1), state=new_ads_state.txt)
-
     dp.register_message_handler(rassilka, lambda message: message.text == '📍 Рассылка')
     dp.register_message_handler(process_rassilka, state=Mailing.mailing_text)
     dp.register_message_handler(process_rassilka2, state=Mailing.mailing_conf)

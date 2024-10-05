@@ -4,6 +4,7 @@ import commands.entertaining.case.db as db
 from commands.db import getads, getstatus, url_name
 from commands.main import win_luser
 import commands.entertaining.case.buy
+from assets.transform import transform_int as tr
 
 
 async def getcase_cmd(message):
@@ -23,7 +24,7 @@ async def getcase_cmd(message):
 
     if positive_resources:
         result_message = "\n".join(
-            [f'{info["name"]} - {info["quantity"]} шт.' for name, info in positive_resources.items()])
+            [f'{info["name"]} - {tr(info["quantity"])} шт.' for name, info in positive_resources.items()])
         txt = f"{result_message}\n\n🔐 Для открытия кейсов используйте - «Кейс открыть [1/2/3/4] [кол-во]»"
     else:
         txt = f"😕 У вас нету кейсов."
@@ -117,19 +118,16 @@ async def open_case_12(message, u, case):
             sexpe = sexpe + r
 
     if smoney > 0:
-        smoney2 = f'{smoney:,.0f}'.replace(",", ".")
         await db.open_case_db(user_id, smoney, 'balance')
-        txt += f'🔥 Итого денег - {smoney2}₴\n'
+        txt += f'🔥 Итого денег - {tr(smoney)}$\n'
 
     if srating > 0:
-        srating2 = f'{srating:,.0f}'.replace(",", ".")
         await db.open_case_db(user_id, srating, 'rating')
-        txt += f'👑 Итого рейтинга - {srating2}\n'
+        txt += f'👑 Итого рейтинга - {tr(srating)}\n'
 
     if sexpe > 0:
-        sexpe2 = f'{sexpe:,.0f}'.replace(",", ".")
         await db.open_case_db(user_id, sexpe, 'exp')
-        txt += f'🏆 Итого опыта - {sexpe2}шт\n'
+        txt += f'🏆 Итого опыта - {tr(sexpe)}шт\n'
 
     await db.open_case2_db(user_id, u, f'case{case}')
     await message.answer(f'🎁 | {name}, вам выпало:\n\n{txt}\n\n{ads}', disable_web_page_preview=True)
@@ -171,29 +169,24 @@ async def open_case_3(message, u):
             sexpe += r
 
     if smoney > 0:
-        smoney2 = f'{smoney:,.0f}'.replace(",", ".")
         await db.open_case_db(user_id, smoney, 'balance')
-        txt += f'🔥 Итого денег - {smoney2}₴\n'
+        txt += f'🔥 Итого денег - {tr(smoney)}$\n'
 
     if srating > 0:
-        srating2 = f'{srating:,.0f}'.replace(",", ".")
         await db.open_case_db(user_id, srating, 'rating')
-        txt += f'👑 Итого рейтинга - {srating2}\n'
+        txt += f'👑 Итого рейтинга - {tr(srating)}\n'
 
     if sexpe > 0:
-        sexpe2 = f'{sexpe:,.0f}'.replace(",", ".")
         await db.open_case_db(user_id, sexpe, 'exp')
-        txt += f'🏆 Итого опыта - {sexpe2}шт\n'
+        txt += f'🏆 Итого опыта - {tr(sexpe)}шт\n'
 
     if stitan > 0:
-        stitan2 = f'{stitan:,.0f}'.replace(",", ".")
         await db.open_case_db(user_id, stitan, 'titanium', table='mine')
-        txt += f'⚙️ Итого титана - {stitan2}шт\n'
+        txt += f'⚙️ Итого титана - {tr(stitan)}шт\n'
 
     if spalladium > 0:
-        spalladium2 = f'{spalladium:,.0f}'.replace(",", ".")
         await db.open_case_db(user_id, spalladium, 'palladium', table='mine')
-        txt += f'⚗️ Итого палладия - {spalladium2}шт\n'
+        txt += f'⚗️ Итого палладия - {tr(spalladium)}шт\n'
 
     await db.open_case2_db(user_id, u, 'case3')
     await message.answer(f'🎁 | {name}, вам выпало:\n\n{txt}\n\n{ads}', disable_web_page_preview=True)
@@ -230,24 +223,20 @@ async def open_case_4(message, u):
             sexpe += r
 
     if smoney > 0:
-        smoney2 = f'{smoney:,.0f}'.replace(",", ".")
         await db.open_case_db(user_id, smoney, 'balance')
-        txt += f'🔥 Итого денег - {smoney2}₴\n'
+        txt += f'🔥 Итого денег - {tr(smoney)}$\n'
 
     if srating > 0:
-        srating2 = f'{srating:,.0f}'.replace(",", ".")
         await db.open_case_db(user_id, srating, 'rating')
-        txt += f'👑 Итого рейтинга - {srating2}\n'
+        txt += f'👑 Итого рейтинга - {tr(srating)}\n'
 
     if sexpe > 0:
-        sexpe2 = f'{sexpe:,.0f}'.replace(",", ".")
         await db.open_case_db(user_id, sexpe, 'exp')
-        txt += f'🏆 Итого опыта - {sexpe2}шт\n'
+        txt += f'🏆 Итого опыта - {tr(sexpe)}шт\n'
 
     if smatter > 0:
-        smatter2 = f'{smatter:,.0f}'.replace(",", ".")
         await db.open_case_db(user_id, smatter, 'matter', table='mine')
-        txt += f'🌌 Итого материи - {smatter2}шт\n'
+        txt += f'🌌 Итого материи - {tr(smatter)}шт\n'
 
     await db.open_case2_db(user_id, u, 'case4')
     await message.answer(f'🎁 | {name}, вам выпало:\n\n{txt}\n\n{ads}', disable_web_page_preview=True)
@@ -256,5 +245,4 @@ async def open_case_4(message, u):
 def reg(dp: Dispatcher):
     dp.register_message_handler(getcase_cmd, lambda message: message.text.lower() == 'кейсы')
     dp.register_message_handler(open_case, lambda message: message.text.lower().startswith('открыть кейс'))
-
     commands.entertaining.case.buy.reg(dp)

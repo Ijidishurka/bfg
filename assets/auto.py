@@ -34,7 +34,7 @@ async def autocommands2():
 
 async def autocommands3():
     # await autokursbtc() изменение курса на рандом число
-    # Сейчас курс идет за настоящим BTC
+    # Сейчас курс идет за настоящим BTC (autokursbtc_new())
     await autokursbtc_new()
 
 
@@ -64,6 +64,6 @@ async def automatisation():
     scheduler.add_job(autocommands, 'interval', hours=1)
     scheduler.add_job(autocommands2, 'interval', minutes=15)
     scheduler.add_job(autocommands3, 'interval', minutes=5)
-    scheduler.add_job(autocommands4, 'interval', hours=24)
+    scheduler.add_job(autocommands4, 'cron', hour=00, minute=00)
     scheduler.add_job(auto_clear, 'interval', minutes=cfg.cleaning)
     scheduler.start()

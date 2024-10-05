@@ -1,16 +1,16 @@
-import install
 import importlib
 from aiogram import executor
 from assets.filters import FilterAdmin
 from assets.auto import automatisation
 from commands.basic.ore.db import autokursbtc_new
 from assets.modules import load_modules
+from assets.logger import check_log_size
 from bot import dp
-
 
 MODULES = [
     'commands.basic.property.main',
     'commands.admin.admin',
+    'commands.admin.module_manager',
     'commands.entertaining.earnings.farm.main',
     'commands.entertaining.earnings.business.main',
     'commands.entertaining.earnings.garden.main',

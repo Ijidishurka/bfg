@@ -36,41 +36,19 @@ def antispam_help(func):
     return wrapper
 
 
-@antispam
-async def help_cmd(message):
-    dt = int(datetime.now().timestamp())
-    mid = message.message_id + 1
-    help_msg[message.chat.id] = (mid, (dt - 2))
-
-    await message.answer(f'''Игрок, выберите категорию:
+CONFIG = {
+    "help_cmd": f'''Игрок, выберите категорию:
    1️⃣ Основное
    2️⃣ Игры
    3️⃣ Развлекательное
    4️⃣ Кланы
 
 💬 Так же у нас есть общая беседа №1 и общая беседа №2
-🆘 По всем вопросам - {adm}''', reply_markup=kb.help_menu(), disable_web_page_preview=True)
-
-
-@antispam_help
-async def help_back(call):
-    await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=f'''
-Игрок, выберите категорию:
-   1️⃣ Основное
-   2️⃣ Игры
-   3️⃣ Развлекательное
-   4️⃣ Кланы
-
-💬 Так же у нас есть общая беседа №1 и общая беседа №2
-🆘 По всем вопросам - {adm}''', reply_markup=kb.help_menu(), disable_web_page_preview=True)
-
-
-@antispam_help
-async def help_osn(call):
-    name = await get_name(call.from_user.id)
-    await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=f'''
-{name}, основные команды:
-💡 Разное:
+🆘 По всем вопросам - {adm}''',
+    
+    
+    "hello_osn": '''{}, основные команды:
+   💡 Разное:
    📒 Профиль
    💫 Мой лимит
    👑 Рейтинг
@@ -99,15 +77,11 @@ async def help_osn(call):
    ⚖ РП Команды - узнать РП команды
    🏆 Мой статус
    🔱 Статусы️
-   💭 !Беседа - беседа бота''', reply_markup=kb.help_back())
-
-
-@antispam_help
-async def help_game(call):
-    name = await get_name(call.from_user.id)
-    await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=f'''
-{name}, игровые команды:
-🚀 Игры:
+   💭 !Беседа - беседа бота''',
+    
+    
+    "help_game": '''{}, игровые команды:
+   🚀 Игры:
    🎮 Спин [ставка]
    🎲 Кубик [число] [ставка]
    🏀 Баскетбол [ставка]
@@ -115,14 +89,10 @@ async def help_game(call):
    ⚽️ Футбол [ставка]
    🎳️ Боулинг [ставка]
    📉 Трейд [вверх/вниз] [ставка]
-   🎰 Казино [ставка]''', reply_markup=kb.help_back())
-
-
-@antispam_help
-async def help_rz(call):
-    name = await get_name(call.from_user.id)
-    await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=f'''
-{name}, развлекательные команды:
+   🎰 Казино [ставка]''',
+    
+    
+    'help_rz': '''{}, развлекательные команды:
    🔮 Шар [фраза]
    💬 Выбери [фраза] или [фраза2]
    📊 Инфа [фраза]
@@ -157,14 +127,10 @@ async def help_rz(call):
    💰 Продать сад (временно недоступно)
    💦 Сад полить
    🍸 Зелья
-   🔮 Создать зелье [номер]''', reply_markup=kb.help_back())
-
-
-@antispam_help
-async def help_clans(call: types.CallbackQuery):
-    name = await get_name(call.from_user.id)
-    await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=f'''
-{name}, клановые команды:
+   🔮 Создать зелье [номер]''',
+    
+    
+    'help_clans': '''{}, клановые команды:
 🗂 Общие команды:
    💡 Мой клан - общая информация
    🏆 Клан топ - общий рейтинг кланов(Недоступно)
@@ -176,7 +142,7 @@ async def help_clans(call: types.CallbackQuery):
    💵 Клан казна [сумма] - снять деньги с казны
 
 ⚙ Создание и настройка кланов:
-   ⚙ Клан создать [название] - стоимость 250.000.000.000$ 
+   ⚙ Клан создать [название] - стоимость 250.000.000.000$
    ⤴ Клан настройки - информация о настройках
    📥 Клан настройки приглашениие [1-4]
    💢 Клан настройки кик [1-4]
@@ -196,7 +162,52 @@ async def help_clans(call: types.CallbackQuery):
 🛡 Клановые захваты:
    👮‍♀ Клан ограбление (недоступно) - ограбление казны штата
 
-📜 Будьте осторожнее с командами повышения и понижения, повысив игрока до определенного статуса он сможет изменять название клана и управлять им.''', reply_markup=kb.help_back())
+📜 Будьте осторожнее с командами повышения и понижения, повысив игрока до определенного статуса он сможет изменять название клана и управлять им.'''
+
+}
+
+
+@antispam
+async def help_cmd(message):
+    dt = int(datetime.now().timestamp())
+    mid = message.message_id + 1
+    help_msg[message.chat.id] = (mid, (dt - 2))
+
+    await message.answer(CONFIG['help_cmd'], reply_markup=kb.help_menu(), disable_web_page_preview=True)
+
+
+@antispam_help
+async def help_back(call):
+    await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                                text=CONFIG['help_cmd'], reply_markup=kb.help_menu(), disable_web_page_preview=True)
+
+
+@antispam_help
+async def help_osn(call):
+    name = await get_name(call.from_user.id)
+    await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                                text=CONFIG['help_osn'].format(name), reply_markup=kb.help_back())
+
+
+@antispam_help
+async def help_game(call):
+    name = await get_name(call.from_user.id)
+    await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                                text=CONFIG['help_game'].format(name), reply_markup=kb.help_back())
+
+
+@antispam_help
+async def help_rz(call):
+    name = await get_name(call.from_user.id)
+    await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                                text=CONFIG['help_rz'].format(name), reply_markup=kb.help_back())
+
+
+@antispam_help
+async def help_clans(call: types.CallbackQuery):
+    name = await get_name(call.from_user.id)
+    await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                                text=CONFIG['help_clanse'].format(name), reply_markup=kb.help_back())
 
 
 def reg(dp: Dispatcher):

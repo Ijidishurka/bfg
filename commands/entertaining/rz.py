@@ -5,6 +5,7 @@ from assets.antispam import antispam
 from commands.db import url_name, setname, bonus_db, get_colvo_users, getstatus, get_name
 from commands.main import win_luser
 from assets.gettime import bonustime, kaznatime, lucktime
+from assets.transform import transform_int as tr
 import config as cfg
 
 
@@ -79,10 +80,9 @@ async def ogr_kazna(message):
         return
 
     summ = random.randint(100000000, 400000000)
-    summ2 = '{:,}'.format(summ).replace(',', '.')
 
     await bonus_db(user_id, 'users', 'balance', summ)
-    await message.answer(f'{url}, вы успешно ограбили казну. На ваш баланс зачислено {summ2} ✅')
+    await message.answer(f'{url}, вы успешно ограбили казну. На ваш баланс зачислено {tr(summ)} ✅')
 
 
 @antispam
@@ -99,10 +99,9 @@ async def try_luck(message):
         return
 
     summ = random.randint(10_000_000, 900_000_000)
-    summ2 = '{:,}'.format(summ).replace(',', '.')
 
     await bonus_db(user_id, 'mine', 'biores', summ)
-    await message.answer(f'✅ Вы успешно испытали удачу и получили {summ2}кг биоресурса ☣️')
+    await message.answer(f'✅ Вы успешно испытали удачу и получили {tr(summ)}кг биоресурса ☣️')
 
 
 @antispam
@@ -123,8 +122,7 @@ async def bonus_cmd(message):
     if i == 1:
         table, v = 'users', 'balance'
         summ = random.randint(1000000, 4000000)
-        summ2 = '{:,}'.format(summ).replace(',', '.')
-        txt = f'{summ2}$ 💰'
+        txt = f'{tr(summ)}$ 💰'
     elif i == 2:
         table, v = 'users', 'rating'
         summ = random.randint(100, 950)

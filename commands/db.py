@@ -9,69 +9,183 @@ conn = sqlite3.connect('users.db')
 cursor = conn.cursor()
 
 
-cursor.execute('''CREATE TABLE IF NOT EXISTS users (user_id INTEGER, name TEXT, balance TEXT, btc INTEGER, 
-bank INTEGER, depozit INTEGER, timedepozit NUMERIC, exp INTEGER, energy INTEGER, case1 INTEGER, case2 INTEGER, 
-case3 INTEGER, case4 INTEGER, rating INTEGER, games INTEGER, ecoins INTEGER, per TEXT, dregister NUMERIC, corn INTEGER,
-status INTEGER, issued NUMERIC, ban NUMERIC, yen TEXT, perlimit TEXT)''')
+cursor.execute('''CREATE TABLE IF NOT EXISTS users (
+    user_id INTEGER,
+    name TEXT,
+    balance TEXT,
+    btc INTEGER DEFAULT '0',
+    bank TEXT DEFAULT '0',
+    depozit TEXT DEFAULT '0',
+    timedepozit NUMERIC DEFAULT '0',
+    exp INTEGER DEFAULT '10',
+    energy INTEGER DEFAULT '10',
+    case1 INTEGER DEFAULT '0',
+    case2 INTEGER DEFAULT '0',
+    case3 INTEGER DEFAULT '0',
+    case4 INTEGER DEFAULT '0',
+    rating INTEGER DEFAULT '0',
+    games INTEGER DEFAULT '0',
+    ecoins INTEGER DEFAULT '0',
+    per TEXT DEFAULT '0',
+    dregister NUMERIC,
+    corn INTEGER DEFAULT '0',
+    status INTEGER DEFAULT '0',
+    issued NUMERIC DEFAULT '0',
+    ban NUMERIC DEFAULT '0',
+    yen TEXT DEFAULT '0',
+    perlimit TEXT DEFAULT '0'
+)''')
 
 
-cursor.execute('''CREATE TABLE IF NOT EXISTS mine (user_id INTEGER, iron INTEGER, gold INTEGER, diamond INTEGER, 
-amestit INTEGER, aquamarine INTEGER, emeralds INTEGER, matter INTEGER, plasma INTEGER, nickel INTEGER, 
-titanium INTEGER, cobalt INTEGER, ectoplasm INTEGER, biores INTEGER, palladium INTEGER)''')
+cursor.execute('''CREATE TABLE IF NOT EXISTS ban_list (
+    user_id INTEGER,
+    time INTEGER,
+    reason INTEGER
+)''')
 
 
-cursor.execute('''CREATE TABLE IF NOT EXISTS ferma
-                (user_id INTEGER, balance NUMERIC, nalogs INTEGER, cards INTEGER)''')
+cursor.execute('''CREATE TABLE IF NOT EXISTS mine (
+    user_id INTEGER,
+    iron INTEGER DEFAULT '0',
+    gold INTEGER DEFAULT '0',
+    diamond INTEGER DEFAULT '0',
+    amestit INTEGER DEFAULT '0',
+    aquamarine INTEGER DEFAULT '0',
+    emeralds INTEGER DEFAULT '0',
+    matter INTEGER DEFAULT '0',
+    plasma INTEGER DEFAULT '0',
+    nickel INTEGER DEFAULT '0',
+    titanium INTEGER DEFAULT '0',
+    cobalt INTEGER DEFAULT '0',
+    ectoplasm INTEGER DEFAULT '0',
+    biores INTEGER DEFAULT '0',
+    palladium INTEGER DEFAULT '0'
+)''')
 
 
-cursor.execute('''CREATE TABLE IF NOT EXISTS generator
-                (user_id INTEGER, balance NUMERIC, nalogs INTEGER, turbine INTEGER)''')
+cursor.execute('''CREATE TABLE IF NOT EXISTS ferma (
+    user_id INTEGER,
+    balance NUMERIC,
+    nalogs INTEGER,
+    cards INTEGER
+)''')
 
 
-cursor.execute('''CREATE TABLE IF NOT EXISTS garden
-                (user_id INTEGER, balance NUMERIC, nalogs INTEGER, tree INTEGER, water INTEGER)''')
+cursor.execute('''CREATE TABLE IF NOT EXISTS generator (
+    user_id INTEGER,
+    balance NUMERIC,
+    nalogs INTEGER,
+    turbine INTEGER
+)''')
 
 
-cursor.execute('''CREATE TABLE IF NOT EXISTS business (user_id INTEGER, balance NUMERIC, 
-nalogs INTEGER, territory INTEGER, bsterritory INTEGER)''')
+cursor.execute('''CREATE TABLE IF NOT EXISTS garden (
+    user_id INTEGER,
+    balance NUMERIC,
+    nalogs INTEGER,
+    tree INTEGER,
+    water INTEGER
+)''')
 
 
-cursor.execute('''CREATE TABLE IF NOT EXISTS tree (user_id INTEGER, balance NUMERIC, 
-nalogs INTEGER, territory INTEGER, tree INTEGER, yen INTEGER)''')
+cursor.execute('''CREATE TABLE IF NOT EXISTS business (
+    user_id INTEGER,
+    balance NUMERIC,
+    nalogs INTEGER,
+    territory INTEGER,
+    bsterritory INTEGER
+)''')
 
 
-cursor.execute('''CREATE TABLE IF NOT EXISTS quarry (user_id INTEGER, balance NUMERIC, 
-nalogs INTEGER, territory INTEGER, bur INTEGER, lvl INTEGER)''')
+cursor.execute('''CREATE TABLE IF NOT EXISTS tree (
+    user_id INTEGER,
+    balance NUMERIC,
+    nalogs INTEGER,
+    territory INTEGER,
+    tree INTEGER,
+    yen INTEGER
+)''')
 
 
-cursor.execute('''CREATE TABLE IF NOT EXISTS promo (name TEXT, summ TEXT, activ INTEGER, data TEXT)''')
+cursor.execute('''CREATE TABLE IF NOT EXISTS quarry (
+    user_id INTEGER,
+    balance NUMERIC,
+    nalogs INTEGER,
+    territory INTEGER,
+    bur INTEGER,
+    lvl INTEGER
+)''')
 
 
-cursor.execute('''CREATE TABLE IF NOT EXISTS promo_activ (user_id INTEGER, name TEXT)''')
+cursor.execute('''CREATE TABLE IF NOT EXISTS promo (
+    name TEXT,
+    summ TEXT,
+    activ INTEGER,
+    data TEXT
+)''')
 
 
-cursor.execute('''CREATE TABLE IF NOT EXISTS sett (ads TEXT, kursbtc INTEGER)''')
+cursor.execute('''CREATE TABLE IF NOT EXISTS promo_activ (
+    user_id INTEGER,
+    name TEXT
+)''')
 
 
-cursor.execute('''CREATE TABLE IF NOT EXISTS wedlock
-                (user1 INTEGER, user2 NUMERIC, rtime INTEGER)''')
+cursor.execute('''CREATE TABLE IF NOT EXISTS sett (
+    ads TEXT,
+    kursbtc INTEGER
+)''')
 
 
-cursor.execute('''CREATE TABLE IF NOT EXISTS clans
-                (clan_id INTEGER PRIMARY KEY, balance TEXT, name TEXT, inv INT, kick INT, ranks INT, kazna INT,
-                 robbery INT, war INT, upd_name INT, type INT, shield INT, ratting INT, win INT, lose INT)''')
+cursor.execute('''CREATE TABLE IF NOT EXISTS wedlock (
+    user1 INTEGER,
+    user2 NUMERIC,
+    rtime INTEGER
+)''')
 
 
-cursor.execute('''CREATE TABLE IF NOT EXISTS clan
-                (user_id INTEGER, clan_id INTEGER, rank INT)''')
+cursor.execute('''CREATE TABLE IF NOT EXISTS clans (
+    clan_id INTEGER PRIMARY KEY,
+    balance TEXT,
+    name TEXT,
+    inv INT,
+    kick INT,
+    ranks INT,
+    kazna INT,
+    robbery INT,
+    war INT,
+    upd_name INT,
+    type INT,
+    shield INT,
+    ratting INT,
+    win INT,
+    lose INT
+)''')
 
 
-cursor.execute('''CREATE TABLE IF NOT EXISTS chats (chat_id INTEGER, users INTEGER)''')
+cursor.execute('''CREATE TABLE IF NOT EXISTS clan (
+    user_id INTEGER,
+    clan_id INTEGER,
+    rank INT
+)''')
+
+
+cursor.execute('''CREATE TABLE IF NOT EXISTS chats (
+    chat_id INTEGER,
+    users INTEGER
+)''')
 conn.commit()
 
 
-cursor.execute('''CREATE TABLE IF NOT EXISTS property (user_id INTEGER, helicopter INTEGER, 
-car INTEGER, yahta INTEGER, phone INTEGER, house INTEGER, plane INTEGER)''')
+cursor.execute('''CREATE TABLE IF NOT EXISTS property (
+    user_id INTEGER,
+    helicopter INTEGER DEFAULT '0',
+    car INTEGER DEFAULT '0',
+    yahta INTEGER DEFAULT '0',
+    phone INTEGER DEFAULT '0',
+    house INTEGER DEFAULT '0',
+    plane INTEGER DEFAULT '0'
+)''')
 
 
 current_kurs = cursor.execute('SELECT kursbtc FROM sett').fetchone()
@@ -83,19 +197,9 @@ async def reg_user(user_id):
     ex = cursor.execute('SELECT name FROM users WHERE user_id = ?', (user_id,)).fetchone()
     if not ex:
         dt = int(datetime.now().timestamp())
-        cursor.execute('INSERT INTO users (user_id, name, balance, btc, bank, depozit, timedepozit, exp, energy, case1,'
-                       'case2, case3, case4, rating, games, ecoins, per, dregister, corn, status, yen, perlimit)'
-                       'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                       (user_id, 'Игрок', cfg.start_money, 200, 0, 0, dt, 5000000, 10, 0, 0, 0, 0, 0, 0, 0, 0, dt, 0, 0, 0, 0))
-
-        cursor.execute('INSERT INTO mine (user_id, iron, gold, diamond, amestit, aquamarine, emeralds, matter, plasma, '
-                       'nickel, titanium, cobalt, ectoplasm, biores, palladium)'
-                       ' VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                       (user_id, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
-
-        cursor.execute('INSERT INTO property (user_id, helicopter, car, yahta, phone, house, plane) '
-                       'VALUES (?, ?, ?, ?, ?, ?, ?)', (user_id, 0, 0, 0, 0, 0, 0))
-
+        cursor.execute('INSERT INTO users (user_id, name, balance, dregister)' 'VALUES (?, ?, ?, ?)', (user_id, 'Игрок', cfg.start_money, dt))
+        cursor.execute('INSERT INTO mine (user_id) VALUES (?)', (user_id,))
+        cursor.execute('INSERT INTO property (user_id) VALUES (?)', (user_id,))
         conn.commit()
 
 
@@ -124,8 +228,7 @@ async def getbalance(user_id):
 
 
 async def getpofildb(user_id):
-    data = cursor.execute('SELECT balance, btc, bank, games, rating, yen, exp, dregister, ecoins, energy '
-                          'FROM users WHERE user_id = ?', (user_id,)).fetchone()
+    data = cursor.execute('SELECT * FROM users WHERE user_id = ?', (user_id,)).fetchone()
 
     ferma = cursor.execute('SELECT user_id FROM ferma WHERE user_id = ?', (user_id,)).fetchone()
     business = cursor.execute('SELECT user_id FROM business WHERE user_id = ?', (user_id,)).fetchone()
