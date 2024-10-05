@@ -1,3 +1,4 @@
+import install
 import os
 
 MODULES = {}
@@ -24,7 +25,6 @@ def load_modules(dp):
         mlist = ', '.join(mlist)
         print(f'Загрузка модулей "{mlist}"')
         print(f'Импортировано {txt} модулей.')
-        print(MODULES)
         
 
 def load_new_mod(filename, dp):

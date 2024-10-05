@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
-from aiogram import Dispatcher
+from aiogram import Dispatcher, types
+from assets.antispam import antispam
 from commands.db import url_name, getads, get_balance, getstatus, get_name
 from commands.basic.bank.db import *
 from commands.main import win_luser
@@ -34,14 +35,14 @@ async def dep_comsa(status):
 
 async def get_summ(msg, balance):
     if msg[2] in ['все', 'всё']:
-        print(balance)
         return balance
     else:
-        summ = msg.text.split()[1].replace('е', 'e')
+        summ = msg[2].replace('е', 'e')
         return int(float(summ))
 
 
-async def bank_cmd(message):
+@antispam
+async def bank_cmd(message: types.Message):
     user_id = message.from_user.id
     url = await url_name(user_id)
     user_name = await get_name(user_id)
@@ -70,7 +71,9 @@ async def bank_cmd(message):
 {ads}''', disable_web_page_preview=True)
 
 
-async def putbank(message):
+@antispam
+async def putbank(message: types.Message):
+    print(123233)
     user_id = message.from_user.id
     balance = await get_balance(user_id)
     url = await url_name(user_id)
@@ -98,7 +101,8 @@ async def putbank(message):
     await message.answer(f'{url}, вы успешно положили на банковский счёт {tr(summ)}$ {win}')
 
 
-async def takeoffbank(message):
+@antispam
+async def takeoffbank(message: types.Message):
     user_id = message.from_user.id
     _, _, balance = await getbankdb(user_id)
     url = await url_name(user_id)
@@ -126,7 +130,8 @@ async def takeoffbank(message):
     await message.answer(f'{url}, вы успешно сняли с банковского счёта {tr(summ)}$ {win}')
 
 
-async def pudepozit(message):
+@antispam
+async def pudepozit(message: types.Message):
     user_id = message.from_user.id
     balance = await get_balance(user_id)
     depozitb, _, _ = await getbankdb(user_id)
@@ -164,7 +169,8 @@ async def pudepozit(message):
                          f'Вы заплатили комиссию в размере {tr(comsa)}$ (1.5%) за использование банковских услуг.')
 
 
-async def takeoffdepozit(message):
+@antispam
+async def takeoffdepozit(message: types.Message):
     user_id = message.from_user.id
     balance, timedepozit, bank = await getbankdb(user_id)
     url = await url_name(user_id)

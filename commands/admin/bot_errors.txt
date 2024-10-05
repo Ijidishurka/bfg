@@ -1,0 +1,30 @@
+2024-10-05 16:24:46 - WARNING aiogram: Updates were skipped successfully.
+2024-10-05 16:24:59 - WARNING aiogram: Goodbye!
+2024-10-05 16:57:31 - WARNING aiogram: Updates were skipped successfully.
+2024-10-05 16:57:42 - WARNING aiogram: Goodbye!
+2024-10-05 16:57:54 - WARNING aiogram: Updates were skipped successfully.
+2024-10-05 16:58:02 - WARNING aiogram: Goodbye!
+2024-10-05 17:13:06 - WARNING aiogram: Updates were skipped successfully.
+2024-10-05 17:13:06 - WARNING aiogram: Goodbye!
+2024-10-05 17:13:42 - WARNING aiogram: Updates were skipped successfully.
+2024-10-05 17:14:12 - ERROR asyncio: Task exception was never retrieved
+future: <Task finished name='Task-18' coro=<Dispatcher._process_polling_updates() done, defined at C:\Users\админ\PycharmProjects\pythonProject\venv\lib\site-packages\aiogram\dispatcher\dispatcher.py:407> exception=TypeError("'NoneType' object is not subscriptable")>
+Traceback (most recent call last):
+  File "C:\Users\админ\PycharmProjects\pythonProject\venv\lib\site-packages\aiogram\dispatcher\dispatcher.py", line 415, in _process_polling_updates
+    for responses in itertools.chain.from_iterable(await self.process_updates(updates, fast)):
+  File "C:\Users\админ\PycharmProjects\pythonProject\venv\lib\site-packages\aiogram\dispatcher\dispatcher.py", line 235, in process_updates
+    return await asyncio.gather(*tasks)
+  File "C:\Users\админ\PycharmProjects\pythonProject\venv\lib\site-packages\aiogram\dispatcher\handler.py", line 117, in notify
+    response = await handler_obj.handler(*args, **partial_data)
+  File "C:\Users\админ\PycharmProjects\pythonProject\venv\lib\site-packages\aiogram\dispatcher\dispatcher.py", line 283, in process_update
+    return await self.callback_query_handlers.notify(update.callback_query)
+  File "C:\Users\админ\PycharmProjects\pythonProject\venv\lib\site-packages\aiogram\dispatcher\handler.py", line 117, in notify
+    response = await handler_obj.handler(*args, **partial_data)
+  File "C:\Users\админ\PycharmProjects\pythonProject\BFG\modules\TicTacToe.py", line 127, in start_game_kb
+    zero = await url_name(game.chips['zero'])
+  File "C:\Users\админ\PycharmProjects\pythonProject\BFG\commands\db.py", line 321, in url_name
+    name = cursor.execute('SELECT name FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]
+TypeError: 'NoneType' object is not subscriptable
+2024-10-05 17:14:21 - WARNING aiogram: Goodbye!
+2024-10-05 20:15:49 - WARNING aiogram: Updates were skipped successfully.
+2024-10-05 20:15:50 - WARNING aiogram: Goodbye!
