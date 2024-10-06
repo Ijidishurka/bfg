@@ -1,9 +1,27 @@
+import config as cfg
 from datetime import datetime
+from functools import wraps
 import commands.db as db
 from bot import bot
 
 
 earning_msg = {(-1295495, 76): (9, 243267656)}
+
+
+def admin_only(private=False):
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(message):
+            if message.from_user.id not in cfg.admin:
+                return
+            
+            if private and message.chat.type != "private":
+                return
+
+            return await func(message)
+
+        return wrapper
+    return decorator
 
 
 def antispam(func):

@@ -31,7 +31,7 @@ cursor.execute('''CREATE TABLE IF NOT EXISTS users (
     corn INTEGER DEFAULT '0',
     status INTEGER DEFAULT '0',
     issued NUMERIC DEFAULT '0',
-    ban NUMERIC DEFAULT '0',
+    game_id INTEGER,
     yen TEXT DEFAULT '0',
     perlimit TEXT DEFAULT '0'
 )''')
@@ -193,11 +193,22 @@ if current_kurs is None:
     cursor.execute('INSERT INTO sett (ads, kursbtc) VALUES (?, ?)', ('', 65000))
 
 
+async def get_new_id():
+    cursor.execute("SELECT COUNT(*) FROM users")
+    new_id = 100 + cursor.fetchone()[0]
+    
+    while cursor.execute("SELECT user_id FROM users WHERE game_id = ?", (new_id,)).fetchone():
+        new_id += 1
+        
+    return new_id
+
+
 async def reg_user(user_id):
     ex = cursor.execute('SELECT name FROM users WHERE user_id = ?', (user_id,)).fetchone()
     if not ex:
         dt = int(datetime.now().timestamp())
-        cursor.execute('INSERT INTO users (user_id, name, balance, dregister)' 'VALUES (?, ?, ?, ?)', (user_id, 'Игрок', cfg.start_money, dt))
+        nid = await get_new_id()
+        cursor.execute('INSERT INTO users (user_id, name, balance, dregister, game_id)' 'VALUES (?, ?, ?, ?, ?)', (user_id, 'Игрок', cfg.start_money, dt, nid))
         cursor.execute('INSERT INTO mine (user_id) VALUES (?)', (user_id,))
         cursor.execute('INSERT INTO property (user_id) VALUES (?)', (user_id,))
         conn.commit()
@@ -299,7 +310,7 @@ async def getstatus(id):
 
 
 async def getban(id):
-    return cursor.execute(f"SELECT ban FROM users WHERE user_id = ?", (id,)).fetchone()[0]
+    return cursor.execute(f"SELECT * FROM ban_list WHERE user_id = ?", (id,)).fetchone()
 
 
 async def upd_chat_db(chat_id):

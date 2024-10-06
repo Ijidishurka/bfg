@@ -1,5 +1,5 @@
 import importlib
-from assets.modules import load_modules
+from commands.admin.module_manager import load_modules
 from aiogram import executor
 from assets.filters import FilterAdmin
 from assets.auto import automatisation
@@ -12,6 +12,8 @@ MODULES = [
     'commands.basic.property.main',
     'commands.admin.admin',
     'commands.admin.module_manager',
+    'commands.admin.promo',
+    'commands.admin.updater',
     'commands.entertaining.earnings.farm.main',
     'commands.entertaining.earnings.business.main',
     'commands.entertaining.earnings.garden.main',
@@ -26,7 +28,6 @@ MODULES = [
     'commands.basic.top',
     'commands.entertaining.wedlock',
     'commands.clans.main',
-    'commands.admin.promo',
     'commands.games.main',
     'commands.basic.bank.main',
     'commands.entertaining.case.main',

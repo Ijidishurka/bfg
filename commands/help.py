@@ -207,7 +207,7 @@ async def help_rz(call):
 async def help_clans(call: types.CallbackQuery):
     name = await get_name(call.from_user.id)
     await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                                text=CONFIG['help_clanse'].format(name), reply_markup=kb.help_back())
+                                text=CONFIG['help_clans'].format(name), reply_markup=kb.help_back())
 
 
 def reg(dp: Dispatcher):

@@ -1,17 +1,14 @@
 import asyncio
-import sys
 from datetime import datetime
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.types import InlineKeyboardMarkup
-from commands.admin.db import *
-import config as cfg
-from bot import bot
 
-from assets.antispam import earning_msg
-from assets.gettime import bonus_time, kazna_time
-from commands.help import help_msg
+from assets.antispam import admin_only
+from commands.admin import keyboards as kb
+from commands.admin.db import *
+from bot import bot
 
 
 class new_ads_state(StatesGroup):
@@ -24,10 +21,6 @@ class Mailing(StatesGroup):
 
 
 async def new_ads(message, state: FSMContext, type=0):
-    user_id = message.from_user.id
-    if user_id not in cfg.admin:
-        return
-
     if type == 0:
         keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
         keyboard.add(types.KeyboardButton("Отмена"))
@@ -55,158 +48,50 @@ async def new_ads(message, state: FSMContext, type=0):
     await admin_menu(message)
     
 
+@admin_only(private=True)
 async def unloading(message: types.Message):
-    user_id = message.from_user.id
-    if user_id not in cfg.admin:
-        return
-
-    keyboard = types.ReplyKeyboardMarkup(
-        keyboard=[
-            [types.KeyboardButton(text='💾 Бд'), types.KeyboardButton(text='❗️ Ошибки'), types.KeyboardButton(text='📋 Логи')],
-            [types.KeyboardButton(text='🔙 Назад')]
-        ],
-        resize_keyboard=True
-    )
-
-    await message.answer('<b>⚠️ Выберите файл для выгрузки:</b>', reply_markup=keyboard)
+    await message.answer('<b>⚠️ Выберите файл для выгрузки:</b>', reply_markup=kb.unloading_menu())
 
 
-async def unloading_db(message):
-    user_id = message.from_user.id
-    if user_id not in cfg.admin:
-        return
-
-    if message.chat.type != 'private':
-        return
-
+@admin_only(private=True)
+async def unloading_db(message: types.Message):
     time = datetime.now().strftime("%Y-%m-%d в %H:%M:%S")
     with open('users.db', 'rb') as file:
         await bot.send_document(message.chat.id, file, caption=f'🛡 Копия бд создана <blockquote>{time}</blockquote>')
         
-        
-async def unloading_errors(message):
-    user_id = message.from_user.id
-    if user_id not in cfg.admin:
-        return
 
-    if message.chat.type != 'private':
-        return
-
+@admin_only(private=True)
+async def unloading_errors(message: types.Message):
     time = datetime.now().strftime("%Y-%m-%d в %H:%M:%S")
     with open('commands/admin/bot_errors.txt', 'rb') as file:
         await bot.send_document(message.chat.id, file, caption=f'‼️ Ошибки бота на момент <blockquote>{time}</blockquote>')
-        
-        
-async def unloading_logs(message):
-    user_id = message.from_user.id
-    if user_id not in cfg.admin:
-        return
 
-    if message.chat.type != 'private':
-        return
 
+@admin_only(private=True)
+async def unloading_logs(message: types.Message):
     time = datetime.now().strftime("%Y-%m-%d в %H:%M:%S")
     with open('commands/admin/logs.txt', 'rb') as file:
         await bot.send_document(message.chat.id, file, caption=f'📋 Логи бота на момент <blockquote>{time}</blockquote>')
 
 
+@admin_only(private=True)
 async def admin_menu(message: types.Message):
-    user_id = message.from_user.id
-    if user_id not in cfg.admin:
-        return
-
-    keyboard = types.ReplyKeyboardMarkup(
-        keyboard=[
-            [types.KeyboardButton(text='📣 Реклама'), types.KeyboardButton(text='🕹 Управление')],
-            [types.KeyboardButton(text='✨ Промокоды'), types.KeyboardButton(text='📥 Выгрузка')],
-            [types.KeyboardButton(text='🌟 Модули')]
-        ],
-        resize_keyboard=True
-    )
-
-    await message.answer('<b>👮‍♂️ Админ меню:</b>', reply_markup=keyboard)
+    await message.answer('<b>👮‍♂️ Админ меню:</b>', reply_markup=kb.admin_menu())
     
-    
+
+@admin_only(private=True)
 async def ads_menu(message: types.Message):
-    user_id = message.from_user.id
-    if user_id not in cfg.admin:
-        return
-
-    keyboard = types.ReplyKeyboardMarkup(
-        keyboard=[
-            [types.KeyboardButton(text='📍 Рассылка'), types.KeyboardButton(text='🪪 Текст рекламы')],
-            [types.KeyboardButton(text='🔙 Назад')]
-        ],
-        resize_keyboard=True
-    )
-
-    await message.answer('<b>😇 Меню рекламы:</b>', reply_markup=keyboard)
+    await message.answer('<b>😇 Меню рекламы:</b>', reply_markup=kb.ads_menu())
 
 
-async def control(message: types.Message):
-    user_id = message.from_user.id
-    if user_id not in cfg.admin:
-        return
-
-    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    keyboard.add(types.KeyboardButton("🛡 Пользователи"), types.KeyboardButton("💽 ОЗУ"))
-    keyboard.add(types.KeyboardButton("👮 Вернуться в админ меню"))
-
-    await message.answer('<b>🕹️ Меню управления:</b>', reply_markup=keyboard)
-
-
-def sizeof_fmt(num):
-    for unit in ['Б', 'КБ', 'МБ']:
-        if abs(num) < 1024.0:
-            return "%3.1f %s" % (num, unit)
-        num /= 1024.0
-    return "%.1f %s" % (num, 'ТБ')
-
-
-async def RAM_control(message: types.Message):
-    user_id = message.from_user.id
-    if user_id not in cfg.admin:
-        return
-
-    keyboard = types.InlineKeyboardMarkup()
-    keyboard.add(types.InlineKeyboardButton("🗑 Очистить все", callback_data="ram-clear"))
-
-    earning = sizeof_fmt(sys.getsizeof(earning_msg))
-    help_menu = sizeof_fmt(sys.getsizeof(help_msg))
-    bonus = sizeof_fmt(sys.getsizeof(bonus_time))
-    kazna = sizeof_fmt(sys.getsizeof(kazna_time))
-
-    await message.answer(f'''💽 Информация о использовании ОЗУ:
-💸 Заработок: {earning}
-🆘 Помощь: {help_menu}
-🎁 Бонусы: {bonus}
-💰 Казна: {kazna}''', reply_markup=keyboard)
-
-
-async def RAM_clear(call: types.CallbackQuery):
-    user_id = call.from_user.id
-    if user_id not in cfg.admin:
-        return
-
-    global earning_msg, help_msg, bonus_time, kazna_time
-    earning_msg.clear()
-    help_msg.clear()
-    bonus_time.clear()
-    kazna_time.clear()
-
-    await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text='🗑 Очищено!')
-
-
+@admin_only(private=True)
 async def rassilka(message: types.Message):
     await Mailing.mailing_text.set()
-    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    keyboard.add(types.KeyboardButton("Отмена"))
-    await message.answer('📂 Пришлите мне готовое сообщение для рассылки:', reply_markup=keyboard)
+    await message.answer('📂 Пришлите мне готовое сообщение для рассылки:', reply_markup=kb.cancel())
 
 
 async def process_rassilka(message, state: FSMContext):
-    text = message.text
-    if text == 'Отмена':
+    if message.text == 'Отмена':
         await state.finish()
         await message.answer('Отменено.')
         await admin_menu(message)
@@ -217,7 +102,7 @@ async def process_rassilka(message, state: FSMContext):
         inline_keyboard = message.reply_markup.inline_keyboard
         inline_keyboard = InlineKeyboardMarkup(inline_keyboard=inline_keyboard)
 
-    await state.update_data(text=text, inline_keyboard=inline_keyboard)
+    await state.update_data(text=message.text, inline_keyboard=inline_keyboard)
     await message.answer("✅ Сообщение сохранено.\nВы уверены что хотите начать рассылку? (да/нет)")
     await Mailing.mailing_conf.set()
 
@@ -273,10 +158,6 @@ def reg(dp: Dispatcher):
     dp.register_message_handler(unloading_logs, lambda message: message.text == '📋 Логи')
     dp.register_message_handler(unloading_errors, lambda message: message.text == '❗️ Ошибки')
     dp.register_message_handler(unloading_db, lambda message: message.text == '💾 Бд')
-
-    dp.register_message_handler(control, lambda message: message.text == '🕹 Управление')
-    dp.register_message_handler(RAM_control, lambda message: message.text == '💽 ОЗУ')
-    dp.register_callback_query_handler(RAM_clear, text='ram-clear')
     
     dp.register_message_handler(ads_menu, lambda message: message.text == '📣 Реклама')
     dp.register_message_handler(new_ads, lambda message: message.text == '🪪 Текст рекламы')

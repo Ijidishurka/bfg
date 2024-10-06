@@ -1,64 +1,63 @@
 import asyncio
 import os
-
 import requests
 from bot import dp
 from aiogram import types, Dispatcher
-from assets.antispam import new_earning_msg, antispam_earning
-from assets.modules import MODULES, load_new_mod
+from assets.antispam import new_earning_msg, antispam_earning, admin_only
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from commands.admin import keyboards as kb
 import config as cfg
 
+MODULES = {}
 CATALOG = {}
 
 
-def my_modules_kb(module_keys, index, user_id, mod):
-    keyboard = InlineKeyboardMarkup(row_width=3)
-    keyboard.row(
-        InlineKeyboardButton(text="‹", callback_data=f"mymodules-list_{index}_down|{user_id}"),
-        InlineKeyboardButton(text=f"{index+1}/{len(module_keys)}", callback_data="userbotik"),
-        InlineKeyboardButton(text="›", callback_data=f"mymodules-list_{index}_up|{user_id}")
-    )
-    keyboard.add(InlineKeyboardButton(text="❌ Удалить", callback_data=f"dell-modul_{mod}|{user_id}"))
-    return keyboard
-
-
-def load_modules_kb(module_keys, index, user_id, mod):
-    keyboard = InlineKeyboardMarkup(row_width=3)
-    keyboard.row(
-        InlineKeyboardButton(text="‹", callback_data=f"catalogmod-list_{index}_down|{user_id}"),
-        InlineKeyboardButton(text=f"{index+1}/{len(module_keys)}", callback_data="userbotik"),
-        InlineKeyboardButton(text="›", callback_data=f"catalogmod-list_{index}_up|{user_id}")
-    )
+def load_modules(dp):
+    """Загрузка модулей при включении бота"""
+    txt, mlist = 0, []
     
-    if mod in MODULES:
-        keyboard.add(InlineKeyboardButton(text="✅ Загружен", callback_data="userbotik"))
-    else:
-        keyboard.add(InlineKeyboardButton(text="📥 Загрузить", callback_data=f"load-modul_{mod}|{user_id}"))
-    return keyboard
+    for filename in os.listdir('modules'):
+        if filename.endswith(".py") and filename != "__init__.py" and not filename.startswith("add"):
+            fmodule_name = filename[:-3]
+            module = __import__(f"modules.{fmodule_name}", fromlist=["register_handlers"])
+            module.register_handlers(dp)
+            txt += 1
+            
+            if hasattr(module, 'MODULE_DESCRIPTION'):
+                module_info = module.MODULE_DESCRIPTION
+                module_name = module_info.get('name', 'Без названия')
+                module_description = module_info.get('description', 'Нет описания')
+                mlist.append(module_name)
+                MODULES[fmodule_name] = {'name': module_name, 'description': module_description}
+    
+    if txt > 0:
+        mlist = ', '.join(mlist)
+        print(f'Загрузка модулей "{mlist}"')
+        print(f'Импортировано {txt} модулей.')
 
 
+def load_new_mod(filename, dp):
+    """Регестрация хандлеров нового модуля (при загрузке командой)"""
+    if filename.endswith(".py") and filename != "__init__.py" and not filename.startswith("add"):
+        fmodule_name = filename[:-3]
+        module = __import__(f"modules.{fmodule_name}", fromlist=["register_handlers"])
+        module.register_handlers(dp)
+        
+        if hasattr(module, 'MODULE_DESCRIPTION'):
+            module_info = module.MODULE_DESCRIPTION
+            module_name = module_info.get('name', 'Без названия')
+            module_description = module_info.get('description', 'Нет описания')
+            MODULES[fmodule_name] = {'name': module_name, 'description': module_description}
+
+
+@admin_only(private=True)
 async def modules_menu(message: types.Message):
-    user_id = message.from_user.id
-    if user_id not in cfg.admin:
-        return
-
-    keyboard = types.ReplyKeyboardMarkup(
-        keyboard=[
-            [types.KeyboardButton(text='🛎 Загруженые'), types.KeyboardButton(text='📂 Каталог')],
-            [types.KeyboardButton(text='🔙 Назад')]
-        ],
-        resize_keyboard=True
-    )
-
-    await message.answer('<b>🛡 Меню модулей:</b>', reply_markup=keyboard)
+    await message.answer('<b>🛡 Меню модулей:</b>', reply_markup=kb.modules_menu())
     
 
-async def load_modules(message: types.Message):
+@admin_only(private=True)
+async def load_modules_cmd(message: types.Message):
     user_id = message.from_user.id
-    if user_id not in cfg.admin:
-        return
-
     if not MODULES:
         await message.answer("У вас нет загруженых модулей.")
         return
@@ -68,7 +67,7 @@ async def load_modules(message: types.Message):
     
     txt = f'✨ Модуль <code>{MODULES[mod]["name"]}</code>\n<i>{MODULES[mod]["description"]}</i>'
     
-    msg = await message.answer(txt, reply_markup=my_modules_kb(module_keys, 0, user_id, mod))
+    msg = await message.answer(txt, reply_markup=kb.my_modules_kb(module_keys, 0, user_id, mod))
     await new_earning_msg(msg.chat.id, msg.message_id)
     
 
@@ -100,7 +99,7 @@ async def load_modules_next(call: types.CallbackQuery):
 
     txt = f'✨ Модуль <code>{MODULES[mod]["name"]}</code>\n<i>{MODULES[mod]["description"]}</i>'
     
-    await call.message.edit_text(txt, reply_markup=my_modules_kb(module_keys, current_index, user_id, mod))
+    await call.message.edit_text(txt, reply_markup=kb.my_modules_kb(module_keys, current_index, user_id, mod))
 
 
 @antispam_earning
@@ -118,11 +117,10 @@ async def dell_mod(call: types.CallbackQuery):
         await call.message.edit_text(f'❌ Модуль <b>{name}</b> не найден.')
 
 
+@admin_only(private=True)
 async def catalog_modules(message: types.Message):
-    global CATALOG
     user_id = message.from_user.id
-    if user_id not in cfg.admin:
-        return
+    global CATALOG
     
     try:
         response = requests.get('https://raw.githubusercontent.com/Ijidishurka/bfg-modules/refs/heads/main/modules.json')
@@ -139,7 +137,7 @@ async def catalog_modules(message: types.Message):
     
     txt = f'✨ Модуль <code>{CATALOG[mod]["name"]}</code>\n<i>{CATALOG[mod]["description"]}</i>'
     
-    msg = await message.answer(txt, reply_markup=load_modules_kb(module_keys, 0, user_id, mod))
+    msg = await message.answer(txt, reply_markup=kb.load_modules_kb(module_keys, 0, user_id, mod, MODULES))
     await new_earning_msg(msg.chat.id, msg.message_id)
 
 
@@ -162,7 +160,7 @@ async def catalog_modules_next(call: types.CallbackQuery):
     mod = module_keys[current_index]
     txt = f'✨ Модуль <code>{CATALOG[mod]["name"]}</code>\n<i>{CATALOG[mod]["description"]}</i>'
     
-    await call.message.edit_text(txt, reply_markup=load_modules_kb(module_keys, current_index, user_id, mod))
+    await call.message.edit_text(txt, reply_markup=kb.load_modules_kb(module_keys, current_index, user_id, mod, MODULES))
     
     
 @antispam_earning
@@ -189,7 +187,7 @@ async def load_mod(call: types.CallbackQuery):
 
 def reg(dp: Dispatcher):
     dp.register_message_handler(modules_menu, lambda message: message.text == '🌟 Модули')
-    dp.register_message_handler(load_modules, lambda message: message.text == '🛎 Загруженые')
+    dp.register_message_handler(load_modules_cmd, lambda message: message.text == '🛎 Загруженые')
     dp.register_callback_query_handler(load_modules_next, text_startswith='mymodules-list_')
     dp.register_callback_query_handler(dell_mod, text_startswith='dell-modul_')
     dp.register_message_handler(catalog_modules, lambda message: message.text == '📂 Каталог')
