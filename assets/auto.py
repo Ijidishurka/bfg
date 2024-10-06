@@ -8,7 +8,7 @@ from commands.basic.bank.db import autobank
 from commands.entertaining.earnings.garden.db import autogarden
 from commands.entertaining.earnings.generator.db import autogen
 from commands.entertaining.earnings.tree.db import autotree
-from commands.admin.updater import search_update
+from commands.admin.updater import search_update, check_updates
 
 from bot import bot
 import config as cfg
@@ -48,6 +48,7 @@ async def autocommands4():
 async def upd_bot_username():
     bot_info = await bot.get_me()
     cfg.bot_username = bot_info.username
+    await check_updates()
     await search_update()
 
 

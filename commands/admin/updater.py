@@ -1,13 +1,10 @@
-import subprocess
-
+import time, json, sys, os, shutil, requests, subprocess, tempfile
 from assets.antispam import admin_only
 from commands.admin import keyboards as kb
 from aiogram import types, Dispatcher
 import config as cfg
 from bot import bot, dp
-import requests
-import sys
-import os
+import asyncio
 
 from assets.antispam import earning_msg
 from assets.gettime import bonus_time, kazna_time
@@ -15,6 +12,22 @@ from commands.help import help_msg
 
 if_notification = False
 
+
+async def check_updates():
+	if os.path.exists('updates.json'):
+		with open('updates.json', 'r') as json_file:
+			data = json.load(json_file)
+			
+		os.remove('updates.json')
+		ctime = time.time() - data['time']
+		
+		if data['type'] == 'update':
+			txt = f'<b>🏖 Обновление загружено!</b>\n<i>Обновление заняло {ctime:.1f}сек</i>\n\n<tg-spoiler>Официальный канал разработки бота - @copybfg</tg-spoiler>'
+		else:
+			txt = f'<b>💫 Бот перезагружен!</b>\n\n<i>Перезагрузка заняла {ctime:.1f}сек</i>'
+		
+		await bot.edit_message_text(chat_id=data['message'][0], message_id=data['message'][1], text=txt)
+	
 
 async def search_update(force=False, check=False):
 	global if_notification
@@ -64,9 +77,31 @@ async def bot_update(call: types.CallbackQuery):
 		await bot.answer_callback_query(call.id, show_alert=True, text='🤩 У вас уже установлена последняя версия.')
 		return
 	
+	with open('users.db', 'rb') as file:
+		await bot.send_document(call.message.chat.id, file, caption=f'🛡 Резервная копия базы данных')
+	
 	await call.message.edit_text('<i>🎩 Установка обновления...</i>')
 	
-	subprocess.run(["git", "pull", "origin", "main"], check=True)
+	with tempfile.TemporaryDirectory() as temp_dir:
+		subprocess.run(['git', 'clone', 'https://github.com/Ijidishurka/bfg.git', temp_dir], check=True)
+		
+		for item in os.listdir(temp_dir):
+			if item in ['config_ex.py', 'modules']:
+				continue
+				
+			src_path = os.path.join(temp_dir, item)
+			dest_path = os.path.join(os.getcwd(), item)
+			
+			if os.path.isdir(src_path):
+				shutil.rmtree(dest_path, ignore_errors=True)
+				shutil.copytree(src_path, dest_path)
+			else:
+				shutil.copy2(src_path, dest_path)
+		
+	with open('updates.json', 'w') as json_file:
+		data = {"type": "update", "message": (call.message.chat.id, call.message.message_id), "time": time.time()}
+		json.dump(data, json_file, indent=4)
+					
 	os.execv(sys.executable, [sys.executable] + sys.argv)
 
 
@@ -77,8 +112,13 @@ async def control(message: types.Message):
 
 @admin_only()
 async def restart_bot(message: types.Message):
-	await message.answer("🔄 Бот перезагружен!")
+	msg = await message.answer("<i>🔄 Перезагрузка бота...</i>")
 	
+	with open('updates.json', 'w') as json_file:
+		data = {"type": "restart", "message": (msg.chat.id, msg.message_id), "time": time.time()}
+		json.dump(data, json_file, indent=4)
+	
+	await asyncio.sleep(2)
 	await bot.close()
 	await dp.storage.close()
 	
