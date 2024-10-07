@@ -73,7 +73,6 @@ async def bank_cmd(message: types.Message):
 
 @antispam
 async def putbank(message: types.Message):
-    print(123233)
     user_id = message.from_user.id
     balance = await get_balance(user_id)
     url = await url_name(user_id)
@@ -116,9 +115,9 @@ async def takeoffbank(message: types.Message):
     except:
         return
 
-    summ, balance = int(summ), int(balance)
+    summ, balance = Decimal(summ), Decimal(balance)
 
-    if summ < balance:
+    if summ > balance:
         await message.answer(f'{url}, вы не можете снять с банка больше чем у вас есть {lose}')
         return
 

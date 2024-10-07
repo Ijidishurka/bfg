@@ -111,3 +111,26 @@ async def unban_user(user_id):
     if user_id:
         cursor.execute('DELETE FROM ban_list WHERE user_id = ?', (user_id[0],))
         conn.commit()
+        
+    
+async def take_the_money(user_id, summ):
+    balance = cursor.execute('SELECT balance FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]
+    
+    new_balance = Decimal(str(balance)) - Decimal(str(summ))
+    new_balance = "{:.0f}".format(new_balance)
+    
+    cursor.execute("UPDATE users SET balance = ? WHERE user_id = ?", (new_balance, user_id))
+    conn.commit()
+
+
+async def reset_the_money(user_id):
+    cursor.execute("UPDATE users SET balance = 0, bank = 0, btc = 0, depozit = 0, energy = 10, corn = 0, yen = 0 WHERE user_id = ?", (user_id,))
+    cursor.execute("UPDATE mine SET iron = 0, gold = 0, diamond = 0, amestit = 0, aquamarine = 10, emeralds = 0, "
+                   "matter = 0, plasma = 0, nickel = 0, titanium = 0, cobalt = 0, ectoplasm = 0, biores = 0, palladium = 0 WHERE user_id = ?", (user_id,))
+    cursor.execute("DELETE FROM ferma WHERE user_id = ?", (user_id,))
+    cursor.execute("DELETE FROM garden WHERE user_id = ?", (user_id,))
+    cursor.execute("DELETE FROM generator WHERE user_id = ?", (user_id,))
+    cursor.execute("DELETE FROM quarry WHERE user_id = ?", (user_id,))
+    cursor.execute("DELETE FROM tree WHERE user_id = ?", (user_id,))
+    cursor.execute("DELETE FROM business WHERE user_id = ?", (user_id,))
+    conn.commit()

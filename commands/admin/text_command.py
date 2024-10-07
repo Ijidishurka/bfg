@@ -1,12 +1,10 @@
-import asyncio
+from assets.transform import transform_int as tr
 import re
-from datetime import datetime
 from aiogram import types, Dispatcher
 import time
 from assets.antispam import admin_only
-from commands.admin import keyboards as kb
+from commands.db import url_name
 from commands.admin import db
-from bot import bot
 
 
 @admin_only()
@@ -44,9 +42,50 @@ async def unban(message: types.Message):
     
     await db.unban_user(user_id)
     await message.answer(f'🛡 Пользователь {user_id} разблокирован.')
+    
+
+@admin_only()
+async def take_the_money(message: types.Message):
+    user_id = message.from_user.id
+    url = await url_name(user_id)
+
+    try:
+        r_user_id = message.reply_to_message.from_user.id
+        r_url = await url_name(user_id)
+    except:
+        await message.answer(f'{url}, чтобы выдать деньги нужно ответить на сообщение пользователя.')
+        return
+
+    try:
+        summ = message.text.split()[1].replace('е', 'e')
+        summ = int(float(summ))
+    except:
+        await message.answer(f'{url}, вы не ввели сумму которую хотите забрать.')
+        return
+
+    await db.take_the_money(r_user_id, summ)
+    await message.answer(f'{url}, вы забрали {tr(summ)}$ у пользователя {r_url}')
+    
+    
+@admin_only()
+async def reset_the_money(message: types.Message):
+    user_id = message.from_user.id
+    url = await url_name(user_id)
+
+    try:
+        r_user_id = message.reply_to_message.from_user.id
+        r_url = await url_name(user_id)
+    except:
+        await message.answer(f'{url}, чтобы выдать деньги нужно ответить на сообщение пользователя.')
+        return
+
+    await db.reset_the_money(r_user_id)
+    await message.answer(f'{url}, пользователь {r_url} обнулен!')
 
 
 def reg(dp: Dispatcher):
     dp.register_message_handler(sql, lambda message: message.text.lower().startswith('/sql'))
     dp.register_message_handler(ban, lambda message: message.text.lower().startswith('/banb'))
     dp.register_message_handler(unban, lambda message: message.text.lower().startswith('/unbanb'))
+    dp.register_message_handler(take_the_money, lambda message: message.text.lower().startswith('забрать'))
+    dp.register_message_handler(reset_the_money, lambda message: message.text.lower().startswith('обнулить'))

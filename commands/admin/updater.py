@@ -50,10 +50,10 @@ async def search_update(force=False, check=False):
 		if last_version_int <= version_int:
 			return False
 		
-		if_notification = True
-		
 		if check:
 			return True
+		
+		if_notification = True
 		
 		response = requests.get("https://raw.githubusercontent.com/Ijidishurka/bfg/refs/heads/main/update_list.txt")
 		

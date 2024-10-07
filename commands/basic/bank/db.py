@@ -1,7 +1,7 @@
 from commands.db import conn, cursor
 from decimal import Decimal, getcontext
 
-getcontext().prec = 250  # Decimial будет округлять все после 250 знаков
+getcontext().prec = 320  # Decimial будет округлять все после 320 знаков
 
 
 async def getbankdb(user_id):

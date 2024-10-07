@@ -89,6 +89,7 @@ async def limit_cmd(message: types.Message):
 🚀 У вас осталось: {tr(ost)}$ для передачи!''')
 
 
+@antispam
 async def give_money(message: types.Message):
     user_id = message.from_user.id
     status = await getstatus(user_id)
@@ -103,7 +104,7 @@ async def give_money(message: types.Message):
 
     try:
         r_user_id = message.reply_to_message.from_user.id
-        r_url = await url_name(user_id)
+        r_url = await url_name(r_user_id)
     except:
         await message.answer(f'{url}, чтобы выдать деньги нужно ответить на сообщение пользователя {lose}')
         return
