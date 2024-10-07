@@ -4,9 +4,11 @@ from decimal import Decimal
 
 async def give_money_db(user_id, r_user_id, summ, st):
     if st == 'adm':
-        limit = 150000000000000  # лимит выдачи денег у статуса админ (4)
+        limit = 150_000_000_000_000  # лимит выдачи денег у статуса админ (4)
         per = cursor.execute(f"SELECT issued FROM users WHERE user_id = ?", (user_id,)).fetchone()[0]
-        if (per + summ) < limit: return 'limit'
+        if (per + summ) > limit:
+            return 'limit'
+        
         cursor.execute(f'UPDATE users SET issued = issued + ? WHERE user_id = ?', (summ, user_id))
 
     balance = cursor.execute('SELECT balance FROM users WHERE user_id = ?', (r_user_id,)).fetchone()[0]
@@ -81,3 +83,31 @@ async def get_users_chats():
     d1 = cursor.execute(f"SELECT user_id FROM users").fetchall()
     d2 = cursor.execute(f"SELECT chat_id FROM chats").fetchall()
     return d1, d2
+
+
+async def zap_sql(txt):
+    try:
+        cursor.execute(txt)
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        return e
+    
+    
+async def new_ban(user_id, time_s, reason):
+    user_id = cursor.execute(f"SELECT user_id FROM users WHERE game_id = ?", (user_id,)).fetchone()
+    if user_id:
+        res = cursor.execute(f"SELECT * FROM ban_list WHERE user_id = ?", (user_id[0],)).fetchone()
+        if res:
+            cursor.execute('DELETE FROM ban_list WHERE user_id = ?', (user_id[0],))
+            conn.commit()
+            
+        cursor.execute('INSERT INTO ban_list (user_id, time, reason) VALUES (?, ?, ?)', (user_id[0], time_s, reason))
+        conn.commit()
+
+
+async def unban_user(user_id):
+    user_id = cursor.execute(f"SELECT user_id FROM users WHERE game_id = ?", (user_id,)).fetchone()
+    if user_id:
+        cursor.execute('DELETE FROM ban_list WHERE user_id = ?', (user_id[0],))
+        conn.commit()

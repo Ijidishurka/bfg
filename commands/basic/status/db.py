@@ -29,3 +29,9 @@ async def buy_limit_db(user_id, summ, u):
     cursor.execute(f'UPDATE users SET perlimit = ? WHERE user_id = ?', (str(doplimit), user_id))
     cursor.execute(f"UPDATE users SET ecoins = ecoins - ? WHERE user_id = ?", (u, user_id))
     conn.commit()
+    
+
+async def buy_energy_db(user_id, summ, u):
+    cursor.execute(f"UPDATE users SET ecoins = ecoins - ? WHERE user_id = ?", (summ, user_id))
+    cursor.execute(f"UPDATE users SET energy = energy + ? WHERE user_id = ?", (u, user_id))
+    conn.commit()

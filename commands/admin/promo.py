@@ -1,12 +1,16 @@
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
+from assets.transform import transform_int as tr
 from commands.admin.admin import admin_menu
 from commands.db import getads, url_name
 from commands.admin.db import *
 from commands.main import win_luser
 from commands.admin.loger import new_log
-from assets.antispam import antispam
+from assets.antispam import antispam, admin_only
+from commands.admin import keyboards as kb
+import config as cfg
+from bot import bot
 
 
 class new_promo_state(StatesGroup):
@@ -24,17 +28,12 @@ class promo_info_state(StatesGroup):
     name = State()
 
 
+@admin_only(private=True)
 async def promo_menu(message: types.Message):
-    if message.chat.type != 'private':
-        return
-
-    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    keyboard.add(types.KeyboardButton("📖 Создать промо"), types.KeyboardButton("🗑 Удалить промо"))
-    keyboard.add(types.KeyboardButton("ℹ️ Промо инфо"))
-    keyboard.add(types.KeyboardButton("👮 Вернуться в админ меню"))
-    await message.answer('👾 Выберите действие:', reply_markup=keyboard)
+    await message.answer('👾 Выберите действие:', reply_markup=kb.promo_menu())
 
 
+@admin_only(private=True)
 async def new_promo(message, state: FSMContext, type='name'):
     if message.text == 'Отмена':
         await state.finish()
@@ -42,10 +41,7 @@ async def new_promo(message, state: FSMContext, type='name'):
         return
 
     if type == 'name':
-        keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        keyboard.add(types.KeyboardButton("Отмена"))
-
-        await message.answer("😄 Введите название промо", reply_markup=keyboard)
+        await message.answer("😄 Введите название промо", reply_markup=kb.cancel())
         await new_promo_state.txt.set()
         return
 
@@ -82,14 +78,15 @@ async def new_promo(message, state: FSMContext, type='name'):
     await state.finish()
 
     data2 = (data['name'], data['summ'], data['activ'], data['txt'])
+    
     if (await new_promo_db(data2)):
         await message.answer("⚠️ Промокод с таким названием уже существует.")
         await admin_menu(message)
         return
 
-    summ = '{:,}'.format(data['summ']).replace(',', '.')
-    summ2 = '{:,}'.format(data['summ'] * data['activ']).replace(',', '.')
-    activ = '{:,}'.format(data['activ']).replace(',', '.')
+    summ = tr(data['summ'])
+    summ2 = tr(int(data['summ'] * data['activ']))
+    activ = tr(data['activ'])
     emj = ' '.join(data['txt'].split()[1:])
 
     await message.answer(f'''🎰 Вы успешно создали промокод:\n
@@ -100,6 +97,7 @@ async def new_promo(message, state: FSMContext, type='name'):
     await admin_menu(message)
 
 
+@admin_only(private=True)
 async def promo_info(message, state: FSMContext, type='name'):
     if message.text == 'Отмена':
         await state.finish()
@@ -107,10 +105,7 @@ async def promo_info(message, state: FSMContext, type='name'):
         return
 
     if type == 'name':
-        keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        keyboard.add(types.KeyboardButton("Отмена"))
-
-        await message.answer("💻 Введите название промо", reply_markup=keyboard)
+        await message.answer("💻 Введите название промо", reply_markup=kb.cancel())
         await promo_info_state.name.set()
         return
 
@@ -119,7 +114,7 @@ async def promo_info(message, state: FSMContext, type='name'):
     if not res:
         await message.answer(f"❌ Промокод <b>{name}</b> не найден.")
     else:
-        summ = '{:,}'.format(int(res[1])).replace(',', '.')
+        summ = tr(int(res[1]))
         emj = ' '.join(res[3].split()[1:])
         await message.answer(f'''🎰 Информация о промокоде:
 
@@ -130,6 +125,7 @@ async def promo_info(message, state: FSMContext, type='name'):
     await promo_menu(message)
 
 
+@admin_only(private=True)
 async def dell_promo(message, state: FSMContext, type='name'):
     if message.text == 'Отмена':
         await state.finish()
@@ -137,10 +133,7 @@ async def dell_promo(message, state: FSMContext, type='name'):
         return
 
     if type == 'name':
-        keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        keyboard.add(types.KeyboardButton("Отмена"))
-
-        await message.answer("🗑 Введите название промо который вы хотите удалить", reply_markup=keyboard)
+        await message.answer("🗑 Введите название промо который вы хотите удалить", reply_markup=kb.cancel())
         await dell_promo_state.name.set()
         return
 
@@ -154,20 +147,20 @@ async def dell_promo(message, state: FSMContext, type='name'):
     await promo_menu(message)
 
 
-def get_summ(summ):
-    if len(str(summ)) > 45:
-        return "{:.0e}".format(summ)
-    else:
-        return '{:,}'.format(summ).replace(',', '.')
-
-
 @antispam
 async def activ_promo(message: types.Message):
     url = await url_name(message.from_user.id)
     rwin, rloser = await win_luser()
     ads = await getads()
+    
     if len(message.text.split()) < 2:
         await message.answer(f"Вы не ввели промокод {rloser}")
+        return
+
+    chanell = await bot.get_chat_member(chat_id="@"+cfg.chanell.replace('t.me/', ''), user_id=message.from_user.id)
+
+    if chanell["status"] in ['left', 'kicked']:
+        await message.answer(f'Для активации промокода вам надо подписаться на <a href="{cfg.chanell}">официальный канал бота</a> {rloser}\n\n{ads}', disable_web_page_preview=True)
         return
 
     name = message.text.split()[1]
@@ -185,25 +178,24 @@ async def activ_promo(message: types.Message):
         await message.answer(f'Вы уже активировали этот промокод {rloser}\n\n{ads}', disable_web_page_preview=True)
         return
 
-    summ = get_summ(int(res[1]))
+    summ = tr(int(res[1]))
     emj = ' '.join(res[3].split()[1:])
 
-    await new_log(f'#промоактив\nИгрок: {message.from_user.id}\nПромо: {name}\nСумма: {summ}{emj}', 'promo')  # new log
+    await new_log(f'#промоактив\nИгрок: {message.from_user.id}\nПромо: {name}\nСумма: {summ}{emj}', 'promo')
     await message.answer(f"{url}, вы активировали промокод <b>{res[0]}</b>!\nПолучено: <b>{summ}</b>{emj} {rwin}")
 
 
 def reg(dp: Dispatcher):
-    dp.register_message_handler(promo_menu, lambda message: message.text == '✨ Промокоды', is_admin=True)
-    dp.register_message_handler(admin_menu, lambda message: message.text == '👮 Вернуться в админ меню', is_admin=True)
-    dp.register_message_handler(promo_info, lambda message: message.text == 'ℹ️ Промо инфо', is_admin=True)
+    dp.register_message_handler(promo_menu, lambda message: message.text == '✨ Промокоды')
+    dp.register_message_handler(promo_info, lambda message: message.text == 'ℹ️ Промо инфо')
     dp.register_message_handler(lambda message, state: promo_info(message, state, type='finish'), state=promo_info_state.name)
 
-    dp.register_message_handler(new_promo, lambda message: message.text == '📖 Создать промо', is_admin=True)
+    dp.register_message_handler(new_promo, lambda message: message.text == '📖 Создать промо')
     dp.register_message_handler(lambda message, state: new_promo(message, state, type='txt'), state=new_promo_state.txt)
     dp.register_message_handler(lambda message, state: new_promo(message, state, type='summ'), state=new_promo_state.name)
     dp.register_message_handler(lambda message, state: new_promo(message, state, type='activ'), state=new_promo_state.summ)
     dp.register_message_handler(lambda message, state: new_promo(message, state, type='finish'), state=new_promo_state.activ)
 
-    dp.register_message_handler(dell_promo, lambda message: message.text == '🗑 Удалить промо', is_admin=True)
+    dp.register_message_handler(dell_promo, lambda message: message.text == '🗑 Удалить промо')
     dp.register_message_handler(lambda message, state: dell_promo(message, state, type='finish'), state=dell_promo_state.name)
     dp.register_message_handler(activ_promo, lambda message: message.text.lower().startswith('промо'))

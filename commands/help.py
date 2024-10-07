@@ -1,6 +1,6 @@
 from aiogram import types, Dispatcher
-from assets.antispam import antispam
-from commands.db import get_name
+from assets.antispam import antispam, admin_only
+from commands.db import get_name, url_name
 from assets import kb
 import config as cfg
 from bot import bot
@@ -162,13 +162,23 @@ CONFIG = {
 🛡 Клановые захваты:
    👮‍♀ Клан ограбление (недоступно) - ограбление казны штата
 
-📜 Будьте осторожнее с командами повышения и понижения, повысив игрока до определенного статуса он сможет изменять название клана и управлять им.'''
+📜 Будьте осторожнее с командами повышения и понижения, повысив игрока до определенного статуса он сможет изменять название клана и управлять им.''',
+    
+    'help_adm': '''{}, админ команды:
+   🔄 /restartb
+   ⬆️ /updateb
+   🚀 /sql [запрос]
+   📛 /banb [id] [время] [причина]
+   ✅ /unbanb [id]
+   🎩 Выдать [сумма]
+   🐙 Забрать [сумма]
+   😶 Обнулить [сумма]''',
 
 }
 
 
 @antispam
-async def help_cmd(message):
+async def help_cmd(message: types.Message):
     dt = int(datetime.now().timestamp())
     mid = message.message_id + 1
     help_msg[message.chat.id] = (mid, (dt - 2))
@@ -177,27 +187,33 @@ async def help_cmd(message):
 
 
 @antispam_help
-async def help_back(call):
+async def help_back(call: types.CallbackQuery):
     await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
                                 text=CONFIG['help_cmd'], reply_markup=kb.help_menu(), disable_web_page_preview=True)
 
 
 @antispam_help
-async def help_osn(call):
+async def help_osn(call: types.CallbackQuery):
     name = await get_name(call.from_user.id)
     await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
                                 text=CONFIG['help_osn'].format(name), reply_markup=kb.help_back())
 
 
 @antispam_help
-async def help_game(call):
+async def help_game(call: types.CallbackQuery):
     name = await get_name(call.from_user.id)
     await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
                                 text=CONFIG['help_game'].format(name), reply_markup=kb.help_back())
+    
+    
+@antispam
+async def help_game_msg(message: types.Message):
+    name = await url_name(message.from_user.id)
+    await message.answer(CONFIG['help_game'].format(name))
 
 
 @antispam_help
-async def help_rz(call):
+async def help_rz(call: types.CallbackQuery):
     name = await get_name(call.from_user.id)
     await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
                                 text=CONFIG['help_rz'].format(name), reply_markup=kb.help_back())
@@ -210,10 +226,19 @@ async def help_clans(call: types.CallbackQuery):
                                 text=CONFIG['help_clans'].format(name), reply_markup=kb.help_back())
 
 
+@admin_only(private=False)
+async def help_adm(message: types.Message):
+    print(2323)
+    name = await get_name(message.from_user.id)
+    await message.answer(CONFIG['help_adm'].format(name))
+    
+
 def reg(dp: Dispatcher):
+    dp.register_message_handler(help_adm, commands='help_adm')
     dp.register_message_handler(help_cmd, lambda message: message.text.lower().startswith(('помощь', '/help')))
     dp.register_callback_query_handler(help_back, text_startswith='help_back')
     dp.register_callback_query_handler(help_osn, text_startswith='help_osn')
     dp.register_callback_query_handler(help_game, text_startswith='help_game')
+    dp.register_message_handler(help_game_msg, lambda message: message.text.lower() == 'игры')
     dp.register_callback_query_handler(help_rz, text_startswith='help_rz')
     dp.register_callback_query_handler(help_clans, text_startswith='help_clans')

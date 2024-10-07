@@ -13,7 +13,7 @@ cursor.execute('''CREATE TABLE IF NOT EXISTS users (
     user_id INTEGER,
     name TEXT,
     balance TEXT,
-    btc INTEGER DEFAULT '0',
+    btc TEXT DEFAULT '0',
     bank TEXT DEFAULT '0',
     depozit TEXT DEFAULT '0',
     timedepozit NUMERIC DEFAULT '0',
@@ -235,7 +235,7 @@ async def get_name(user_id):
 
 async def getbalance(user_id):
     data = cursor.execute('SELECT name, balance, btc, bank, yen FROM users WHERE user_id = ?', (user_id,)).fetchone()
-    return data[0], int(float(data[1])), data[2], data[3], int(data[4])
+    return data[0], int(float(data[1])), int(float(data[2])), data[3], int(data[4])
 
 
 async def getpofildb(user_id):

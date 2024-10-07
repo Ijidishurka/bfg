@@ -11,15 +11,14 @@ earning_msg = {(-1295495, 76): (9, 243267656)}
 def admin_only(private=False):
     def decorator(func):
         @wraps(func)
-        async def wrapper(message):
+        async def wrapper(message, *args, **kwargs):
             if message.from_user.id not in cfg.admin:
                 return
             
             if private and message.chat.type != "private":
                 return
-
-            return await func(message)
-
+            
+            return await func(message, *args, **kwargs)
         return wrapper
     return decorator
 
@@ -85,7 +84,7 @@ async def ban_chek(uid):
     await db.reg_user(uid)
     btime = await db.getban(uid)
     if btime:
-        if datetime.now().timestamp() < btime:
+        if datetime.now().timestamp() < btime[1]:
             return True
 
 

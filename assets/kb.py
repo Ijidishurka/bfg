@@ -1,5 +1,6 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 import config as cfg
+import random
 
 
 def help_menu():
@@ -124,15 +125,28 @@ def profil_back(uid):
 
 
 def top(uid, tab):
+    sh = random.randint(1, 100)
     keyboards = InlineKeyboardMarkup()
     buttons = [
         InlineKeyboardButton("👑 Топ рейтинга", callback_data=f"top-rating|{uid}|{tab}"),
         InlineKeyboardButton("💰 Топ денег", callback_data=f"top-balance|{uid}|{tab}"),
-        InlineKeyboardButton("🧰 Топ ферм", callback_data=f"top-cards|{uid}|{tab}"),
-        InlineKeyboardButton("🗄 Топ бизнесов", callback_data=f"top-bsterritory|{uid}|{tab}"),
-        InlineKeyboardButton("🏆 Топ опыта", callback_data=f"top-exp|{uid}|{tab}"),
-        InlineKeyboardButton("💴 Топ йен", callback_data=f"top-yen|{uid}|{tab}"),
     ]
+
+    if sh > 40:
+        buttons.extend([
+            InlineKeyboardButton("🧰 Топ ферм", callback_data=f"top-cards|{uid}|{tab}"),
+            InlineKeyboardButton("🗄 Топ бизнесов", callback_data=f"top-bsterritory|{uid}|{tab}"),
+            InlineKeyboardButton("🏆 Топ опыта", callback_data=f"top-exp|{uid}|{tab}"),
+            InlineKeyboardButton("💴 Топ йен", callback_data=f"top-yen|{uid}|{tab}")
+        ])
+    else:
+        buttons.extend([
+            InlineKeyboardButton("📦 Топ обычных кейсов", callback_data=f"top-case1|{uid}|{tab}"),
+            InlineKeyboardButton("🏵 Топ золотых кейсов", callback_data=f"top-case2|{uid}|{tab}"),
+            InlineKeyboardButton("🏺 Топ рудных кейсов", callback_data=f"top-case3|{uid}|{tab}"),
+            InlineKeyboardButton("🌌 Топ материальных кейсов", callback_data=f"top-case4|{uid}|{tab}")
+        ])
+        
     keyboards.add(buttons[0], buttons[1])
     keyboards.add(buttons[2], buttons[3])
     keyboards.add(buttons[4], buttons[5])

@@ -172,7 +172,7 @@ async def clan_setting_type(message: types.message):
 	d, _, _ = await clan_full_info(data[1])
 
 	try:
-		type = message.text.lower().split()[2]
+		type = message.text.lower().split()[3]
 	except:
 		await message.answer(f'{url}, вы не указали тип клана, который хотите установить.\nДоступные типы: [закрытый, открытый] {lose}')
 		return
@@ -189,7 +189,7 @@ async def clan_setting_type(message: types.message):
 		await message.answer(f'{url}, неизвестный тип клана. Доступные типы: [закрытый, открытый] {lose}')
 		return
 
-	await upd_setting_type_db(u, data[1])
+	await upd_settings_type_db(u, data[1])
 	await message.answer(f'<b>[Внимание]</b>\n📥 Вы успешно изменили тип клана <b>[{d[2]}]</b> на {type}')
 
 

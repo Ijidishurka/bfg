@@ -44,8 +44,8 @@ async def search_update(force=False, check=False):
 		with open('bot.py', 'r', encoding='utf-8') as file:
 			version = file.readline().strip().split(": ")[1]
 		
-		last_version_int = int(last_version.replace('.', ''))
-		version_int = int(version.replace('.', ''))
+		last_version_int = float(last_version.replace('.', ''))
+		version_int = float(version.replace('.', ''))
 
 		if last_version_int <= version_int:
 			return False
@@ -60,13 +60,26 @@ async def search_update(force=False, check=False):
 		txt = f'<b>🔍 Доступно обновление 🛎</b>\nЧто нового?\n\n<i>{response.text}</i>'
 		
 		for admin in cfg.admin:
-			try: await bot.send_message(admin, txt, reply_markup=kb.update_bot())
+			try: await bot.send_message(admin, txt, reply_markup=kb.update_bot(), disable_web_page_preview=True)
 			except: pass
 				
 	except Exception as e:
 		print(f"Ошибка при попытке найти обновление: {e}")
 		
 
+@admin_only(private=True)
+async def update_bot(message: types.Message):
+	check = await search_update(check=True)
+	if not check:
+		await message.answer(f'<b>😄 У вас установлена последняя версия бота!</b>\n Вы также можете попробовать <a href="https://github.com/Ijidishurka/bfg">обновиться вручную</a>', disable_web_page_preview=True)
+		return
+	
+	response = requests.get("https://raw.githubusercontent.com/Ijidishurka/bfg/refs/heads/main/update_list.txt")
+	txt = f'<b>🔍 Доступно обновление 🛎</b>\nЧто нового?\n\n<i>{response.text}</i>'
+
+	await message.answer(txt, reply_markup=kb.update_bot(), disable_web_page_preview=True)
+	
+	
 async def bot_update(call: types.CallbackQuery):
 	if call.from_user.id not in cfg.admin:
 		return
@@ -159,7 +172,8 @@ async def RAM_clear(call: types.CallbackQuery):
 
 def reg(dp: Dispatcher):
 	dp.register_message_handler(control, lambda message: message.text == '🕹 Управление')
-	dp.register_message_handler(restart_bot, lambda message: message.text in ['🔄 Перезагрузка', '/brestart'])
+	dp.register_message_handler(restart_bot, lambda message: message.text in ['🔄 Перезагрузка', '/restartb'])
+	dp.register_message_handler(update_bot, lambda message: message.text == '/updateb')
 	dp.register_message_handler(RAM_control, lambda message: message.text == '💽 ОЗУ')
 	dp.register_callback_query_handler(RAM_clear, text='ram-clear')
 	dp.register_callback_query_handler(bot_update, text='update-bot')

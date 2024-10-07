@@ -6,11 +6,8 @@ from pycoingecko import CoinGeckoAPI
 api = CoinGeckoAPI()
 
 
-async def getbtc(message):
-    user_id = message.from_user.id
-    cursor.execute('SELECT btc FROM users WHERE user_id = ?', (user_id,))
-    i = cursor.fetchone()[0]
-    return i
+async def getbtc(user_id):
+    return cursor.execute('SELECT btc FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]
 
 
 async def getkurs():
@@ -26,22 +23,30 @@ async def getkurs():
 
 
 async def sellbtc_db(summ, summ_btc, user_id):
-    balance = cursor.execute('SELECT balance FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]
+    balance, btc = cursor.execute('SELECT balance, btc FROM users WHERE user_id = ?', (user_id,)).fetchone()
+    
     summ = Decimal(balance) + Decimal(summ)
-    cursor.execute('UPDATE users SET balance = ? WHERE user_id = ?', (str(summ), user_id))
-    cursor.execute('UPDATE users SET btc = btc - ? WHERE user_id = ?', (int(summ_btc), user_id))
+    btc = Decimal(btc) - Decimal(summ_btc)
+    summ = "{:.0f}".format(summ)
+    btc = "{:.0f}".format(btc)
+    
+    cursor.execute('UPDATE users SET balance = ?, btc = ? WHERE user_id = ?', (summ, btc, user_id))
     conn.commit()
 
 
-async def bybtc_db(summ, summ_btc, user_id):
-    balance = cursor.execute('SELECT balance FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]
+async def buybtc_db(summ, summ_btc, user_id):
+    balance, btc = cursor.execute('SELECT balance, btc FROM users WHERE user_id = ?', (user_id,)).fetchone()
+
     summ = Decimal(balance) - Decimal(summ)
-    cursor.execute('UPDATE users SET balance = ? WHERE user_id = ?', (str(summ), user_id))
-    cursor.execute('UPDATE users SET btc = btc + ? WHERE user_id = ?', (int(summ_btc), user_id))
+    btc = Decimal(btc) + Decimal(summ_btc)
+    summ = "{:.0f}".format(summ)
+    btc = "{:.0f}".format(btc)
+
+    cursor.execute('UPDATE users SET balance = ?, btc = ? WHERE user_id = ?', (summ, btc, user_id))
     conn.commit()
 
 
-async def byratting_db(summ, r_summ, user_id):
+async def buyratting_db(summ, r_summ, user_id):
     balance = cursor.execute('SELECT balance FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]
     summ = Decimal(balance) - Decimal(summ)
     cursor.execute('UPDATE users SET balance = ? WHERE user_id = ?', (str(summ), user_id))
@@ -49,12 +54,8 @@ async def byratting_db(summ, r_summ, user_id):
     conn.commit()
 
 
-async def getexpe(message):
-    user_id = message.from_user.id
-    cursor.execute('SELECT exp, energy FROM users WHERE user_id = ?', (user_id,))
-    i = cursor.fetchone()
-    expe, energy = i
-    return expe, energy
+async def get_expe(user_id):
+    return cursor.execute('SELECT exp, energy FROM users WHERE user_id = ?', (user_id,)).fetchone()
 
 
 async def digdb(i, user_id, r, op):
@@ -72,29 +73,16 @@ async def sell_ruda_db(i, user_id, r, kolvo):
     conn.commit()
 
 
-async def getmine(message):
-    user_id = message.from_user.id
-    cursor.execute(
-        'SELECT iron, gold, diamond, amestit, aquamarine, emeralds, matter, plasma, nickel, titanium, cobalt, '
-        'ectoplasm, biores, palladium FROM mine WHERE user_id = ?',
-        (user_id,))
-    i = cursor.fetchone()
-    iron, gold, diamond, amestit, aquamarine, emeralds, matter, plasma, nickel, titanium, cobalt, ectoplasm, biores, palladium = i
-    return iron, gold, diamond, amestit, aquamarine, emeralds, matter, plasma, nickel, titanium, cobalt, ectoplasm, biores, palladium
+async def get_mine(user_id):
+    return cursor.execute('SELECT * FROM mine WHERE user_id = ?', (user_id,)).fetchone()
 
 
-async def getenergy(message):
-    user_id = message.from_user.id
-    cursor.execute('SELECT energy FROM users WHERE user_id = ?', (user_id,))
-    i = cursor.fetchone()[0]
-    return i
+async def get_energy(user_id):
+    return cursor.execute('SELECT energy FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]
 
 
-async def getrrating(message):
-    user_id = message.from_user.id
-    cursor.execute('SELECT rating FROM users WHERE user_id = ?', (user_id,))
-    i = cursor.fetchone()[0]
-    return i
+async def get_rating(user_id):
+    return cursor.execute('SELECT rating FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]
 
 
 async def sellrrating_db(summ, summ_r, user_id):
@@ -105,10 +93,8 @@ async def sellrrating_db(summ, summ_r, user_id):
     conn.commit()
 
 
-async def getcorn_garden(id):
-    cursor.execute('SELECT corn FROM users WHERE user_id = ?', (id,))
-    i = cursor.fetchone()[0]
-    return i
+async def getcorn_garden(user_id):
+    return cursor.execute('SELECT corn FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]
 
 
 async def autoenergy():

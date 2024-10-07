@@ -1,14 +1,17 @@
 from aiogram import Dispatcher, types
 from commands.db import url_name, get_balance, getads
+from decimal import Decimal
+from assets.antispam import antispam
 from commands.main import win_luser
-from commands.basic.ore.db import *
+from commands.basic.ore import db
 import commands.basic.ore.dig
 from assets.transform import transform_int as tr
 
 
+@antispam
 async def sellbtc(message: types.Message):
     user_id = message.from_user.id
-    btc = await getbtc(message)
+    btc = await db.getbtc(user_id)
     url = await url_name(user_id)
     win, lose = await win_luser()
 
@@ -17,13 +20,14 @@ async def sellbtc(message: types.Message):
     except:
         summ_btc = btc
     summ_btc = Decimal(summ_btc)
+    btc = Decimal(btc)
 
-    kurs = await getkurs()
+    kurs = await db.getkurs()
     summ = summ_btc * kurs
 
     if btc >= summ_btc:
         if btc - summ_btc >= 0 and summ_btc > 0:
-            await sellbtc_db(summ, summ_btc, user_id)
+            await db.sellbtc_db(summ, summ_btc, user_id)
             await message.answer(f'{url}, вы успешно продали {tr(summ_btc)} BTC за {tr(summ)}$ {win}')
         else:
             await message.answer(f'{url}, нельзя продавать отрицательно или же нулевое количество BTC {lose}')
@@ -31,6 +35,7 @@ async def sellbtc(message: types.Message):
         await message.answer(f'{url}, вы не можете продать столько BTC {lose}')
 
 
+@antispam
 async def buybtc(message: types.Message):
     user_id = message.from_user.id
     balance = await get_balance(user_id)
@@ -45,12 +50,12 @@ async def buybtc(message: types.Message):
 
     summ_btc = Decimal(summ_btc)
 
-    kurs = await getkurs()
+    kurs = await db.getkurs()
     summ = summ_btc * kurs
 
     if balance >= summ:
         if summ_btc > 0:
-            await bybtc_db(summ, summ_btc, user_id)
+            await db.buybtc_db(summ, summ_btc, user_id)
             await message.answer(f'{url}, вы успешно купили {tr(summ_btc)} BTC за {tr(summ)}$ {win}')
         else:
             await message.answer(f'{url}, нельзя покупать отрицательно или же нулевое количество BTC {lose}')
@@ -58,24 +63,27 @@ async def buybtc(message: types.Message):
         await message.answer(f'{url}, у вас недостаточно денег для покупки BTC {lose}')
 
 
+@antispam
 async def btc_kurs(message: types.Message):
     user_id = message.from_user.id
     url = await url_name(user_id)
-    kurs = await getkurs()
+    kurs = await db.getkurs()
     ads = await getads(message)
     await message.answer(f'{url}, на данный момент курс 1 BTC составляет - {tr(kurs)}$ 🌐\n\n{ads}', disable_web_page_preview=True)
 
 
+@antispam
 async def rrating_cmd(message: types.Message):
     user_id = message.from_user.id
     url = await url_name(user_id)
-    r = await getrrating(message)
+    r = await db.getrrating(message)
     await message.answer(f'''{url}, ваш рейтинг {tr(r)}👑''', disable_web_page_preview=True)
 
 
+@antispam
 async def sellrating(message: types.Message):
     user_id = message.from_user.id
-    r = await getrrating(message)
+    r = await db.getrrating(message)
     url = await url_name(user_id)
     win, lose = await win_luser()
 
@@ -91,7 +99,7 @@ async def sellrating(message: types.Message):
 
     if r >= summ_r:
         if r - summ_r >= 0 and summ_r > 0:
-            await sellrrating_db(summ, summ_r, user_id)
+            await db.sellrrating_db(summ, summ_r, user_id)
             await message.answer(f'{url}, вы понизили количество вашего рейтинга на {tr(summ_r)}👑 за {tr(summ)}$ {win}')
         else:
             await message.answer(f'{url}, вы неправильно ввели число рейтинга которое хотите продать {lose}')
@@ -99,6 +107,7 @@ async def sellrating(message: types.Message):
         await message.answer(f'{url}, у вас недостаточно рейтинга для его продажи {lose}')
 
 
+@antispam
 async def buy_ratting(message: types.Message):
     user_id = message.from_user.id
     balance = await get_balance(user_id)
@@ -117,7 +126,7 @@ async def buy_ratting(message: types.Message):
 
     if balance >= summ:
         if r_summ > 0:
-            await byratting_db(summ, r_summ, user_id)
+            await db.buyratting_db(summ, r_summ, user_id)
             await message.answer(f'{url}, вы повысили количество вашего рейтинга на {tr(r_summ)}👑 за {tr(summ)}$ {win}')
         else:
             await message.answer(f'{url}, вы неправильно ввели число рейтинга которое хотите купить {lose}')

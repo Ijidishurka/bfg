@@ -1,12 +1,14 @@
 import random
-from aiogram import Dispatcher
+from aiogram import Dispatcher, types
 import commands.entertaining.case.db as db
 from commands.db import getads, getstatus, url_name
 from commands.main import win_luser
 import commands.entertaining.case.buy
 from assets.transform import transform_int as tr
+from assets.antispam import antispam
 
 
+@antispam
 async def getcase_cmd(message):
     user_id = message.from_user.id
     url = await url_name(user_id)
@@ -41,7 +43,8 @@ async def getcase_cmd(message):
 {ads}''', disable_web_page_preview=True)
 
 
-async def open_case(message):
+@antispam
+async def open_case(message: types.Message):
     win, lose = await win_luser()
     name = await url_name(message.from_user.id)
     ads = await getads()

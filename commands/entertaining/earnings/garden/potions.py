@@ -1,13 +1,14 @@
-from aiogram import Dispatcher
+from aiogram import Dispatcher, types
 from commands.entertaining.earnings.garden.db import *
 from commands.db import url_name
 from commands.main import win_luser
+from assets.antispam import antispam
 
 
-async def potions_list(message):
-    user_id = message.from_user.id
-    url = await url_name(message.from_user.id)
-    await message.answer(f'''{url}, доступные зелья:
+@antispam
+async def potions_list(message: types.Message):
+    name = await url_name(message.from_user.id)
+    await message.answer(f'''{name}, доступные зелья:
 🍸 1. Чай: 40 зёрен
 Прибыль: 1 энергия
 
@@ -60,10 +61,10 @@ async def bay_potions(message):
         await message.answer(f'{url}, у вас недостаточно зёрен для создания данного зелья. {lose}')
         return
 
-    await message.answer(f'{url}, вы успешно создали "{potion["name"]}", вам начислено {potion["st"]} энергии. {win}')
-    await buy_postion_db(potion["st"], potion["summ"], user_id)
+    await message.answer(f'{url}, вы успешно создали "{potion["name"]}", вам начислено {potion["summ"]} энергии. {win}')
+    await buy_postion_db(potion["summ"], potion["st"], user_id)
 
 
 def reg(dp: Dispatcher):
-    dp.register_message_handler(potions_list, lambda message: message.text.lower == 'зелья')
+    dp.register_message_handler(potions_list, lambda message: message.text.lower() == 'зелья')
     dp.register_message_handler(bay_potions, lambda message: message.text.lower().startswith('создать зелье'))

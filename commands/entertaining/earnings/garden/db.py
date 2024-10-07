@@ -52,8 +52,8 @@ async def getcorn(id):
 
 
 async def buy_postion_db(summ, st, id):
-    cursor.execute('UPDATE users SET corn = corn - ? WHERE user_id = ?', (summ, id))
-    cursor.execute('UPDATE users SET energy = energy + ? WHERE user_id = ?', (st, id))
+    cursor.execute('UPDATE users SET corn = corn - ? WHERE user_id = ?', (st, id))
+    cursor.execute('UPDATE users SET energy = energy + ? WHERE user_id = ?', (summ, id))
     conn.commit()
 
 

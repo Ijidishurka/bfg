@@ -112,6 +112,14 @@ async def top_call(call: types.CallbackQuery):
 		await handle_top(call, 'users', 'exp', 7, 'опыту', '🏆')
 	elif tab == 'yen':
 		await handle_top(call, 'users', 'yen', 22, 'йенам', '💴')
+	elif tab == 'case1':
+		await handle_top(call, 'users', 'case1', 9, 'обычным кейсам', '📦')
+	elif tab == 'case2':
+		await handle_top(call, 'users', 'case2', 10, 'золотым кейсам', '🏵')
+	elif tab == 'case3':
+		await handle_top(call, 'users', 'case3', 11, 'рудным кейсам', '🏺')
+	elif tab == 'case4':
+		await handle_top(call, 'users', 'case4', 12, 'материальным кейсам', '🌌')
 	elif tab == 'cards':
 		await handle_top_earning(call, 'ferma', 'cards', 3, 'фермам', '🧰')
 	elif tab == 'bsterritory':

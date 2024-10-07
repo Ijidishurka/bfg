@@ -41,7 +41,7 @@ async def creat_help_msg(user_id, profil):
     dregister = datetime.fromtimestamp(data[6]).strftime('%Y-%m-%d в %H:%M:%S')
 
     text = f'''{profil}
-🪪 ID: {user_id}
+🪪 ID: {data[21]}
 🏆 Статус: {st}
 💰 Денег: {trt(data[2])}$
 💴 Йены: {trt(data[22])}¥

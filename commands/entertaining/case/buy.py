@@ -1,12 +1,13 @@
-from aiogram import Dispatcher
-
+from aiogram import Dispatcher, types
 import commands.entertaining.case.db as db
 from commands.db import url_name, get_balance
 from commands.main import win_luser
-from assets.transform import transform
+from assets.transform import transform as tr
+from assets.antispam import antispam
 
 
-async def buy_case(message):
+@antispam
+async def buy_case(message: types.Message):
     user_id = message.from_user.id
     url = await url_name(user_id)
     win, lose = await win_luser()
@@ -31,7 +32,7 @@ async def buy_case(message):
         return await buy_case_4(message)
 
 
-async def buy_case_1_2(message):
+async def buy_case_1_2(message: types.Message):
     user_id = message.from_user.id
     url = await url_name(user_id)
     balance = await get_balance(user_id)
@@ -54,12 +55,11 @@ async def buy_case_1_2(message):
         await message.answer(f'{url}, у вас недостаточно средств для покупки данного кейса {lose}')
         return
 
-    summ2 = await transform(summ)
     await db.buy_case_db_12(user_id, v, summ, case)
-    await message.answer(f'{url}, вы успешно купили {case} «{name}» за {summ2}$ ✅')
+    await message.answer(f'{url}, вы успешно купили {case} «{name}» за {tr(summ)}$ ✅')
 
 
-async def buy_case_3(message):
+async def buy_case_3(message: types.Message):
     user_id = message.from_user.id
     url = await url_name(user_id)
     win, lose = await win_luser()
@@ -81,7 +81,7 @@ async def buy_case_3(message):
     await message.answer(f'{url}, вы успешно купили {case} «Рудный кейс» за {summ}⚙️ ✅')
 
 
-async def buy_case_4(message):
+async def buy_case_4(message: types.Message):
     user_id = message.from_user.id
     url = await url_name(user_id)
     win, lose = await win_luser()

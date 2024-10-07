@@ -1,9 +1,10 @@
 from aiogram import types, Dispatcher
 from commands.db import getperevod, getlimitdb, getstatus, url_name, get_balance, get_doplimit
 from commands.admin.db import give_bcoins_db, give_money_db
+from assets.transform import transform_int as tr
 from commands.main import win_luser
 from commands.admin.loger import new_log
-from assets.antispam import antispam
+from assets.antispam import antispam, admin_only
 from decimal import Decimal
 import config as cfg
 
@@ -83,13 +84,9 @@ async def limit_cmd(message: types.Message):
     per = int(per)
     ost = limit - per
 
-    youlimit = '{:,}'.format(limit).replace(',', '.')
-    ost = '{:,}'.format(ost).replace(',', '.')
-    per2 = '{:,}'.format(per).replace(',', '.')
-
-    await message.reply(f'''{url}, здесь ваш лимит на сегодня: {youlimit}$
-💫 Вы уже передали: {per2}$
-🚀 У вас осталось: {ost}$ для передачи!''')
+    await message.reply(f'''{url}, здесь ваш лимит на сегодня: {tr(limit)}$
+💫 Вы уже передали: {tr(per)}$
+🚀 У вас осталось: {tr(ost)}$ для передачи!''')
 
 
 async def give_money(message: types.Message):
@@ -114,25 +111,25 @@ async def give_money(message: types.Message):
     try:
         summ = message.text.split()[1].replace('е', 'e')
         summ = int(float(summ))
-        summ2 = '{:,}'.format(summ).replace(',', '.')
     except:
         await message.answer(f'{url}, вы не ввели сумму которую хотите выдать {lose}')
         return
 
     if user_id in cfg.admin:
         await give_money_db(user_id, r_user_id, summ, 'rab')
-        await message.answer(f'{url}, вы выдали {summ2}$ пользователю {r_url}  {win}')
+        await message.answer(f'{url}, вы выдали {tr(summ)}$ пользователю {r_url}  {win}')
     else:
         res = await give_money_db(user_id, r_user_id, summ, 'adm')
         if res == 'limit':
             await message.answer(f'{url}, вы достигли лимита на выдачу денег  {lose}')
             return
 
-        await message.answer(f'{url}, вы выдали {summ2}$ пользователю {r_url}  {win}')
+        await message.answer(f'{url}, вы выдали {tr(summ)}$ пользователю {r_url}  {win}')
 
-    await new_log(f'#выдача\nИгрок {user_id}\nСумма: {summ2}$\nИгроку {r_user_id}', 'issuance_money')  # new log
+    await new_log(f'#выдача\nИгрок {user_id}\nСумма: {tr(summ)}$\nИгроку {r_user_id}', 'issuance_money')  # new log
 
 
+@admin_only()
 async def give_bcoins(message: types.Message):
     user_id = message.from_user.id
     win, lose = await win_luser()
@@ -148,18 +145,17 @@ async def give_bcoins(message: types.Message):
     try:
         summ = message.text.split()[1].replace('е', 'e')
         summ = int(float(summ))
-        summ2 = '{:,}'.format(summ).replace(',', '.')
     except:
         await message.answer(f'{url}, вы не ввели сумму которую хотите выдать {lose}')
         return
 
     await give_bcoins_db(r_user_id, summ)
-    await message.answer(f'{url}, вы выдали {summ2}💳 пользователю {r_url}  {win}')
-    await new_log(f'#бкоин-выдача\nАдмин {user_id}\nСумма: {summ2}$\nПользователю {r_user_id}', 'issuance_bcoins')
+    await message.answer(f'{url}, вы выдали {tr(summ)}💳 пользователю {r_url}  {win}')
+    await new_log(f'#бкоин-выдача\nАдмин {user_id}\nСумма: {tr(summ)}$\nПользователю {r_user_id}', 'issuance_bcoins')
 
 
 def reg(dp: Dispatcher):
     dp.register_message_handler(limit_cmd, lambda message: message.text.lower() == 'мой лимит')
     dp.register_message_handler(dat_cmd, lambda message: message.text.lower().startswith('дать'))
     dp.register_message_handler(give_money, lambda message: message.text.lower().startswith('выдать'))
-    dp.register_message_handler(give_bcoins, lambda message: message.text.lower().startswith('бдать'), is_admin=True)
+    dp.register_message_handler(give_bcoins, lambda message: message.text.lower().startswith('бдать'))

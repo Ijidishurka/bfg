@@ -80,3 +80,11 @@ def update_bot():
 	keyboard = types.InlineKeyboardMarkup()
 	keyboard.add(types.InlineKeyboardButton("🐙 Обновить", callback_data="update-bot"))
 	return keyboard
+
+
+def promo_menu():
+	keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
+	keyboard.add(types.KeyboardButton("📖 Создать промо"), types.KeyboardButton("🗑 Удалить промо"))
+	keyboard.add(types.KeyboardButton("ℹ️ Промо инфо"))
+	keyboard.add(types.KeyboardButton("👮 Вернуться в админ меню"))
+	return keyboard

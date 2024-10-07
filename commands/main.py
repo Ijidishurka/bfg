@@ -1,5 +1,6 @@
+from datetime import datetime
 from aiogram import Dispatcher, types
-from commands.db import reg_user
+from commands.db import reg_user, getban
 from assets import kb
 import random
 import config as cfg
@@ -22,6 +23,13 @@ CONFIG = {
 
 async def on_start(message: types.Message):
     await reg_user(message.from_user.id)
+    ban = await getban(message.from_user.id)
+    
+    if ban:
+        dtime = datetime.fromtimestamp(ban[1]).strftime('%Y-%m-%d в %H:%M:%S')
+        await message.answer(f'⛔️ Вы заблокированы в боте до <b>{dtime}</b>\nПричина: <i>{ban[2]}</i>')
+        return
+    
     sticker = random.choice(CONFIG['sticker_id'])
     await message.answer_sticker(sticker=sticker)
     await message.answer(CONFIG['hello_text'], disable_web_page_preview=True, reply_markup=kb.start())
