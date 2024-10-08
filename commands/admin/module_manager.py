@@ -10,6 +10,7 @@ import config as cfg
 
 MODULES = {}
 CATALOG = {}
+MOD_TYPE = 'games'
 
 
 def load_modules(dp):
@@ -132,41 +133,54 @@ async def catalog_modules(message: types.Message):
         await message.answer("Модули не найдены.")
         return
     
-    module_keys = list(CATALOG.keys())
-    mod = module_keys[0]
+    txt = '🌟 Выберите тип модулей:'
+    colvo = (len(CATALOG['games']), len(CATALOG['events']))
     
-    txt = f'✨ Модуль <code>{CATALOG[mod]["name"]}</code>\n<i>{CATALOG[mod]["description"]}</i>'
-    
-    msg = await message.answer(txt, reply_markup=kb.load_modules_kb(module_keys, 0, user_id, mod, MODULES))
+    msg = await message.answer(txt, reply_markup=kb.load_modules_type(user_id, colvo))
     await new_earning_msg(msg.chat.id, msg.message_id)
 
+
+@antispam_earning
+async def catalog_type(call: types.CallbackQuery):
+    global MOD_TYPE
+    MOD_TYPE = call.data.split('_')[1].split('|')[0]
+    user_id = call.from_user.id
+    module_keys = list(CATALOG[MOD_TYPE].keys())
+    mod = CATALOG[MOD_TYPE][module_keys[0]]
+    name = list(CATALOG[MOD_TYPE].keys())[0]
+
+    txt = f'✨ Модуль <code>{mod["name"]}</code>\n<i>{mod["description"]}</i>'
+
+    await call.message.edit_text(txt, reply_markup=kb.load_modules_kb(module_keys, 0, user_id, name, MODULES))
+    
 
 @antispam_earning
 async def catalog_modules_next(call: types.CallbackQuery):
     user_id = call.from_user.id
     
-    if not CATALOG or len(CATALOG) < 2:
+    if not CATALOG[MOD_TYPE] or len(CATALOG[MOD_TYPE]) < 2:
         return
     
     current_index = int(call.data.split('_')[1])
     type = call.data.split('_')[2].split('|')[0]
-    module_keys = list(CATALOG.keys())
+    module_keys = list(CATALOG[MOD_TYPE].keys())
     
     if type == 'down':
         current_index = (current_index - 1) % len(module_keys)
     else:
         current_index = (current_index + 1) % len(module_keys)
+
+    mod = CATALOG[MOD_TYPE][module_keys[current_index]]
+    name = list(CATALOG[MOD_TYPE].keys())[current_index]
+    txt = f'✨ Модуль <code>{mod["name"]}</code>\n<i>{mod["description"]}</i>'
     
-    mod = module_keys[current_index]
-    txt = f'✨ Модуль <code>{CATALOG[mod]["name"]}</code>\n<i>{CATALOG[mod]["description"]}</i>'
-    
-    await call.message.edit_text(txt, reply_markup=kb.load_modules_kb(module_keys, current_index, user_id, mod, MODULES))
+    await call.message.edit_text(txt, reply_markup=kb.load_modules_kb(module_keys, current_index, user_id, name, MODULES))
     
     
 @antispam_earning
 async def load_mod(call: types.CallbackQuery):
     name = call.data.split('_')[1].split('|')[0]
-    url = CATALOG.get(name, {}).get('url', None)
+    url = CATALOG[MOD_TYPE].get(name, {}).get('url', None)
     
     if not url:
         return
@@ -180,10 +194,32 @@ async def load_mod(call: types.CallbackQuery):
         with open(f'modules/{filename}', "wb") as file:
             file.write(response.content)
         load_new_mod(filename, dp)
-        await call.message.edit_text(f'🌟 <b>Модуль {CATALOG[name]["name"]} загружен!</b>\n<i>{CATALOG[name]["description"]}</i>')
+        await call.message.edit_text(f'🌟 <b>Модуль {CATALOG[MOD_TYPE][name]["name"]} загружен!</b>\n<i>{CATALOG[MOD_TYPE][name]["description"]}</i>')
     else:
         await call.message.edit_text(f'🍎 Ошибка загрузки модуля.')
         
+        
+@admin_only(private=True)
+async def load_mod_cmd(message: types.Message):
+    try:
+        url = message.text.split()[1:]
+        url = ''.join(url)
+
+        msg = await message.answer('<i>⚡️ Загрузка модуля...</i>')
+        await asyncio.sleep(0.3)
+    
+        response = requests.get(url)
+        if response.status_code == 200:
+            filename = url.split('/')[-1]
+            with open(f'modules/{filename}', "wb") as file:
+                file.write(response.content)
+            load_new_mod(filename, dp)
+            await msg.edit_text(f'🌟 Модуль {url} загружен')
+        else:
+            await msg.edit_text('🍎 Ошибка загрузки модуля.')
+    except:
+        await message.answer('🍎 Ошибка загрузки модуля.')
+
 
 def reg(dp: Dispatcher):
     dp.register_message_handler(modules_menu, lambda message: message.text == '🌟 Модули')
@@ -191,5 +227,7 @@ def reg(dp: Dispatcher):
     dp.register_callback_query_handler(load_modules_next, text_startswith='mymodules-list_')
     dp.register_callback_query_handler(dell_mod, text_startswith='dell-modul_')
     dp.register_message_handler(catalog_modules, lambda message: message.text == '📂 Каталог')
+    dp.register_callback_query_handler(catalog_type, text_startswith='mod-catalog_')
     dp.register_callback_query_handler(catalog_modules_next, text_startswith='catalogmod-list_')
     dp.register_callback_query_handler(load_mod, text_startswith='load-modul_')
+    dp.register_message_handler(load_mod_cmd, lambda message: message.text.startswith('/loadmodb '))

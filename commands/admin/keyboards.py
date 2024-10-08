@@ -13,6 +13,13 @@ def my_modules_kb(module_keys, index, user_id, mod):
 	return keyboard
 
 
+def load_modules_type(user_id, colvo):
+	keyboard = InlineKeyboardMarkup(row_width=1)
+	keyboard.add(InlineKeyboardButton(text=f"🕹 Игры ({colvo[0]})", callback_data=f"mod-catalog_games|{user_id}"))
+	keyboard.add(InlineKeyboardButton(text=f"👾 Ивенты ({colvo[1]})", callback_data=f"mod-catalog_events|{user_id}"))
+	return keyboard
+
+
 def load_modules_kb(module_keys, index, user_id, mod, MODULES):
 	keyboard = InlineKeyboardMarkup(row_width=3)
 	keyboard.row(
@@ -86,5 +93,5 @@ def promo_menu():
 	keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
 	keyboard.add(types.KeyboardButton("📖 Создать промо"), types.KeyboardButton("🗑 Удалить промо"))
 	keyboard.add(types.KeyboardButton("ℹ️ Промо инфо"))
-	keyboard.add(types.KeyboardButton("👮 Вернуться в админ меню"))
+	keyboard.add(types.KeyboardButton("🔙 Назад"))
 	return keyboard

@@ -18,7 +18,7 @@ async def balance_cmd(message):
 💰 Деньги: {tr(balance)}$
 💴 Йены: {tr(yen)}¥
 🏦 Банк: {tr(bank)}$
-💽 Биткоины: {btc}🌐
+💽 Биткоины: {tr(btc)}🌐
 
 {ads}''', disable_web_page_preview=True)
 

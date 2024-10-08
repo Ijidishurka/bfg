@@ -207,7 +207,7 @@ async def sellruda_cmd(message: types.Message):
     url = await url_name(user_id)
     txt = message.text.split()
     win, lose = await win_luser()
-    data = await db.get_mine(message)
+    data = await db.get_mine(user_id)
 
     if len(txt) < 2:
         return
@@ -231,12 +231,12 @@ async def sellruda_cmd(message: types.Message):
     }
 
     if ruda in ruda_data:
-        balance = ruda[2]
+        balance = int(ruda_data[ruda][2])
         if len(txt) >= 3:
             try: kolvo = int(txt[2].lower())
             except: return
         else:
-            kolvo = balance
+            kolvo = int(balance)
 
         if kolvo <= 0 or kolvo > balance:
             await message.answer(f'{url}, у вас недостаточно {ruda} {lose}')

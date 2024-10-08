@@ -4,6 +4,7 @@ from commands.db import url_name, get_balance, getstatus
 from commands.main import win_luser
 from assets.transform import transform_int as tr
 from commands.games.db import *
+from assets.antispam import antispam
 
 
 def get_summ(msg, balance, index):
@@ -43,6 +44,7 @@ async def game_check(message, index=1):
     return summ
 
 
+@antispam
 async def darts_cmd(message: types.Message):
     user_id = message.from_user.id
     rwin, rloser = await win_luser()
@@ -68,6 +70,7 @@ async def darts_cmd(message: types.Message):
         await message.answer(f'{rloser} | К сожалению Ваша победа ускользнула от Вас! 🎯️')
 
 
+@antispam
 async def kybik_game_cmd(message: types.Message):
     user_id = message.from_user.id
     rwin, rloser = await win_luser()
@@ -100,6 +103,7 @@ async def kybik_game_cmd(message: types.Message):
         return
 
 
+@antispam
 async def basketbol_cmd(message: types.Message):
     user_id = message.from_user.id
     rwin, rloser = await win_luser()
@@ -124,6 +128,31 @@ async def basketbol_cmd(message: types.Message):
         await message.answer(f'{rwin} | К сожалению вы не попали в кольцо! 🏀')
 
 
+@antispam
+async def football_cmd(message: types.Message):
+    user_id = message.from_user.id
+    url = await url_name(user_id)
+    summ = await game_check(message, 1)
+    
+    if not summ:
+        return
+    
+    rx1 = await message.reply_dice(emoji="⚽️")
+    rx = rx1.dice.value
+    
+    if int(rx) in [3, 5]:
+        c = round(Decimal(summ * 2))
+        await gXX(user_id, c, 1)
+        await message.answer(f'{url}, мяч в воротах, ура! ⚽️\n💰 Ваш приз: {tr(c)}$!')
+    
+    elif int(rx) == 4:
+        await message.answer(f'{url}, мяч попал в штангу, но не в ворота! 😱\n💔 Удача в следующий раз!')
+    else:
+        await gXX(user_id, summ, 0)
+        await message.answer(f'{url}, вы пробили по мячу, но он пролетел мимо! ⚽️💨')
+
+
+@antispam
 async def bowling_cmd(message: types.Message):
     user_id = message.from_user.id
     rwin, rloser = await win_luser()
@@ -148,6 +177,7 @@ async def bowling_cmd(message: types.Message):
         await message.answer(f'{rwin} | К сожалению мимо всех кеглей! 🎳')
 
 
+@antispam
 async def game_casino(message: types.Message):
     user_id = message.from_user.id
     rwin, rloser = await win_luser()
@@ -180,6 +210,7 @@ async def game_casino(message: types.Message):
     await message.answer(txt.replace('<summ>', tr(c)))
 
 
+@antispam
 async def game_spin(message: types.Message):
     user_id = message.from_user.id
     url = await url_name(user_id)
@@ -212,6 +243,7 @@ async def game_spin(message: types.Message):
         await gXX(user_id, summ, 0)
 
 
+@antispam
 async def game_trade(message: types.Message):
     user_id = message.from_user.id
     rwin, rloser = await win_luser()
@@ -236,19 +268,20 @@ async def game_trade(message: types.Message):
         result = 'вниз' if action.lower() == 'вверх' else 'вверх'
 
     if action.lower() == result:
-        payout = int(summ + (summ * random_number / 100))
+        payout = int(summ * random_number / 100)
         await message.answer(f'{url}\n📈 Курс пошёл {result} на {random_number}%\n✅ Ваш выигрыш составил - {tr(payout)}$')
         await gXX(user_id, payout, 1)
     else:
         payout = int(summ - (summ * random_number / 100))
-        await message.answer(f'{url}\n📈 Курс пошёл {result} на {random_number}%\n❌ Ваш выигрыш составил - 0$')
-        await gXXd(user_id, payout, 0)
+        await message.answer(f'{url}\n📈 Курс пошёл {result} на {random_number}%\n❌ Вы проиграли - {tr(payout)}$')
+        await gXX(user_id, payout, 0)
 
 
 def reg(dp: Dispatcher):
     dp.register_message_handler(darts_cmd, lambda message: message.text.lower().startswith('дартс'))
     dp.register_message_handler(kybik_game_cmd, lambda message: message.text.lower().startswith('кубик'))
     dp.register_message_handler(basketbol_cmd, lambda message: message.text.lower().startswith('баскетбол'))
+    dp.register_message_handler(football_cmd, lambda message: message.text.lower().startswith('футбол'))
     dp.register_message_handler(bowling_cmd, lambda message: message.text.lower().startswith('боулинг'))
     dp.register_message_handler(game_casino, lambda message: message.text.lower().startswith('казино'))
     dp.register_message_handler(game_spin, lambda message: message.text.lower().startswith('спин'))

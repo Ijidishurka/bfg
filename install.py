@@ -91,6 +91,10 @@ def main_chek():
             main()
     else:
         return True
+    
+
+def update_db():
+    ...
 
 
 if __name__ == '__main__':

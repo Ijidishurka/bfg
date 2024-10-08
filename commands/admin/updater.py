@@ -1,6 +1,7 @@
 import time, json, sys, os, shutil, requests, subprocess, tempfile
 from assets.antispam import admin_only
 from commands.admin import keyboards as kb
+from install import update_db
 from aiogram import types, Dispatcher
 import config as cfg
 from bot import bot, dp
@@ -23,6 +24,7 @@ async def check_updates():
 		
 		if data['type'] == 'update':
 			txt = f'<b>🏖 Обновление загружено!</b>\n<i>Обновление заняло {ctime:.1f}сек</i>\n\n<tg-spoiler>Официальный канал разработки бота - @copybfg</tg-spoiler>'
+			await update_db()
 		else:
 			txt = f'<b>💫 Бот перезагружен!</b>\n\n<i>Перезагрузка заняла {ctime:.1f}сек</i>'
 		
@@ -44,10 +46,11 @@ async def search_update(force=False, check=False):
 		with open('bot.py', 'r', encoding='utf-8') as file:
 			version = file.readline().strip().split(": ")[1]
 		
-		last_version_int = float(last_version.replace('.', ''))
-		version_int = float(version.replace('.', ''))
+		last_version_int = float(last_version.replace('.', '').replace(',', '.'))
+		version_int = float(version.replace('.', '').replace(',', '.'))
 
 		if last_version_int <= version_int:
+			if_notification = False
 			return False
 		
 		if check:
@@ -81,10 +84,12 @@ async def update_bot(message: types.Message):
 	
 	
 async def bot_update(call: types.CallbackQuery):
+	global if_notification
 	if call.from_user.id not in cfg.admin:
 		return
 	
 	check = await search_update(check=True)
+	if_notification = False
 	
 	if not check:
 		await bot.answer_callback_query(call.id, show_alert=True, text='🤩 У вас уже установлена последняя версия.')
