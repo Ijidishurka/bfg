@@ -93,7 +93,7 @@ def main_chek():
         return True
     
 
-def update_db():
+async def update_db():
     ...
 
 
