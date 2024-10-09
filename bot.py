@@ -1,4 +1,4 @@
-# bot version: 1.3.4
+# bot version: 1.3.4,1
 
 import config as cfg
 from aiogram import Bot, Dispatcher

@@ -1,9 +1,12 @@
 from datetime import datetime
 from aiogram import Dispatcher, types
 from commands.db import reg_user, getban
+from assets.classes import EventManager
 from assets import kb
 import random
 import config as cfg
+
+event_manager = EventManager()
 
 
 CONFIG = {
@@ -22,6 +25,9 @@ CONFIG = {
 
 
 async def on_start(message: types.Message):
+    if len(message.text) >= 2:
+        await event_manager.emit('start_event', {'message': message})
+    
     await reg_user(message.from_user.id)
     ban = await getban(message.from_user.id)
     

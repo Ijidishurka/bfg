@@ -17,6 +17,8 @@ def load_modules_type(user_id, colvo):
 	keyboard = InlineKeyboardMarkup(row_width=1)
 	keyboard.add(InlineKeyboardButton(text=f"🕹 Игры ({colvo[0]})", callback_data=f"mod-catalog_games|{user_id}"))
 	keyboard.add(InlineKeyboardButton(text=f"👾 Ивенты ({colvo[1]})", callback_data=f"mod-catalog_events|{user_id}"))
+	keyboard.add(InlineKeyboardButton(text=f"✨ Разные ({colvo[2]})", callback_data=f"mod-catalog_other|{user_id}"))
+	keyboard.add(InlineKeyboardButton(text=f"⚙️ Системные ({colvo[3]})", callback_data=f"mod-catalog_system|{user_id}"))
 	return keyboard
 
 

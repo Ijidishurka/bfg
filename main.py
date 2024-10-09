@@ -33,6 +33,7 @@ MODULES = [
     'commands.entertaining.case.main',
     'commands.entertaining.earnings.garden.potions',
     'commands.basic.transfer',
+    'commands.basic.rpmod',
     'commands.main',
 ]
 

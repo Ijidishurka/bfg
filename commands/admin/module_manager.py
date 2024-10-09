@@ -134,7 +134,7 @@ async def catalog_modules(message: types.Message):
         return
     
     txt = '🌟 Выберите тип модулей:'
-    colvo = (len(CATALOG['games']), len(CATALOG['events']))
+    colvo = (len(CATALOG['games']), len(CATALOG['events']), len(CATALOG['other']), len(CATALOG['system']))
     
     msg = await message.answer(txt, reply_markup=kb.load_modules_type(user_id, colvo))
     await new_earning_msg(msg.chat.id, msg.message_id)
@@ -145,6 +145,10 @@ async def catalog_type(call: types.CallbackQuery):
     global MOD_TYPE
     MOD_TYPE = call.data.split('_')[1].split('|')[0]
     user_id = call.from_user.id
+    
+    if len(CATALOG[MOD_TYPE]) == 0:
+        return
+    
     module_keys = list(CATALOG[MOD_TYPE].keys())
     mod = CATALOG[MOD_TYPE][module_keys[0]]
     name = list(CATALOG[MOD_TYPE].keys())[0]
