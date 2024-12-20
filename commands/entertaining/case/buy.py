@@ -19,7 +19,7 @@ async def buy_case(message: types.Message):
         await message.answer(f'''{url}, вы ввели не числовые данные для покупки кейсов {lose}''')
         return
 
-    if arg > 1000:
+    if arg > 1000 or arg <= 0:
         return
 
     if case in [1, 2]:
