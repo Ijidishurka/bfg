@@ -339,3 +339,8 @@ async def chek_user(user_id):
 
 async def get_doplimit(user_id):
     return cursor.execute('SELECT perlimit FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]
+
+
+async def reset_limit():
+    cursor.execute('UPDATE users SET per = 0')
+    conn.commit()

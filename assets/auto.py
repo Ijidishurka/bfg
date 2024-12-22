@@ -9,6 +9,7 @@ from commands.entertaining.earnings.garden.db import autogarden
 from commands.entertaining.earnings.generator.db import autogen
 from commands.entertaining.earnings.tree.db import autotree
 from commands.admin.updater import search_update, check_updates
+from commands.db import reset_limit
 
 from bot import bot
 import config as cfg
@@ -43,6 +44,7 @@ async def autocommands3():
 async def autocommands4():
     await search_update(force=True)
     await autobank()
+    await reset_limit()
 
 
 async def upd_bot_username():
@@ -50,6 +52,7 @@ async def upd_bot_username():
     cfg.bot_username = bot_info.username
     await check_updates()
     await search_update()
+    await reset_limit()
 
 
 async def auto_clear():

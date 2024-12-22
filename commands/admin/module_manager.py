@@ -1,3 +1,4 @@
+import install
 import asyncio
 import os
 import requests
