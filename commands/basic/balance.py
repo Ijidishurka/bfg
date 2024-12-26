@@ -1,74 +1,56 @@
-from datetime import datetime
 from aiogram import Dispatcher, types
-from commands.db import getstatus, getbalance, getads, getpofildb, url_name, chek_user
+from commands.db import getpofildb, chek_user
 from assets.antispam import antispam, new_earning_msg, antispam_earning
-from assets.transform import transform as trt
-from assets.transform import transform_int as tr
 from commands.basic.property import lists
 from assets import kb
-from bot import bot
+
+from user import BFGuser, BFGconst
 
 
 @antispam
-async def balance_cmd(message):
-    name, balance, btc, bank, yen = await getbalance(message.from_user.id)
-    ads = await getads()
+async def balance_cmd(message: types.Message, user: BFGuser):
+    await message.answer(f'''👫 Ник: {user.name}
+💰 Деньги: {user.balance.tr()}$
+💴 Йены: {user.yen.tr()}¥
+🏦 Банк: {user.bank.tr()}$
+💽 Биткоины: {user.btc.tr()}🌐
 
-    await message.answer(f'''👫 Ник: {name}
-💰 Деньги: {tr(balance)}$
-💴 Йены: {tr(yen)}¥
-🏦 Банк: {tr(bank)}$
-💽 Биткоины: {tr(btc)}🌐
-
-{ads}''', disable_web_page_preview=True)
+{BFGconst.ads}''', disable_web_page_preview=True)
 
 
 @antispam
-async def btc_cmd(message):
-    name, _, btc, _, _ = await getbalance(message.from_user.id)
-    await message.answer(f'{name}, на вашем балансе {tr(btc)} BTC 🌐', disable_web_page_preview=True)
+async def btc_cmd(message: types.Message, user: BFGuser):
+    await message.answer(f'{user.url}, на вашем балансе {user.btc.tr()} BTC 🌐', disable_web_page_preview=True)
 
 
-async def creat_help_msg(user_id, profil):
-    status = await getstatus(user_id)
-    url = await url_name(user_id)
-    profil = profil.format(url)
-
-    data, _, _ = await getpofildb(user_id)
-
-    status_dict = {0: "Обычный", 1: "Standart VIP", 2: "Gold VIP", 3: "Platinum VIP", 4: "Администратор"}
-    st = status_dict.get(status, status_dict[0])
-    dregister = datetime.fromtimestamp(data[6]).strftime('%Y-%m-%d в %H:%M:%S')
+async def creat_help_msg(profil, user: BFGuser):
+    profil = profil.format(user.url)
 
     text = f'''{profil}
-🪪 ID: {data[21]}
-🏆 Статус: {st}
-💰 Денег: {trt(data[2])}$
-💴 Йены: {trt(data[22])}¥
-🏦 В банке: {trt(data[4])}$
-💳 B-Coins: {trt(data[15])}
-💽 Биткоины: {trt(data[3])}฿
-🏋 Энергия: {data[8]}
-👑 Рейтинг: {trt(data[13])}
-🌟 Опыт: {tr(data[7])}
-🎲 Всего сыграно игр: {tr(data[14])}
+🪪 ID: {user.user_id}
+🏆 Статус: {user.Fstatus}
+💰 Денег: {user.balance.tr()}$
+💴 Йены: {user.yen.tr()}¥
+🏦 В банке: {user.bank.tr()}$
+💳 B-Coins: {user.bcoins.tr()}
+💽 Биткоины: {user.btc.tr()}฿
+🏋 Энергия: {user.energy}
+👑 Рейтинг: {user.rating.tr()}
+🌟 Опыт: {user.expe.tr()}
+🎲 Всего сыграно игр: {user.games.tr()}
 
-<blockquote>📅 Дата регистрации:\n{dregister}</blockquote>'''
+<blockquote>📅 Дата регистрации:\n{user.Fregister}</blockquote>'''
     return text
 
 
 @antispam
-async def profil_cmd(message):
-    user_id = message.from_user.id
-    msg = message.text
-
+async def profil_cmd(message: types.Message, user: BFGuser):
     profil = '{0}, ваш профиль:'
 
-    if len(msg.split()) >= 2:
-        status = await getstatus(user_id)
+    if len(message.text.split()) >= 2:
         try:
-            user_id = int(msg.split()[1])
-            if status != 4:
+            user_id = int(message.text.split()[1])
+            if user.status != 4:
                 await message.answer(f'❌ Вы не администратор чтобы просматривать профили.')
                 return
 
@@ -80,13 +62,13 @@ async def profil_cmd(message):
         except:
             pass
 
-    text = await creat_help_msg(user_id, profil)
-    msg = await message.answer(text, reply_markup=kb.profil(user_id))
+    text = await creat_help_msg(profil, user)
+    msg = await message.answer(text, reply_markup=kb.profil(user.user_id))
     await new_earning_msg(msg.chat.id, msg.message_id)
 
 
 @antispam_earning
-async def profil_busines(call: types.CallbackQuery):
+async def profil_busines(call: types.CallbackQuery, user: BFGuser):
     _, business, _ = await getpofildb(call.from_user.id)
 
     txt = ''
@@ -96,12 +78,11 @@ async def profil_busines(call: types.CallbackQuery):
     if business[3]: txt += '\n  ⛏ Генератор: Генератор'
     if txt == '': txt = '\n🥲 У вас нету бизнесов'
 
-    await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                                text=f'🧳 Ваши бизнесы:{txt}', reply_markup=kb.profil_back(call.from_user.id))
+    await call.message.edit_text(text=f'🧳 Ваши бизнесы:{txt}', reply_markup=kb.profil_back(call.from_user.id))
 
 
 @antispam_earning
-async def profil_property(call: types.CallbackQuery):
+async def profil_property(call: types.CallbackQuery, user: BFGuser):
     _, _, data = await getpofildb(call.from_user.id)
 
     txt = ''
@@ -131,15 +112,13 @@ async def profil_property(call: types.CallbackQuery):
 
     if txt == '': txt = '\n🥲 У вас нету имущества'
 
-    await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                                text=f'📦 Ваше имущество:{txt}', reply_markup=kb.profil_back(call.from_user.id))
+    await call.message.edit_text(text=f'📦 Ваше имущество:{txt}', reply_markup=kb.profil_back(call.from_user.id))
 
 
 @antispam_earning
-async def profil_back(call: types.CallbackQuery):
-    text = await creat_help_msg(call.from_user.id, '{0}, ваш профиль:')
-    await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                                text=text, reply_markup=kb.profil(call.from_user.id))
+async def profil_back(call: types.CallbackQuery, user: BFGuser):
+    text = await creat_help_msg('{0}, ваш профиль:', user)
+    await call.message.edit_text(text=text, reply_markup=kb.profil(call.from_user.id))
 
 
 def reg(dp: Dispatcher):

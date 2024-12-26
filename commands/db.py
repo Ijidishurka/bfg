@@ -191,9 +191,28 @@ cursor.execute('''CREATE TABLE IF NOT EXISTS property (
 current_kurs = cursor.execute('SELECT kursbtc FROM sett').fetchone()
 if current_kurs is None:
     cursor.execute('INSERT INTO sett (ads, kursbtc) VALUES (?, ?)', ('', 65000))
+    
+    
+async def get_user_info(user_id: int) -> tuple:
+    user = cursor.execute("SELECT * FROM users WHERE user_id = ?", (user_id,)).fetchone()
+    mine = cursor.execute("SELECT * FROM mine WHERE user_id = ?", (user_id,)).fetchone()
+    property = cursor.execute("SELECT * FROM property WHERE user_id = ?", (user_id,)).fetchone()
+    ferma = cursor.execute("SELECT * FROM ferma WHERE user_id = ?", (user_id,)).fetchone()
+    business = cursor.execute("SELECT * FROM business WHERE user_id = ?", (user_id,)).fetchone()
+    garden = cursor.execute("SELECT * FROM garden WHERE user_id = ?", (user_id,)).fetchone()
+    generator = cursor.execute("SELECT * FROM generator WHERE user_id = ?", (user_id,)).fetchone()
+    quarry = cursor.execute("SELECT * FROM quarry WHERE user_id = ?", (user_id,)).fetchone()
+    tree = cursor.execute("SELECT * FROM tree WHERE user_id = ?", (user_id,)).fetchone()
+    
+    return user, mine, property, ferma, business, garden, generator, quarry, tree
 
 
-async def get_new_id():
+async def sql_zapros(sql: str, summ: int, user_id: int) -> None:
+    cursor.execute(sql, (summ, user_id))
+    conn.commit()
+
+
+async def get_new_id() -> int:
     cursor.execute("SELECT COUNT(*) FROM users")
     new_id = 100 + cursor.fetchone()[0]
     
@@ -203,7 +222,7 @@ async def get_new_id():
     return new_id
 
 
-async def reg_user(user_id):
+async def reg_user(user_id: int) -> None:
     ex = cursor.execute('SELECT name FROM users WHERE user_id = ?', (user_id,)).fetchone()
     if not ex:
         dt = int(datetime.now().timestamp())
@@ -214,7 +233,7 @@ async def reg_user(user_id):
         conn.commit()
 
 
-async def getperevod(perevod, user_id, reply_user_id):
+async def getperevod(perevod: int | str, user_id: int, reply_user_id: int) -> None:
     balance = cursor.execute('SELECT balance FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]
     r_balance = cursor.execute('SELECT balance FROM users WHERE user_id = ?', (reply_user_id,)).fetchone()[0]
     per = cursor.execute('SELECT per FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]
@@ -227,18 +246,14 @@ async def getperevod(perevod, user_id, reply_user_id):
     cursor.execute(f'UPDATE users SET balance = ? WHERE user_id = ?', (str(r_balance), reply_user_id))
     cursor.execute(f'UPDATE users SET per = ? WHERE user_id = ?', (str(per), user_id))
     conn.commit()
+    
+    
+async def url_name(user_id: int) -> str:
+    name = cursor.execute('SELECT name FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]
+    return f'<a href="tg://user?id={user_id}">{name}</a>'
 
 
-async def get_name(user_id):
-    return cursor.execute('SELECT name FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]
-
-
-async def getbalance(user_id):
-    data = cursor.execute('SELECT name, balance, btc, bank, yen FROM users WHERE user_id = ?', (user_id,)).fetchone()
-    return data[0], int(float(data[1])), int(float(data[2])), data[3], int(data[4])
-
-
-async def getpofildb(user_id):
+async def getpofildb(user_id: int) -> tuple:
     data = cursor.execute('SELECT * FROM users WHERE user_id = ?', (user_id,)).fetchone()
 
     ferma = cursor.execute('SELECT user_id FROM ferma WHERE user_id = ?', (user_id,)).fetchone()
@@ -251,69 +266,39 @@ async def getpofildb(user_id):
     return data, (ferma, business, garden, generator), property
 
 
-async def get_balance(user_id):
-    i = cursor.execute('SELECT balance FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]
-    return int(Decimal(i))
-
-
-async def getlimitdb(message):
-    user_id = message.from_user.id
-    i = cursor.execute('SELECT per FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]
-    return int(i)
-
-
-async def getads(message=None):
+async def getads(message=None) -> str:
     ads = cursor.execute("SELECT ads FROM sett").fetchone()[0]
     ads = ads.replace(r'\n', '\n')
     return ads
 
 
-async def setname(name, id):
-    cursor.execute("UPDATE users SET name = ? WHERE user_id = ?", (name, id))
-    conn.commit()
-
-
-async def bonus_db(user_id, table, v, summ):
-    if table == 'users' and v == 'balance':
-        balance = cursor.execute('SELECT balance FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]
-        summ = Decimal(balance) + Decimal(summ)
-        cursor.execute(f"UPDATE users SET balance = ? WHERE user_id = ?", (str(summ), user_id))
-    else:
-        cursor.execute(f"UPDATE {table} SET {v} = {v} + ? WHERE user_id = ?", (summ, user_id))
-    conn.commit()
-
-
-async def top_db(id, st, table='users'):
+async def top_db(user_id: int, st: str, table='users') -> tuple:
     cursor.execute(f"SELECT * FROM {table} ORDER BY CAST({st} AS REAL) DESC LIMIT 1000")
     top_players = cursor.fetchall()
 
-    cursor.execute(f"SELECT * FROM {table} WHERE user_id = ?", (id,))
+    cursor.execute(f"SELECT * FROM {table} WHERE user_id = ?", (user_id,))
     userinfo = cursor.fetchone()
     return userinfo, top_players
 
 
-async def top_clans_db(id):
+async def top_clans_db(user_id: int) -> tuple:
     top_clans = cursor.execute(f"SELECT * FROM clans ORDER BY CAST(ratting AS REAL) DESC LIMIT 1000").fetchall()
-    claninfo = cursor.execute(f"SELECT * FROM clan WHERE user_id = ?", (id,)).fetchone()
+    claninfo = cursor.execute(f"SELECT * FROM clan WHERE user_id = ?", (user_id,)).fetchone()
     return claninfo, top_clans
 
 
-async def get_colvo_users():
+async def get_colvo_users() -> tuple:
     users = cursor.execute(f"SELECT COUNT(*) FROM users").fetchone()[0]
     chats = cursor.execute(f"SELECT COUNT(*) FROM chats").fetchone()[0]
     uchats = cursor.execute("SELECT SUM(users) FROM chats").fetchone()[0]
     return users, chats, uchats
 
 
-async def getstatus(id):
-    return cursor.execute(f"SELECT status FROM users WHERE user_id = ?", (id,)).fetchone()[0]
+async def getban(user_id: int) -> tuple:
+    return cursor.execute(f"SELECT * FROM ban_list WHERE user_id = ?", (user_id,)).fetchone()
 
 
-async def getban(id):
-    return cursor.execute(f"SELECT * FROM ban_list WHERE user_id = ?", (id,)).fetchone()
-
-
-async def upd_chat_db(chat_id):
+async def upd_chat_db(chat_id: int) -> None:
     res = cursor.execute(f"SELECT users FROM chats WHERE chat_id = ?", (chat_id,)).fetchone()
     if not res:
         cursor.execute('INSERT INTO chats (chat_id, users) VALUES (?, ?)', (chat_id, 0))
@@ -328,19 +313,19 @@ async def upd_chat_db(chat_id):
         conn.commit()
 
 
-async def url_name(user_id):
-    name = cursor.execute('SELECT name FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]
-    return f'<a href="tg://user?id={user_id}">{name}</a>'
+async def chek_user(user_id: int) -> str:
+    return cursor.execute('SELECT name FROM users WHERE user_id = ?', (user_id,)).fetchone()
 
 
-async def chek_user(user_id):
-    return cursor.execute('SELECT user_id FROM users WHERE user_id = ?', (user_id,)).fetchone()
-
-
-async def get_doplimit(user_id):
-    return cursor.execute('SELECT perlimit FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]
-
-
-async def reset_limit():
+async def reset_limit() -> None:
     cursor.execute('UPDATE users SET per = 0')
     conn.commit()
+    
+    
+async def setname(name: str, user_id: int) -> None:
+    cursor.execute('UPDATE users SET name = ? WHERE user_id = ?', (name, user_id))
+    conn.commit()
+    
+    
+async def get_name(user_id: int) -> str:
+    return cursor.execute('SELECT name FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]

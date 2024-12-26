@@ -1,17 +1,15 @@
 from aiogram import Dispatcher, types
-from commands.entertaining.earnings.business.db import *
-from commands.db import get_balance, url_name, get_name
-from commands.main import win_luser
 from assets import kb
-from assets.antispam import antispam_earning, new_earning_msg, antispam
+from assets.transform import transform_int as tr
+from assets.antispam import antispam_earning, new_earning, antispam
+from commands.entertaining.earnings.business import db
 from bot import bot
+from user import BFGuser, BFGconst
 
 
 @antispam
-async def business_list(message):
-    user_id = message.from_user.id
-    url = await url_name(user_id)
-    await message.answer(f'''{url}, теперь ты можешь принимать решения сам и влиять на свой бизнес.
+async def business_info(message: types.Message, user: BFGuser):
+    await message.answer(f'''{user.url}, теперь ты можешь принимать решения сам и влиять на свой бизнес.
 
 🪓 Для начала я проведу тебе маленький инструктаж по поводу данных бизнесов, ты не можешь просто купить бизнес и начать зарабатывать на нём. Теперь вам предоставлена возможность самому влиять на доход, увеличить территорию бизнеса, закупать продукты и платить налоги в казну штата.
 
@@ -21,190 +19,171 @@ async def business_list(message):
 
 
 @antispam
-async def my_business(message):
-    user_id = message.from_user.id
-    url = await url_name(user_id)
-    rwin, rloser = await win_luser()
-    data = await getbusiness(user_id)
-    if not data:
-        await message.answer(f'{url}, у вас нет своего бизнеса чтобы построить введите команду "Построить бизнес" {rloser}')
+async def my_business(message: types.Message, user: BFGuser):
+    business = user.business
+    win, lose = BFGconst.emj()
+    
+    if not business:
+        await message.answer(f'{user.url}, у вас нет своего бизнеса чтобы построить введите команду "Построить бизнес" {lose}')
         return
 
-    dox = int(90000000 * data[4] / 15)
-    balance = '{:,}'.format(int(data[1])).replace(',', '.')
-    nalogs = '{:,}'.format(int(data[2])).replace(',', '.')
-    territory = '{:,}'.format(data[3]).replace(',', '.')
-    bsterritory = '{:,}'.format(data[4]).replace(',', '.')
-    dox = '{:,}'.format(dox).replace(',', '.')
-
-    ch = int(22000000 * (1 + 0.15) ** (data[3] - 4))
-    ch = '{:,}'.format(ch).replace(',', '.')
-
-    ch2 = int(22000000 * (1 + 0.15) ** (data[4] - 1))
-    ch2 = '{:,}'.format(ch2).replace(',', '.')
-
-    msg = await message.answer(f'''{url}, информация о вашем бизнесе "Бизнес":
-🧱 Территория: {territory} м²
-🆙 для следующего уровня: {ch}$
-🏢 Территория бизнеса: {bsterritory} м²
-🆙 для следующего уровня: {ch2}$
-
-💷 Доход: {dox}$
-💸 Налоги: {nalogs}$/5.000.000$
-💰 Прибыль: {balance}$''', reply_markup=kb.business(user_id))
-    await new_earning_msg(msg.chat.id, msg.message_id)
+    await upd_business_text(message, user, action='send')
 
 
-async def upd_business_text(call: types.CallbackQuery):
-    uid = call.from_user.id
-    url = await url_name(uid)
-    data = await getbusiness(uid)
-    if not data:
+async def upd_business_text(call: types.CallbackQuery, user: BFGuser, action='edit'):
+    business = user.business
+    
+    if action == 'edit':
+        await user.update()
+
+    dox = int(90000000 * business.bsterritory.get() / 15)
+    ch = int(22000000 * (1 + 0.15) ** (business.territory.get() - 4))
+    ch2 = int(22000000 * (1 + 0.15) ** (business.bsterritory.get() - 1))
+
+    txt = f'''{user.url}, информация о вашем бизнесе "Бизнес":
+🧱 Территория: {business.territory.tr()} м²
+🆙 для следующего уровня: {tr(ch)}$
+🏢 Территория бизнеса: {business.bsterritory.tr()} м²
+🆙 для следующего уровня: {tr(ch2)}$
+
+💷 Доход: {tr(dox)}$
+💸 Налоги: {business.nalogs.tr()}$/5.000.000$
+💰 Прибыль: {business.balance.tr()}$'''
+    
+    try:
+        if action == 'edit':
+            await call.message.edit_text(text=txt, reply_markup=kb.business(user.user_id))
+        else:
+            msg = await call.answer(text=txt, reply_markup=kb.business(user.user_id))
+            await new_earning(msg)
+    except:
         return
-
-    dox = int(90000000 * data[4] / 15)
-    balance = '{:,}'.format(int(data[1])).replace(',', '.')
-    nalogs = '{:,}'.format(int(data[2])).replace(',', '.')
-    territory = '{:,}'.format(data[3]).replace(',', '.')
-    bsterritory = '{:,}'.format(data[4]).replace(',', '.')
-    dox = '{:,}'.format(dox).replace(',', '.')
-
-    ch = int(22000000 * (1 + 0.15) ** (data[3] - 4))
-    ch = '{:,}'.format(ch).replace(',', '.')
-
-    ch2 = int(22000000 * (1 + 0.15) ** (data[4] - 1))
-    ch2 = '{:,}'.format(ch2).replace(',', '.')
-
-    try: await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=f'''
-{url}, информация о вашем бизнесе "Бизнес":
-🧱 Территория: {territory} м²
-🆙 для следующего уровня: {ch}$
-🏢 Территория бизнеса: {bsterritory} м²
-🆙 для следующего уровня: {ch2}$
-
-💷 Доход: {dox}$
-💸 Налоги: {nalogs}$/5.000.000$
-💰 Прибыль: {balance}$''', reply_markup=kb.business(uid))
-    except: pass
 
 
 @antispam
-async def buy_business(message):
-    user_id = message.from_user.id
-    url = await url_name(user_id)
-    rwin, rloser = await win_luser()
-    data = await getbusiness(user_id)
+async def buy_business(message: types.Message, user: BFGuser):
+    win, lose = BFGconst.emj()
+    business = user.business
 
-    if data:
-        await message.answer(f'{url}, у вас уже есть построенная территория под бизнес. Чтобы узнать подробнее, введите "Мой бизнес" {rloser}')
+    if business:
+        await message.answer(f'{user.url}, у вас уже есть построенная территория под бизнес. Чтобы узнать подробнее, введите "Мой бизнес" {lose}')
         return
 
-    balance = await get_balance(user_id)
-    if balance < 500000000:
-        await message.answer(f'{url}, у вас недостаточно денег для постройки территории бизнеса. Её стоимость 500 млн$ {rloser}')
-    else:
-        await buy_business_db(user_id)
-        await message.answer(f'{url}, вы успешно построили свой бизнес для подробностей введите "Мой бизнес" {rwin}')
+    if int(user.balance) < 500_000_000:  # при изменении стоимости, меняйте ее также в бд...
+        await message.answer(f'{user.url}, у вас недостаточно денег для постройки территории бизнеса. Её стоимость 500 млн$ {lose}')
+        return
+
+    await db.buy_business(user.user_id)
+    await message.answer(f'{user.url}, вы успешно построили свой бизнес для подробностей введите "Мой бизнес" {win}')
 
 
 @antispam_earning
-async def buy_territory(call: types.CallbackQuery):
-    user_id = call.from_user.id
-    url = await get_name(user_id)
-    rwin, rloser = await win_luser()
-    data = await getbusiness(user_id)
+async def buy_territory(call: types.CallbackQuery, user: BFGuser):
+    win, lose = BFGconst.emj()
+    business = user.business
 
-    if not data:
+    if not business:
        return
 
-    ch = int(22000000 * (1 + 0.15) ** (data[3] - 4))
-    ch2 = '{:,}'.format(ch).replace(',', '.')
-    balance = await get_balance(user_id)
+    ch = int(22000000 * (1 + 0.15) ** (business.territory.get() - 4))
 
-    if balance < ch:
-        await bot.answer_callback_query(call.id, text=f'{url}, у вас недостаточно денег на балансе чтобы увеличить территорию бизнеса {rloser}')
-    else:
-        await buy_territory_db(user_id, ch)
-        await bot.answer_callback_query(call.id, text=f'{url}, вы успешно увеличили территорию бизнеса на 1 м² за {ch2}$ {rwin}')
-        await upd_business_text(call)
+    if int(user.balance) < ch:
+        await bot.answer_callback_query(call.id, text=f'{user.name}, у вас недостаточно денег на балансе чтобы увеличить территорию бизнеса {lose}')
+        return
+        
+    await db.buy_territory(user.user_id, ch)
+    await bot.answer_callback_query(call.id, text=f'{user.name}, вы успешно увеличили территорию бизнеса на 1 м² за {tr(ch)}$ {win}')
+    await upd_business_text(call, user)
 
 
 @antispam_earning
-async def buy_bsterritory(call: types.CallbackQuery):
-    user_id = call.from_user.id
-    url = await get_name(user_id)
-    rwin, rloser = await win_luser()
-    data = await getbusiness(user_id)
+async def buy_bsterritory(call: types.CallbackQuery, user: BFGuser):
+    win, lose = BFGconst.emj()
+    business = user.business
 
-    if not data:
+    if not business:
         return
 
-    if data[3] <= data[4]:
-        await bot.answer_callback_query(call.id, text=f'{url}, чтобы увеличить бизнес для начала увеличьте его территорию {rloser}')
+    if business.territory.get() <= business.bsterritory.get():
+        await bot.answer_callback_query(call.id, text=f'{user.name}, чтобы увеличить бизнес для начала увеличьте его территорию {lose}')
         return
 
-    ch = int(22000000 * (1 + 0.15) ** (data[4] - 1))
-    ch2 = '{:,}'.format(ch).replace(',', '.')
-    balance = await get_balance(user_id)
+    ch = int(22000000 * (1 + 0.15) ** (business.bsterritory.get() - 1))
 
-    if balance < ch:
-        await bot.answer_callback_query(call.id, text=f'{url}, у вас недостаточно денег на балансе чтобы увеличить бизнес {rloser}')
-    else:
-        await buy_bsterritory_db(user_id, ch)
-        await bot.answer_callback_query(call.id, text=f'{url}, вы успешно увеличили бизнес на 1 м² за {ch2}$ {rwin}')
-        await upd_business_text(call)
+    if int(user.balance) < ch:
+        await bot.answer_callback_query(call.id, text=f'{user.name}, у вас недостаточно денег на балансе чтобы увеличить бизнес {lose}')
+        return
+
+    await db.buy_bsterritory(user.user_id, ch)
+    await bot.answer_callback_query(call.id, text=f'{user.name}, вы успешно увеличили бизнес на 1 м² за {tr(ch)}$ {win}')
+    await upd_business_text(call, user)
 
 
 @antispam_earning
-async def snyt_pribl_business(call: types.CallbackQuery):
-    user_id = call.from_user.id
-    url = await get_name(user_id)
-    rwin, rloser = await win_luser()
-    data = await getbusiness(user_id)
+async def withdraw_profit(call: types.CallbackQuery, user: BFGuser):
+    win, lose = BFGconst.emj()
+    business = user.business
 
-    if not data:
+    if not business:
         return
 
-    if data[1] == 0:
-        await bot.answer_callback_query(call.id, text=f'{url}, на данный момент на балансе вашего бизнеса нет прибыли {rloser}')
-    else:
-        balance2 = '{:,}'.format(data[1]).replace(',', '.')
-        await snyt_pribl_bs_db(user_id, data[1])
-        await bot.answer_callback_query(call.id, text=f'{url}, вы успешно сняли {balance2}$ с баланса вашего бизнеса {rwin}')
-        await upd_business_text(call)
+    if business.balance.get() == 0:
+        await bot.answer_callback_query(call.id, text=f'{user.name}, на данный момент на балансе вашего бизнеса нет прибыли {lose}')
+        return
+
+    await db.withdraw_profit(user.user_id, business.balance.get())
+    await bot.answer_callback_query(call.id, text=f'{user.name}, вы успешно сняли {business.balance.tr()}$ с баланса вашего бизнеса {win}')
+    await upd_business_text(call, user)
 
 
 @antispam_earning
-async def oplata_nalogov_business(call: types.CallbackQuery):
-    user_id = call.from_user.id
-    url = await get_name(user_id)
-    rwin, rloser = await win_luser()
-    data = await getbusiness(user_id)
-
-    if not data:
+async def payment_taxes(call: types.CallbackQuery, user: BFGuser):
+    win, lose = BFGconst.emj()
+    business = user.business
+    
+    if not business:
         return
 
-    nalogs2 = '{:,}'.format(data[2]).replace(',', '.')
-    balance = await get_balance(user_id)
-
-    if balance < data[2]:
-        await bot.answer_callback_query(call.id, text=f'{url}, у вас недостаточно денег чтоб оплатить налоги {rloser}')
+    if int(user.balance) < int(business.nalogs):
+        await bot.answer_callback_query(call.id, text=f'{user.name}, у вас недостаточно денег чтоб оплатить налоги {lose}')
         return
 
-    if data[2] == 0:
-        await bot.answer_callback_query(call.id, text=f'{url}, у вас нет налогов чтобы их оплатить {rwin}')
+    if business.nalogs.get() == 0:
+        await bot.answer_callback_query(call.id, text=f'{user.name}, у вас нет налогов чтобы их оплатить {win}')
         return
 
-    await oplata_nalogs_bs_db(user_id, data[2])
-    await bot.answer_callback_query(call.id, text=f'{url}, вы успешно оплатили налоги на сумму {nalogs2}$ с вашего игрового баланса {rwin}')
-    await upd_business_text(call)
+    await db.payment_taxes(user.user_id, business.nalogs.get())
+    await bot.answer_callback_query(call.id, text=f'{user.name}, вы успешно оплатили налоги на сумму {business.nalogs.tr()}$ с вашего игрового баланса {win}')
+    await upd_business_text(call, user)
+    
+    
+@antispam
+async def sell_business(message: types.Message, user: BFGuser):
+    win, lose = BFGconst.emj()
+    business = user.business
+    
+    if not business:
+        await message.answer(f'{user.url}, у вас нет своего бизнеса чтобы построить введите команду "Построить бизнес" {lose}')
+        return
+    
+    summ = 250_000_000  # Половина стоимости бизнеса
+    
+    for i in range(6, business.territory.get() + 1):  # Компенсация за территорию (50%)
+        summ += int(22_000_000 * (1 + 0.15) ** (i - 4)) // 2
+        
+    for i in range(6, business.bsterritory.get() + 1):  # Компенсация за территорию бизнеса (50%)
+        summ += int(22_000_000 * (1 + 0.15) ** (i - 1))
+    
+    await db.sell_business(user.user_id, summ)
+    await message.answer(f'{user.url}, Вы успешно продали свой бизнес за {tr(summ)}$ {win}')
 
 
 def reg(dp: Dispatcher):
-    dp.register_message_handler(my_business, lambda message: message.text.lower().startswith('мой бизнес'))
-    dp.register_message_handler(business_list, lambda message: message.text.lower().startswith('бизнес'))
-    dp.register_message_handler(buy_business, lambda message: message.text.lower().startswith('построить бизнес'))
-    dp.register_callback_query_handler(snyt_pribl_business, text_startswith='business-sobrat')
+    dp.register_message_handler(my_business, lambda message: message.text.lower() == 'мой бизнес')
+    dp.register_message_handler(business_info, lambda message: message.text.lower() == 'бизнес')
+    dp.register_message_handler(buy_business, lambda message: message.text.lower() == 'построить бизнес')
+    dp.register_callback_query_handler(withdraw_profit, text_startswith='business-sobrat')
     dp.register_callback_query_handler(buy_territory, text_startswith='business-ter')
     dp.register_callback_query_handler(buy_bsterritory, text_startswith='business-bis')
-    dp.register_callback_query_handler(oplata_nalogov_business, text_startswith='business-nalog')
+    dp.register_callback_query_handler(payment_taxes, text_startswith='business-nalog')
+    dp.register_message_handler(sell_business, lambda message: message.text.lower() == 'продать бизнес')

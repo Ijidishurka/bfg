@@ -7,14 +7,10 @@ import config as cfg
 from bot import bot, dp
 import asyncio
 
-from assets.antispam import earning_msg
-from assets.gettime import bonus_time, kazna_time
-from commands.help import help_msg
-
 if_notification = False
 
 
-async def check_updates():
+async def check_updates() -> None:
 	if os.path.exists('updates.json'):
 		with open('updates.json', 'r') as json_file:
 			data = json.load(json_file)
@@ -31,11 +27,11 @@ async def check_updates():
 		await bot.edit_message_text(chat_id=data['message'][0], message_id=data['message'][1], text=txt)
 	
 
-async def search_update(force=False, check=False):
+async def search_update(force=False, check=False) -> bool:
 	global if_notification
 	try:
 		if not check and if_notification and not force:
-			return
+			return False
 		
 		response = requests.get("https://raw.githubusercontent.com/Ijidishurka/bfg/refs/heads/main/bot.py")
 		response.raise_for_status()
@@ -63,8 +59,10 @@ async def search_update(force=False, check=False):
 		txt = f'<b>🔍 Доступно обновление 🛎</b>\nЧто нового?\n\n<i>{response.text}</i>'
 		
 		for admin in cfg.admin:
-			try: await bot.send_message(admin, txt, reply_markup=kb.update_bot(), disable_web_page_preview=True)
-			except: pass
+			try:
+				await bot.send_message(admin, txt, reply_markup=kb.update_bot(), disable_web_page_preview=True)
+			except:
+				pass
 				
 	except Exception as e:
 		print(f"Ошибка при попытке найти обновление: {e}")
@@ -72,26 +70,32 @@ async def search_update(force=False, check=False):
 
 @admin_only(private=True)
 async def update_bot(message: types.Message):
+	forse = False
 	check = await search_update(check=True)
-	if not check:
+	if not check and '-f' not in message.text:
 		await message.answer(f'<b>😄 У вас установлена последняя версия бота!</b>\n Вы также можете попробовать <a href="https://github.com/Ijidishurka/bfg">обновиться вручную</a>', disable_web_page_preview=True)
 		return
 	
-	response = requests.get("https://raw.githubusercontent.com/Ijidishurka/bfg/refs/heads/main/update_list.txt")
-	txt = f'<b>🔍 Доступно обновление 🛎</b>\nЧто нового?\n\n<i>{response.text}</i>'
+	if not check:
+		txt = '⚠️ У вас уже установлена последняя версия бота.\n<i>Нажмите на кнопку ниже, если вы хотите</i> <a href="https://github.com/Ijidishurka/bfg">обновить файлы бота</a>'
+		forse = True
+	else:
+		response = requests.get("https://raw.githubusercontent.com/Ijidishurka/bfg/refs/heads/main/update_list.txt")
+		txt = f'<b>🔍 Доступно обновление 🛎</b>\nЧто нового?\n\n<i>{response.text}</i>'
 
-	await message.answer(txt, reply_markup=kb.update_bot(), disable_web_page_preview=True)
+	await message.answer(txt, reply_markup=kb.update_bot(forse=forse), disable_web_page_preview=True)
 	
 	
-async def bot_update(call: types.CallbackQuery):
+async def bot_update(call: types.CallbackQuery) -> None:
 	global if_notification
 	if call.from_user.id not in cfg.admin:
 		return
 	
 	check = await search_update(check=True)
+	forse = int(call.data.split('_')[1])
 	if_notification = False
 	
-	if not check:
+	if not check and forse == 0:
 		await bot.answer_callback_query(call.id, show_alert=True, text='🤩 У вас уже установлена последняя версия.')
 		return
 	
@@ -102,30 +106,25 @@ async def bot_update(call: types.CallbackQuery):
 	
 	with tempfile.TemporaryDirectory() as temp_dir:
 		subprocess.run(['git', 'clone', 'https://github.com/Ijidishurka/bfg.git', temp_dir], check=True)
-		
+
 		for item in os.listdir(temp_dir):
 			if item in ['config_ex.py', 'modules']:
 				continue
-				
+
 			src_path = os.path.join(temp_dir, item)
 			dest_path = os.path.join(os.getcwd(), item)
-			
+
 			if os.path.isdir(src_path):
 				shutil.rmtree(dest_path, ignore_errors=True)
 				shutil.copytree(src_path, dest_path)
 			else:
 				shutil.copy2(src_path, dest_path)
-		
+
 	with open('updates.json', 'w') as json_file:
 		data = {"type": "update", "message": (call.message.chat.id, call.message.message_id), "time": time.time()}
 		json.dump(data, json_file, indent=4)
-					
+
 	os.execv(sys.executable, [sys.executable] + sys.argv)
-
-
-@admin_only(private=True)
-async def control(message: types.Message):
-	await message.answer('<b>🕹️ Меню управления:</b>', reply_markup=kb.control_menu())
 
 
 @admin_only()
@@ -143,42 +142,7 @@ async def restart_bot(message: types.Message):
 	os.execl(sys.executable, sys.executable, *sys.argv)
 
 
-def sizeof_fmt(num):
-	for unit in ['Б', 'КБ', 'МБ']:
-		if abs(num) < 1024.0:
-			return "%3.1f %s" % (num, unit)
-		num /= 1024.0
-	return "%.1f %s" % (num, 'ТБ')
-
-
-@admin_only(private=True)
-async def RAM_control(message: types.Message):
-	earning = sizeof_fmt(sys.getsizeof(earning_msg))
-	help_menu = sizeof_fmt(sys.getsizeof(help_msg))
-	bonus = sizeof_fmt(sys.getsizeof(bonus_time))
-	kazna = sizeof_fmt(sys.getsizeof(kazna_time))
-	
-	await message.answer(f'''💽 Информация о использовании ОЗУ:
-💸 Заработок: {earning}
-🆘 Помощь: {help_menu}
-🎁 Бонусы: {bonus}
-💰 Казна: {kazna}''', reply_markup=kb.ram_clear())
-
-
-async def RAM_clear(call: types.CallbackQuery):
-	global earning_msg, help_msg, bonus_time, kazna_time
-	earning_msg.clear()
-	help_msg.clear()
-	bonus_time.clear()
-	kazna_time.clear()
-	
-	await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text='🗑 Очищено!')
-
-
 def reg(dp: Dispatcher):
-	dp.register_message_handler(control, lambda message: message.text == '🕹 Управление')
 	dp.register_message_handler(restart_bot, lambda message: message.text in ['🔄 Перезагрузка', '/restartb'])
-	dp.register_message_handler(update_bot, lambda message: message.text == '/updateb')
-	dp.register_message_handler(RAM_control, lambda message: message.text == '💽 ОЗУ')
-	dp.register_callback_query_handler(RAM_clear, text='ram-clear')
-	dp.register_callback_query_handler(bot_update, text='update-bot')
+	dp.register_message_handler(update_bot, lambda message: message.text in ['/updateb', '/updateb -f'])
+	dp.register_callback_query_handler(bot_update, text_startswith='update-bot')

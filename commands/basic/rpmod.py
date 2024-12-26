@@ -3,9 +3,9 @@ import re
 from aiogram import types, Dispatcher
 from assets.antispam import antispam
 from commands.db import url_name
+from user import BFGuser
 
-
-rplist = {
+rplist = {  # Спасибo @ x0x1dead за составление списка рп команд
 	'ударить': '{} ударил(-а) {}',
 	'выебать': '{} выебал(-а) {}',
 	'дать пять': '{} дал(-а) пять {}',
@@ -60,15 +60,14 @@ rplist = {
 
 
 @antispam
-async def rp(message: types.Message):
+async def rp(message: types.Message, user: BFGuser):
 	if message.chat.type != 'supergroup' or not message.reply_to_message:
 		return
 	
-	name = await url_name(message.from_user.id)
-	name2 = await url_name(message.reply_to_message.from_user.id)
+	rname = await url_name(message.reply_to_message.from_user.id)
 	
 	action_key = re.search(pattern, message.text.lower()).group(0)
-	response = rplist[action_key].format(name, name2)
+	response = rplist[action_key].format(user.url, rname)
 	
 	await message.answer(response)
 	

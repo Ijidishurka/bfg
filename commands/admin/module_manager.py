@@ -1,4 +1,3 @@
-import install
 import asyncio
 import os
 import requests
@@ -7,14 +6,14 @@ from aiogram import types, Dispatcher
 from assets.antispam import new_earning_msg, antispam_earning, admin_only
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from commands.admin import keyboards as kb
-import config as cfg
+from user import BFGuser
 
 MODULES = {}
 CATALOG = {}
 MOD_TYPE = 'games'
 
 
-def load_modules(dp):
+def load_modules(dp: Dispatcher) -> None:
     """Загрузка модулей при включении бота"""
     txt, mlist = 0, []
     
@@ -38,7 +37,7 @@ def load_modules(dp):
         print(f'Импортировано {txt} модулей.')
 
 
-def load_new_mod(filename, dp):
+def load_new_mod(filename: str, dp: Dispatcher) -> None:
     """Регестрация хандлеров нового модуля (при загрузке командой)"""
     if filename.endswith(".py") and filename != "__init__.py" and not filename.startswith("add"):
         fmodule_name = filename[:-3]
@@ -74,8 +73,8 @@ async def load_modules_cmd(message: types.Message):
     
 
 @antispam_earning
-async def load_modules_next(call: types.CallbackQuery):
-    user_id = call.from_user.id
+async def load_modules_next(call: types.CallbackQuery, user: BFGuser):
+    user_id = user.user_id
 
     if not MODULES or len(MODULES) < 2:
         return
@@ -105,7 +104,7 @@ async def load_modules_next(call: types.CallbackQuery):
 
 
 @antispam_earning
-async def dell_mod(call: types.CallbackQuery):
+async def dell_mod(call: types.CallbackQuery, user: BFGuser):
     name = call.data.split('_')[1].split('|')[0]
     path = f'modules/{name}.py'
     
@@ -142,10 +141,10 @@ async def catalog_modules(message: types.Message):
 
 
 @antispam_earning
-async def catalog_type(call: types.CallbackQuery):
+async def catalog_type(call: types.CallbackQuery, user: BFGuser):
     global MOD_TYPE
     MOD_TYPE = call.data.split('_')[1].split('|')[0]
-    user_id = call.from_user.id
+    user_id = user.user_id
     
     if len(CATALOG[MOD_TYPE]) == 0:
         return
@@ -160,8 +159,8 @@ async def catalog_type(call: types.CallbackQuery):
     
 
 @antispam_earning
-async def catalog_modules_next(call: types.CallbackQuery):
-    user_id = call.from_user.id
+async def catalog_modules_next(call: types.CallbackQuery, user: BFGuser):
+    user_id = user.user_id
     
     if not CATALOG[MOD_TYPE] or len(CATALOG[MOD_TYPE]) < 2:
         return
@@ -183,7 +182,7 @@ async def catalog_modules_next(call: types.CallbackQuery):
     
     
 @antispam_earning
-async def load_mod(call: types.CallbackQuery):
+async def load_mod(call: types.CallbackQuery, user: BFGuser):
     name = call.data.split('_')[1].split('|')[0]
     url = CATALOG[MOD_TYPE].get(name, {}).get('url', None)
     
@@ -196,8 +195,10 @@ async def load_mod(call: types.CallbackQuery):
     response = requests.get(url)
     if response.status_code == 200:
         filename = url.split('/')[-1]
+        
         with open(f'modules/{filename}', "wb") as file:
             file.write(response.content)
+            
         load_new_mod(filename, dp)
         await call.message.edit_text(f'🌟 <b>Модуль {CATALOG[MOD_TYPE][name]["name"]} загружен!</b>\n<i>{CATALOG[MOD_TYPE][name]["description"]}</i>')
     else:
@@ -207,8 +208,7 @@ async def load_mod(call: types.CallbackQuery):
 @admin_only(private=True)
 async def load_mod_cmd(message: types.Message):
     try:
-        url = message.text.split()[1:]
-        url = ''.join(url)
+        url = ''.join(message.text.split()[1:])
 
         msg = await message.answer('<i>⚡️ Загрузка модуля...</i>')
         await asyncio.sleep(0.3)

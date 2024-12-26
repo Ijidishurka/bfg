@@ -12,7 +12,7 @@ issuance_money = 3  # выдача денег
 issuance_bcoins = 3  # выдача бкоинов
 
 
-async def new_log(txt, log_type):
+async def new_log(txt: str, log_type: str) -> None:
     log_levels = {
         'promo': promo,
         'money_transfers': money_transfers,

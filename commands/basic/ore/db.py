@@ -1,3 +1,4 @@
+import random
 from decimal import Decimal
 from commands.db import conn, cursor
 from pycoingecko import CoinGeckoAPI
@@ -6,23 +7,16 @@ from pycoingecko import CoinGeckoAPI
 api = CoinGeckoAPI()
 
 
-async def getbtc(user_id):
-    return cursor.execute('SELECT btc FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]
-
-
-async def getkurs():
-    cursor.execute('SELECT kursbtc FROM sett')
-    i = cursor.fetchone()
+async def getkurs() -> int:
+    i = cursor.execute('SELECT kursbtc FROM sett').fetchone()
     if i is None:
         cursor.execute('INSERT INTO sett (ads, kursbtc) VALUES (?, ?)', ('', 40000))
         conn.commit()
-        i = 40000
-    else:
-        i = i[0]
-    return i
+        return 100000
+    return i[0]
 
 
-async def sellbtc_db(summ, summ_btc, user_id):
+async def sellbtc_db(summ: int | str, summ_btc: int | str, user_id: int) -> None:
     balance, btc = cursor.execute('SELECT balance, btc FROM users WHERE user_id = ?', (user_id,)).fetchone()
     
     summ = Decimal(balance) + Decimal(summ)
@@ -34,7 +28,7 @@ async def sellbtc_db(summ, summ_btc, user_id):
     conn.commit()
 
 
-async def buybtc_db(summ, summ_btc, user_id):
+async def buybtc_db(summ: int | str, summ_btc: int | str, user_id: int) -> None:
     balance, btc = cursor.execute('SELECT balance, btc FROM users WHERE user_id = ?', (user_id,)).fetchone()
 
     summ = Decimal(balance) - Decimal(summ)
@@ -46,7 +40,7 @@ async def buybtc_db(summ, summ_btc, user_id):
     conn.commit()
 
 
-async def buyratting_db(summ, r_summ, user_id):
+async def buyratting_db(summ: int | str, r_summ: int | str, user_id) -> None:
     balance = cursor.execute('SELECT balance FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]
     summ = Decimal(balance) - Decimal(summ)
     cursor.execute('UPDATE users SET balance = ? WHERE user_id = ?', (str(summ), user_id))
@@ -54,18 +48,14 @@ async def buyratting_db(summ, r_summ, user_id):
     conn.commit()
 
 
-async def get_expe(user_id):
-    return cursor.execute('SELECT exp, energy FROM users WHERE user_id = ?', (user_id,)).fetchone()
-
-
-async def digdb(i, user_id, r, op):
+async def digdb(i: int, user_id: int, r: str, op: int) -> None:
     cursor.execute('UPDATE users SET exp = exp + ? WHERE user_id = ?', (int(op), user_id))
     cursor.execute(f'UPDATE mine SET {r} = {r} + ? WHERE user_id = ?', (int(i), user_id))
     cursor.execute('UPDATE users SET energy = energy - 1 WHERE user_id = ?', (user_id,))
     conn.commit()
 
 
-async def sell_ruda_db(i, user_id, r, kolvo):
+async def sell_ruda_db(i: int | str, user_id: int, r: str, kolvo: int) -> None:
     cursor.execute(f'UPDATE mine SET {r} = {r} - ? WHERE user_id = ?', (int(kolvo), user_id))
     balance = cursor.execute('SELECT balance FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]
     summ = Decimal(balance) + Decimal(i)
@@ -73,19 +63,7 @@ async def sell_ruda_db(i, user_id, r, kolvo):
     conn.commit()
 
 
-async def get_mine(user_id):
-    return cursor.execute('SELECT * FROM mine WHERE user_id = ?', (user_id,)).fetchone()
-
-
-async def get_energy(user_id):
-    return cursor.execute('SELECT energy FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]
-
-
-async def get_rating(user_id):
-    return cursor.execute('SELECT rating FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]
-
-
-async def sellrrating_db(summ, summ_r, user_id):
+async def sellrrating_db(summ: int | str, summ_r: int | str, user_id: int) -> None:
     balance = cursor.execute('SELECT balance FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]
     summ = Decimal(balance) + Decimal(summ)
     cursor.execute('UPDATE users SET balance = ? WHERE user_id = ?', (str(summ), user_id))
@@ -93,11 +71,11 @@ async def sellrrating_db(summ, summ_r, user_id):
     conn.commit()
 
 
-async def getcorn_garden(user_id):
+async def getcorn_garden(user_id: int) -> None:
     return cursor.execute('SELECT corn FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]
 
 
-async def autoenergy():
+async def autoenergy() -> None:
     cursor.execute(f'UPDATE users SET energy = energy + 1 WHERE energy < 10 AND status = 0')
     cursor.execute(f'UPDATE users SET energy = energy + 1 WHERE energy < 25 AND status = 1')
     cursor.execute(f'UPDATE users SET energy = energy + 1 WHERE energy < 50 AND status = 2')
@@ -106,27 +84,27 @@ async def autoenergy():
     conn.commit()
 
 
-# async def autokursbtc():
-#     cursor.execute('SELECT kursbtc FROM sett')
-#     current_kurs = cursor.fetchone()
-#     if current_kurs is None:
-#         cursor.execute('INSERT INTO sett (ads, kursbtc) VALUES (?, ?)', ('', 40000))
-#         current_kurs = 40000
-#     else:
-#         current_kurs = current_kurs[0]
-#
-#     random_change = random.randint(1, 3)
-#     s = random.choice([-1, 1])
-#     new_kurs = current_kurs + (s * random_change)
-#
-#     cursor.execute('UPDATE sett SET kursbtc = ?', (new_kurs,))
-#     conn.commit()
+async def autokursbtc() -> None:  # Не используется (актуальный курс - autokursbtc_new())
+    cursor.execute('SELECT kursbtc FROM sett')
+    current_kurs = cursor.fetchone()
+    if current_kurs is None:
+        cursor.execute('INSERT INTO sett (ads, kursbtc) VALUES (?, ?)', ('', 40000))
+        current_kurs = 100000
+    else:
+        current_kurs = current_kurs[0]
+
+    random_change = random.randint(1, 3)
+    s = random.choice([-1, 1])
+    new_kurs = current_kurs + (s * random_change)
+
+    cursor.execute('UPDATE sett SET kursbtc = ?', (new_kurs,))
+    conn.commit()
 
 
-async def autokursbtc_new():
-    try: new_kurs = api.get_price(ids='bitcoin', vs_currencies='usd')['bitcoin']['usd']
-    except: return print('error upd btc price')
-
-    if isinstance(new_kurs, (int, float)):
+async def autokursbtc_new() -> None:
+    try:
+        new_kurs = api.get_price(ids='bitcoin', vs_currencies='usd')['bitcoin']['usd']
         cursor.execute('UPDATE sett SET kursbtc = ?', (int(new_kurs),))
         conn.commit()
+    except Exception as e:
+        print(f'Error update btc price - {e}')

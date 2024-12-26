@@ -1,14 +1,12 @@
 from aiogram import Dispatcher, types
-from commands.entertaining.earnings.garden.db import *
-from commands.db import url_name
-from commands.main import win_luser
+from commands.entertaining.earnings.garden import db
 from assets.antispam import antispam
+from user import BFGuser, BFGconst
 
 
 @antispam
-async def potions_list(message: types.Message):
-    name = await url_name(message.from_user.id)
-    await message.answer(f'''{name}, доступные зелья:
+async def potions_list(message: types.Message, user: BFGuser):
+    await message.answer(f'''{user.url}, доступные зелья:
 🍸 1. Чай: 40 зёрен
 Прибыль: 1 энергия
 
@@ -34,11 +32,9 @@ async def potions_list(message: types.Message):
 ⛔ При покупке зелья энергия начисляется сразу.''')
 
 
-async def bay_potions(message):
-    user_id = message.from_user.id
-    url = await url_name(user_id)
-    win, lose = await win_luser()
-    corn = await getcorn(user_id)
+@antispam
+async def bay_potions(message: types.Message, user: BFGuser):
+    win, lose = BFGconst.emj()
 
     potions = {
         1: {"name": "Чай", "summ": 1, "st": 40},
@@ -54,15 +50,15 @@ async def bay_potions(message):
         n = int(message.text.split()[2])
         potion = potions[n]
     except:
-        await message.answer(f'{url}, вы ввели неверный номер зелья или не ввели его вовсе. {lose}')
+        await message.answer(f'{user.url}, вы ввели неверный номер зелья или не ввели его вовсе. {lose}')
         return
 
-    if corn < potion["st"]:
-        await message.answer(f'{url}, у вас недостаточно зёрен для создания данного зелья. {lose}')
+    if user.corn < potion["st"]:
+        await message.answer(f'{user.url}, у вас недостаточно зёрен для создания данного зелья. {lose}')
         return
 
-    await message.answer(f'{url}, вы успешно создали "{potion["name"]}", вам начислено {potion["summ"]} энергии. {win}')
-    await buy_postion_db(potion["summ"], potion["st"], user_id)
+    await message.answer(f'{user.url}, вы успешно создали "{potion["name"]}", вам начислено {potion["summ"]} энергии. {win}')
+    await db.buy_postion(potion["summ"], potion["st"], user.user_id)
 
 
 def reg(dp: Dispatcher):

@@ -1,11 +1,9 @@
 from aiogram import Dispatcher, types
-from commands.db import get_name, getstatus, url_name
 from assets.antispam import antispam
 from assets.transform import transform_int as tr
 from commands.basic.status.db import *
-from commands.main import win_luser
 import config as cfg
-
+from user import BFGuser, BFGconst
 
 CONFIG = {
     'money_for_bcoins': 2_000_000_000_000_000,  # "обменять" (цена)
@@ -32,9 +30,8 @@ CONFIG = {
 
 
 @antispam
-async def status_list(message):
-    name = await get_name(message.from_user.id)
-    await message.answer(f'''{name}, доступные статусы в игре:
+async def status_list(message: types.Message, user: BFGuser):
+    await message.answer(f'''{user.url}, доступные статусы в игре:
 
 1️⃣ Standart VIP:
 - Повышенный процент в банке
@@ -80,13 +77,10 @@ async def status_list(message):
 
 
 @antispam
-async def donat_list(message):
-    user_id = message.from_user.id
-    url = await url_name(user_id)
-    ecoins = await getecoins(user_id)
+async def donat_list(message: types.Message, user: BFGuser):
     adm_us = cfg.admin_username.replace('@', '')
     st_price = CONFIG['status_price']
-    await message.answer(f'''{url}, наш магазин:
+    await message.answer(f'''{user.url}, наш магазин:
 
 💵 Текущий курс: 1 RUB = 1 B-Coin
 💸 Валюта: 1 B-Coin можно обменять на {tr(CONFIG['money_for_bcoins'])}$
@@ -120,15 +114,12 @@ async def donat_list(message):
 - 2e21 | 6500 B-Coin
 🔝 Покупка: Купить лимит 4
 
-💰Ваш баланс: {ecoins} B-Coin
+💰Ваш баланс: {user.bcoins.tr()} B-Coin
 📲 Пополнить баланс: <a href="t.me/{adm_us}">{cfg.admin_username}</a>''', disable_web_page_preview=True)
 
 
 @antispam
-async def my_status(message):
-    user_id = message.from_user.id
-    url = await url_name(user_id)
-    status = await getstatus(user_id)
+async def my_status(message: types.Message, user: BFGuser):
     privileges = {
         0: "к сожалению вы не владеете какими либо привилегиями",
         1: "🏆 Статус: Standart VIP\n🏦 Процент вклада: 8%\n💸 Лимит передачи: 300.000.000.000.000$/сутки",
@@ -137,119 +128,106 @@ async def my_status(message):
         4: "🏆 Статус: Администратор\n🏦 Процент вклада: 15%\n💸 Лимит передачи: 30.000.000.000.000.000$/сутки"
     }
 
-    await message.answer(f'{url}, информация о привилегии:\n{privileges[status]}\nПодробнее об плюшках можно узнать введя команду "Статусы"')
+    await message.answer(f'{user.url}, информация о привилегии:\n{privileges[user.status]}\nПодробнее об плюшках можно узнать введя команду "Статусы"')
 
 
 @antispam
-async def buy_status(message: types.Message):
-    user_id = message.from_user.id
-    url = await url_name(user_id)
-    ecoins = await getecoins(user_id)
-    rwin, rloser = await win_luser()
-    status = await getstatus(user_id)
+async def buy_status(message: types.Message, user: BFGuser):
+    win, lose = BFGconst.emj()
 
     try:
         u = int(message.text.split()[2])
     except:
-        await message.answer(f'{url}, вы не ввели число имущества или привелегии которое хотите купить {rloser}')
+        await message.answer(f'{user.url}, вы не ввели число имущества или привелегии которое хотите купить {lose}')
         return
 
-    data = CONFIG['status_price'].get(u, None)
+    data = CONFIG['status_price'].get(u)
     
     if not data:
-        await message.answer(f'{url}, данного доната не существует. Проверьте введеную вами цифру.')
+        await message.answer(f'{user.url}, данного доната не существует. Проверьте введеную вами цифру.')
         return
 
-    if ecoins < data[1]:
-        await message.answer(f'{url},к сожалению у вас недостаточно B-Coins для покупки данной привелегии, '
-                             f'чтобы пополнить напишите команду "Донат" {rloser}')
+    if user.bcoins < data[1]:
+        await message.answer(f'{user.url},к сожалению у вас недостаточно B-Coins для покупки данной привелегии, '
+                             f'чтобы пополнить напишите команду "Донат" {lose}')
         return
 
-    if status > u:
-        await message.answer(f'{url}, у вас уже есть этот или более высокий статус {rwin}.')
+    if user.bcoins > u:
+        await message.answer(f'{user.url}, у вас уже есть этот или более высокий статус {win}.')
         return
 
-    await buy_status_db(user_id, data[1], u)
-    await message.answer(f'{url}, вы успешно купили статус "{data[0]}" за {data[1]} B-Coins {rwin}.')
+    await buy_status_db(user.user_id, data[1], u)
+    await message.answer(f'{user.url}, вы успешно купили статус "{data[0]}" за {data[1]} B-Coins {win}.')
 
 
 @antispam
-async def exchange_value(message: types.Message):
-    user_id = message.from_user.id
-    url = await url_name(user_id)
-    ecoins = await getecoins(user_id)
-    rwin, rloser = await win_luser()
+async def exchange_value(message: types.Message, user: BFGuser):
+    win, lose = BFGconst.emj()
 
     try:
         u = int(message.text.split()[1])
     except:
         u = 1
 
-    if u > 1000 or u <= 0:
+    if u > 100000000 or u <= 0:
         return
 
-    if ecoins < u:
-        await message.answer(f'На твоём счету {ecoins} B-Coins, чтобы пополнить введите - Донат {rloser}')
+    if user.bcoins < u:
+        await message.answer(f'На твоём счету {user.bcoins.tr()} B-Coins, чтобы пополнить введите - Донат {lose}')
         return
 
     summ = u * CONFIG['money_for_bcoins']
 
-    await exchange_value_db(user_id, summ, u)
-    await message.answer(f'{url}, вы обменяли {u} B-Coins на {tr(summ)}$ {rwin}')
+    await exchange_value_db(user.user_id, summ, u)
+    await message.answer(f'{user.url}, вы обменяли {u} B-Coins на {tr(summ)}$ {win}')
 
 
 @antispam
-async def buy_limit(message: types.Message):
-    user_id = message.from_user.id
-    url = await url_name(user_id)
-    ecoins = await getecoins(user_id)
-    rwin, rloser = await win_luser()
+async def buy_limit(message: types.Message, user: BFGuser):
+    win, lose = BFGconst.emj()
 
     try:
         u = int(message.text.split()[2])
     except:
-        await message.answer(f'{url}, вы не ввели число имущества или привелегии которое хотите купить {rloser}')
+        await message.answer(f'{user.url}, вы не ввели число имущества или привелегии которое хотите купить {lose}')
         return
 
-    data = CONFIG['limit_list'].get(u, None)
+    data = CONFIG['limit_list'].get(u)
 
     if not data:
         return
 
-    if ecoins < data[1]:
-        await message.answer(f'{url}, к сожалению у вас недостаточно B-Coins для покупки лимита,'
-                             f' чтобы пополнить напишите команду "Донат" {rloser}')
+    if user.bcoins < data[1]:
+        await message.answer(f'{user.url}, к сожалению у вас недостаточно B-Coins для покупки лимита,'
+                             f' чтобы пополнить напишите команду "Донат" {lose}')
         return
 
-    await buy_limit_db(user_id, data[0], data[1])
-    await message.answer(f'{url}, вы увеличили свой лимит передачи на {tr(data[0])}$ за {data[1]} B-Coins {rwin}')
+    await buy_limit_db(user.user_id, data[0], data[1])
+    await message.answer(f'{user.url}, вы увеличили свой лимит передачи на {tr(data[0])}$ за {data[1]} B-Coins {win}')
     
     
 @antispam
-async def buy_energy(message: types.Message):
-    user_id = message.from_user.id
-    url = await url_name(user_id)
-    ecoins = await getecoins(user_id)
-    rwin, rloser = await win_luser()
+async def buy_energy(message: types.Message, user: BFGuser):
+    win, lose = BFGconst.emj()
 
     try:
         u = int(message.text.split()[2])
     except:
-        await message.answer(f'{url}, вы не ввели число имущества или привелегии которое хотите купить {rloser}')
+        await message.answer(f'{user.url}, вы не ввели число имущества или привелегии которое хотите купить {lose}')
         return
 
-    data = CONFIG['energy_price'].get(u, None)
+    data = CONFIG['energy_price'].get(u)
 
     if not data:
         return
 
-    if ecoins < data[1]:
-        await message.answer(f'{url}, к сожалению у вас недостаточно B-Coins для покупки фляги,'
-                             f' чтобы пополнить напишите команду "Донат" {rloser}')
+    if user.bcoins < data[1]:
+        await message.answer(f'{user.url}, к сожалению у вас недостаточно B-Coins для покупки фляги,'
+                             f' чтобы пополнить напишите команду "Донат" {lose}')
         return
 
-    await buy_energy_db(user_id, data[1], data[0])
-    await message.answer(f'{url}, вы купили {data[0]}⚡️ за {data[1]} B-Coins {rwin}')
+    await buy_energy_db(user.user_id, data[1], data[0])
+    await message.answer(f'{user.url}, вы купили {data[0]}⚡️ за {data[1]} B-Coins {win}')
 
 
 def reg(dp: Dispatcher):

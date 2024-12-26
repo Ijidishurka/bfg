@@ -1,25 +1,20 @@
 from assets.transform import transform_int as tr
-from commands.db import url_name, getstatus, getads
 from aiogram import types, Dispatcher
-from commands.main import win_luser
 from assets.antispam import antispam
 from commands.basic.ore import db
 import random
 
-
-@antispam
-async def energy_cmd(message: types.Message):
-    user_id = message.from_user.id
-    name = await url_name(user_id)
-    i = await db.get_energy(user_id)
-    await message.answer(f'{name}, на данный момент у тебя {i} ⚡')
+from user import BFGuser, BFGconst
 
 
 @antispam
-async def mine_cmd(message: types.Message):
-    user_id = message.from_user.id
-    name = await url_name(user_id)
-    await message.answer(f'''{name}, добро пожаловать на вашу шахту! 🏞️
+async def energy_cmd(message: types.Message, user: BFGuser):
+    await message.answer(f'{user.url}, на данный момент у тебя {user.energy} ⚡')
+
+
+@antispam
+async def mine_cmd(message: types.Message, user: BFGuser):
+    await message.answer(f'''{user.url}, добро пожаловать на вашу шахту! 🏞️
 
 Здесь вы можете добывать различные ресурсы для продажи, используя свою энергию ⚡.
 
@@ -57,10 +52,8 @@ async def mine_cmd(message: types.Message):
 
 
 @antispam
-async def kursrud_cmd(message: types.Message):
-    user_id = message.from_user.id
-    name = await url_name(user_id)
-    await message.answer(f'''{name}, курс руды:
+async def kursrud_cmd(message: types.Message, user: BFGuser):
+    await message.answer(f'''{user.url}, курс руды:
 ⛓ 1 железо - 230.000$
 🌕 1 золото - 1.000.000$
 💎 1 алмаз - 116.000.000$
@@ -77,40 +70,35 @@ async def kursrud_cmd(message: types.Message):
 
 
 @antispam
-async def inventary_cmd(message: types.Message):
-    user_id = message.from_user.id
-    url = await url_name(user_id)
-    corn = await db.getcorn_garden(user_id)
-    data = await db.get_mine(user_id)
-    
+async def inventary_cmd(message: types.Message, user: BFGuser):
     resources = {
-        "iron": {"name": "⛓ Железо", "quantity": data[1]},
-        "gold": {"name": "🌕 Золото", "quantity": data[2]},
-        "diamond": {"name": "💎 Алмаз", "quantity": data[3]},
-        "amethyst": {"name": "🎆 Аметист", "quantity": data[4]},
-        "aquamarine": {"name": "💠 Аквамарин", "quantity": data[5]},
-        "emeralds": {"name": "🍀 Изумруд", "quantity": data[6]},
-        "matter": {"name": "🌌 Материя", "quantity": data[7]},
-        "plasma": {"name": "💥 Плазма", "quantity": data[8]},
-        "nickel": {"name": "🪙 Никель", "quantity": data[9]},
-        "titanium": {"name": "⚙️ Титан", "quantity": data[10]},
-        "cobalt": {"name": "🧪 Кобальт", "quantity": data[11]},
-        "ectoplasm": {"name": "☄️ Эктоплазма", "quantity": data[12]},
-        "palladium": {"name": "⚗️ Палладий", "quantity": data[14]},
-        "corn": {"name": "🥜 Зёрна", "quantity": corn},
-        "biores": {"name": "☣️ Биоресурсы", "quantity": data[13]},
+        "iron": {"name": "⛓ Железо", "quantity": user.mine.iron},
+        "gold": {"name": "🌕 Золото", "quantity": user.mine.gold},
+        "diamond": {"name": "💎 Алмаз", "quantity": user.mine.diamond},
+        "amethyst": {"name": "🎆 Аметист", "quantity": user.mine.amestit},
+        "aquamarine": {"name": "💠 Аквамарин", "quantity": user.mine.aquamarine},
+        "emeralds": {"name": "🍀 Изумруд", "quantity": user.mine.emeralds},
+        "matter": {"name": "🌌 Материя", "quantity": user.mine.matter},
+        "plasma": {"name": "💥 Плазма", "quantity": user.mine.plasma},
+        "nickel": {"name": "🪙 Никель", "quantity": user.mine.nickel},
+        "titanium": {"name": "⚙️ Титан", "quantity": user.mine.titanium},
+        "cobalt": {"name": "🧪 Кобальт", "quantity": user.mine.cobalt},
+        "ectoplasm": {"name": "☄️ Эктоплазма", "quantity": user.mine.ectoplasm},
+        "palladium": {"name": "⚗️ Палладий", "quantity": user.mine.palladium},
+        "corn": {"name": "🥜 Зёрна", "quantity": user.corn},
+        "biores": {"name": "☣️ Биоресурсы", "quantity": user.biores},
     }
 
-    positive_resources = {name: info for name, info in resources.items() if info["quantity"] > 0}
+    positive_resources = {name: info for name, info in resources.items() if int(info["quantity"]) > 0}
 
     if positive_resources:
         result_message = "\n".join([f'{info["name"]}: {int(info["quantity"]):,} шт.' for name, info in positive_resources.items()])
-        await message.answer(f"{url},\n{result_message}")
+        await message.answer(f"{user.url},\n{result_message}")
     else:
-        await message.answer(f"{url}, ваш инвентарь пуст.")
+        await message.answer(f"{user.url}, ваш инвентарь пуст.")
 
 
-async def mine_level(expe):
+def mine_level(expe: int) -> tuple:
     levels = [
         ('Эктоплазма ☄️', 'SOON...', '???', 10000000000),
         ('Кобаль 🧪', 'Эктоплазма ☄️', '10.000.000.000', 20000000),
@@ -132,42 +120,36 @@ async def mine_level(expe):
 
 
 @antispam
-async def mymine_cmd(message: types.Message):
-    user_id = message.from_user.id
-    url = await url_name(user_id)
-    expe, energy = await db.get_expe(user_id)
-    mine_level_t, mine_level_s, opit = await mine_level(expe)
+async def mymine_cmd(message: types.Message, user: BFGuser):
+    mine_level_t, mine_level_s, opit = mine_level(user.expe)
 
-    await message.answer(f'''{url}, это ваш профиль шахты:
-🏆 Опыт: {tr(expe)}
-⚡ Энергия: {energy}
+    await message.answer(f'''{user.url}, это ваш профиль шахты:
+🏆 Опыт: {user.expe.tr()}
+⚡ Энергия: {user.energy}
 ⛏ Ваш уровень: {mine_level_t}
 ➡ Следующий уровень: {mine_level_s}
 ⭐️ Требуется {opit} опыта''')
 
 
 @antispam
-async def digmine(message: types.Message):
-    user_id = message.from_user.id
-    ads = await getads()
-    url = await url_name(user_id)
-    expe, energy = await db.get_expe(user_id)
-    win, lose = await win_luser()
+async def digmine(message: types.Message, user: BFGuser):
+    ads = BFGconst.ads
+    win, lose = BFGconst.emj()
 
-    if energy == 0:
-        await message.answer(f'{url}, у вас недостаточно энергии для копки {lose}')
+    if user.energy == 0:
+        await message.answer(f'{user.url}, у вас недостаточно энергии для копки {lose}')
         return
 
     status_limits = {0: 1, 1: 2, 2: 3, 3: 5, 4: 10}
-    status = await getstatus(message.from_user.id)
-    coff = status_limits.get(status, status_limits[0])
+    coff = status_limits.get(user.status, status_limits[0])
 
     txt = message.text.split()
+    
     if len(txt) < 2:
-        await message.answer(f'{url}, данной руды не существует {lose}', disable_web_page_preview=True)
+        await message.answer(f'{user.url}, данной руды не существует {lose}')
         return
-    else:
-        ruda = txt[1].lower()
+ 
+    ruda = txt[1].lower()
 
     ruda_data = {
         'железо': ('iron', 40, 1, 0),
@@ -186,28 +168,24 @@ async def digmine(message: types.Message):
 
     if ruda in ruda_data:
         eng_ruda, min_i, op, min_expe = ruda_data[ruda]
-        if expe < min_expe:
-            min_expe = '{:,}'.format(expe).replace(',', '.')
-            await message.answer(f'{url}, чтобы копать {ruda} вам требуется {min_expe} опыта {lose}')
+        if user.expe < min_expe:
+            await message.answer(f'{user.url}, чтобы копать {ruda} вам требуется {tr(min_expe)} опыта {lose}')
             return
 
         i = random.randint(min_i, min_i + 5) * coff
-        await db.digdb(i, user_id, eng_ruda, op)
-        opit = expe + op
-        opit = '{:,}'.format(opit).replace(',', '.')
+        await db.digdb(i, user.user_id, eng_ruda, op)
+        opit = user.expe + op
 
-        await message.answer(f'{url}, +{i} {ruda}.\n💡 Энергия: {energy - 1}, опыт: {opit}\n\n{ads}', disable_web_page_preview=True)
+        await message.answer(f'{user.url}, +{i} {ruda}.\n💡 Энергия: {user.energy - 1}, опыт: {tr(opit)}\n\n{ads}', disable_web_page_preview=True)
     else:
-        await message.answer(f'{url}, данной руды не существует {lose}')
+        await message.answer(f'{user.url}, данной руды не существует {lose}')
 
 
 @antispam
-async def sellruda_cmd(message: types.Message):
+async def sellruda_cmd(message: types.Message, user: BFGuser):
     user_id = message.from_user.id
-    url = await url_name(user_id)
     txt = message.text.split()
-    win, lose = await win_luser()
-    data = await db.get_mine(user_id)
+    win, lose = BFGconst.emj()
 
     if len(txt) < 2:
         return
@@ -215,40 +193,42 @@ async def sellruda_cmd(message: types.Message):
     ruda = txt[1].lower()
 
     ruda_data = {
-        'железо': ('iron', 230000, data[1]),
-        'золото': ('gold', 1000000, data[2]),
-        'алмазы': ('diamond', 116000000, data[3]),
-        'аметисты': ('amestit', 217000000, data[4]),
-        'аквамарин': ('aquamarine', 461000000, data[5]),
-        'изумруды': ('emeralds', 792000000, data[6]),
-        'материю': ('matter', 8000000000, data[7]),
-        'плазму': ('plasma', 12000000000, data[8]),
-        'никель': ('nickel', 30000000000, data[9]),
-        'титан': ('titanium', 70000000000000, data[10]),
-        'кобальт': ('cobalt', 120000000000000, data[11]),
-        'эктоплазму': ('ectoplasm', 270000000000000, data[12]),
-        'палладий': ('palladium', 2000000000000000, data[14])
+        'железо': ('iron', 230000, user.mine.iron),
+        'золото': ('gold', 1000000, user.mine.gold),
+        'алмазы': ('diamond', 116000000, user.mine.diamond),
+        'аметисты': ('amestit', 217000000, user.mine.amestit),
+        'аквамарин': ('aquamarine', 461000000, user.mine.aquamarine),
+        'изумруды': ('emeralds', 792000000, user.mine.emeralds),
+        'материю': ('matter', 8000000000, user.mine.matter),
+        'плазму': ('plasma', 12000000000, user.mine.plasma),
+        'никель': ('nickel', 30000000000, user.mine.nickel),
+        'титан': ('titanium', 70000000000000, user.mine.titanium),
+        'кобальт': ('cobalt', 120000000000000, user.mine.cobalt),
+        'эктоплазму': ('ectoplasm', 270000000000000, user.mine.ectoplasm),
+        'палладий': ('palladium', 2000000000000000, user.mine.palladium)
     }
 
     if ruda in ruda_data:
         balance = int(ruda_data[ruda][2])
         if len(txt) >= 3:
-            try: kolvo = int(txt[2].lower())
-            except: return
+            try:
+                kolvo = int(txt[2].lower())
+            except:
+                return
         else:
             kolvo = int(balance)
 
         if kolvo <= 0 or kolvo > balance:
-            await message.answer(f'{url}, у вас недостаточно {ruda} {lose}')
+            await message.answer(f'{user.url}, у вас недостаточно {ruda} {lose}')
             return
 
         i = kolvo * int(ruda_data[ruda][1])
         await db.sell_ruda_db(i, user_id, ruda_data[ruda][0], kolvo)
-        await message.answer(f'{url}, вы продали {kolvo} {ruda} за {tr(i)}$ ✅')
+        await message.answer(f'{user.url}, вы продали {kolvo} {ruda} за {tr(i)}$ ✅')
 
 
 ruds = ['железо', 'золото', 'алмазы', 'аметисты', 'аквамарины', 'изумруды', 'материю',
-        'плазму', 'никель', 'титан','кобальт', 'эктоплазму', 'палладий']
+        'плазму', 'никель', 'титан', 'кобальт', 'эктоплазму', 'палладий']
 
 
 def reg(dp: Dispatcher):

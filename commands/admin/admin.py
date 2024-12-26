@@ -20,8 +20,8 @@ class Mailing(StatesGroup):
     mailing_conf = State()
 
 
-async def new_ads(message, state: FSMContext, type=0):
-    if type == 0:
+async def new_ads(message: types.Message, state: FSMContext, action=0):
+    if action == 0:
         keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
         keyboard.add(types.KeyboardButton("Отмена"))
         await message.answer("⚙️ Введите новый текст рекламы ('-' чтобы удалить)\n\n"
@@ -29,18 +29,17 @@ async def new_ads(message, state: FSMContext, type=0):
         await new_ads_state.txt.set()
         return
 
-    txt = message.text
-    if txt == 'Отмена':
+    if message.text == 'Отмена':
         await state.finish()
         await admin_menu(message)
         return
 
-    txt = '' if txt == '-' else txt
+    message.text = '' if message.text == '-' else message.text
     try:
-        ads = txt.replace(r'\n', '\n')
-        msg = '⚙️ Реклама в сообщениях удалена' if txt == '' else '⚙️ Установлен новый текст рекламы:\n\n' + ads
+        ads = message.text.replace(r'\n', '\n')
+        msg = '⚙️ Реклама в сообщениях удалена' if message.text == '' else '⚙️ Установлен новый текст рекламы:\n\n' + ads
         await message.answer(msg, disable_web_page_preview=True)
-        await upd_ads(txt)
+        await upd_ads(message.text)
     except:
         await message.answer('❌ Ошибка в разметке HTML')
 
@@ -107,7 +106,7 @@ async def process_rassilka(message, state: FSMContext):
     await Mailing.mailing_conf.set()
 
 
-async def process_rassilka2(message, state: FSMContext):
+async def process_rassilka2(message: types.Message, state: FSMContext):
     data = await state.get_data()
     await state.finish()
 
@@ -161,7 +160,7 @@ def reg(dp: Dispatcher):
     
     dp.register_message_handler(ads_menu, lambda message: message.text == '📣 Реклама')
     dp.register_message_handler(new_ads, lambda message: message.text == '🪪 Текст рекламы')
-    dp.register_message_handler(lambda message, state: new_ads(message, state, type=1), state=new_ads_state.txt)
+    dp.register_message_handler(lambda message, state: new_ads(message, state, action=1), state=new_ads_state.txt)
     dp.register_message_handler(rassilka, lambda message: message.text == '📍 Рассылка')
     dp.register_message_handler(process_rassilka, state=Mailing.mailing_text)
     dp.register_message_handler(process_rassilka2, state=Mailing.mailing_conf)

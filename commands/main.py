@@ -42,14 +42,6 @@ async def on_start(message: types.Message):
     await message.answer(CONFIG['hello_text2'], disable_web_page_preview=True)
 
 
-async def win_luser():
-    win = ['🙂', '😋', '😄', '🤑', '😃', '😇']
-    loser = ['😔', '😕', '😣', '😞', '😢']
-    rwin = random.choice(win)
-    rloser = random.choice(loser)
-    return rwin, rloser
-
-
 async def geturl(id, txt):
     url = f'<a href="tg://user?id={id}">{txt}</a>'
     return url

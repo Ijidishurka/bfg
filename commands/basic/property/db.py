@@ -1,13 +1,8 @@
 from decimal import Decimal
 from commands.db import conn, cursor
-import random
 
 
-async def get_property(user_id):
-    return cursor.execute('SELECT * FROM property WHERE user_id = ?', (user_id,)).fetchone()
-
-
-async def buy_property(user_id, num, u, summ):
+async def buy_property(user_id: int, num: int, u: str, summ: int | str) -> None:
     balance = cursor.execute('SELECT balance FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]
     summ = int(Decimal(balance) - Decimal(summ))
 
@@ -16,7 +11,7 @@ async def buy_property(user_id, num, u, summ):
     conn.commit()
 
 
-async def sell_property(user_id, u, summ):
+async def sell_property(user_id: int, u: str, summ: int | str) -> None:
     balance = cursor.execute('SELECT balance FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]
     summ = int(Decimal(balance) + Decimal(summ))
 

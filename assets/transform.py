@@ -1,7 +1,7 @@
 from decimal import Decimal
 
 
-def transform(value):
+def transform(value: str | int) -> str:
     value = int(value)
     ranges = [
         (1_000, 'тыс'),
@@ -36,10 +36,11 @@ def transform(value):
             i1 = int(float(value)) / threshold
             i2 = round(i1)
             return f'{i2} {label}'
-    return value
+    value = Decimal(value)
+    return f"{value:1.1e}"
 
 
-def transform_int(value):
+def transform_int(value: str | int) -> str:
     value = int(value)
     if len(str(value)) < 21:
         return '{:,}'.format(value).replace(',', '.')

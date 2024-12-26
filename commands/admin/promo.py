@@ -3,14 +3,13 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from assets.transform import transform_int as tr
 from commands.admin.admin import admin_menu
-from commands.db import getads, url_name
 from commands.admin.db import *
-from commands.main import win_luser
 from commands.admin.loger import new_log
 from assets.antispam import antispam, admin_only
 from commands.admin import keyboards as kb
 import config as cfg
 from bot import bot
+from user import BFGuser, BFGconst
 
 
 class new_promo_state(StatesGroup):
@@ -148,41 +147,42 @@ async def dell_promo(message, state: FSMContext, type='name'):
 
 
 @antispam
-async def activ_promo(message: types.Message):
-    url = await url_name(message.from_user.id)
-    rwin, rloser = await win_luser()
-    ads = await getads()
+async def activ_promo(message: types.Message, user: BFGuser):
+    win, lose = BFGconst.emj()
     
     if len(message.text.split()) < 2:
-        await message.answer(f"Вы не ввели промокод {rloser}")
+        await message.answer(f"Вы не ввели промокод {lose}")
         return
-
-    chanell = await bot.get_chat_member(chat_id="@"+cfg.chanell.replace('t.me/', ''), user_id=message.from_user.id)
-
-    if chanell["status"] in ['left', 'kicked']:
-        await message.answer(f'Для активации промокода вам надо подписаться на <a href="{cfg.chanell}">официальный канал бота</a> {rloser}\n\n{ads}', disable_web_page_preview=True)
-        return
+    
+    try:
+        chanell = await bot.get_chat_member(chat_id="@"+cfg.chanell.replace('t.me/', ''), user_id=message.from_user.id)
+    
+        if chanell["status"] in ['left', 'kicked']:
+            await message.answer(f'Для активации промокода вам надо подписаться на <a href="{cfg.chanell}">официальный канал бота</a> {lose}\n\n{BFGconst.ads}', disable_web_page_preview=True)
+            return
+    except Exception as e:
+        print(f'Ошибка проверки подписки на канал {e}')
 
     name = message.text.split()[1]
     res = await activ_promo_db(name, message.from_user.id)
 
     if res == 'no promo':
-        await message.answer(f'Данного промокода не существует {rloser}\n\n{ads}', disable_web_page_preview=True)
+        await message.answer(f'Данного промокода не существует {lose}\n\n{BFGconst.ads}', disable_web_page_preview=True)
         return
 
     if res == 'activated':
-        await message.answer(f'Данный промокод уже активирован {rloser}\n\n{ads}', disable_web_page_preview=True)
+        await message.answer(f'Данный промокод уже активирован {lose}\n\n{BFGconst.ads}', disable_web_page_preview=True)
         return
 
     if res == 'used':
-        await message.answer(f'Вы уже активировали этот промокод {rloser}\n\n{ads}', disable_web_page_preview=True)
+        await message.answer(f'Вы уже активировали этот промокод {lose}\n\n{BFGconst.ads}', disable_web_page_preview=True)
         return
 
     summ = tr(int(res[1]))
     emj = ' '.join(res[3].split()[1:])
 
     await new_log(f'#промоактив\nИгрок: {message.from_user.id}\nПромо: {name}\nСумма: {summ}{emj}', 'promo')
-    await message.answer(f"{url}, вы активировали промокод <b>{res[0]}</b>!\nПолучено: <b>{summ}</b>{emj} {rwin}")
+    await message.answer(f"{user.url}, вы активировали промокод <b>{res[0]}</b>!\nПолучено: <b>{summ}</b>{emj} {win}")
 
 
 def reg(dp: Dispatcher):

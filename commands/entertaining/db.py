@@ -7,10 +7,10 @@ async def get_wedlock(user_id):
 
 
 async def get_new_wedlock(uid, rid):
-    data1 = cursor.execute('SELECT * FROM wedlock WHERE user1 = ? OR user2 = ?', (uid, uid)).fetchone()
-    data2 = cursor.execute('SELECT * FROM wedlock WHERE user1 = ? OR user2 = ?', (rid, rid)).fetchone()
-    if data1: return 'u_not'
-    if data2: return 'u_not'
+    if cursor.execute('SELECT * FROM wedlock WHERE user1 = ? OR user2 = ?', (uid, uid)).fetchone():
+        return 'u_not'
+    if cursor.execute('SELECT * FROM wedlock WHERE user1 = ? OR user2 = ?', (rid, rid)).fetchone():
+        return 'r_not'
 
 
 async def new_wedlock(uid, rid):

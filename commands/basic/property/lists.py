@@ -1,8 +1,8 @@
 # property
 
 helicopters = {
-    1: ('Воздушный шар', 60, 0, 'https://te.legra.ph/file/ef8862d8ed65166bd729a.jpg', 100000),
-    2: ('RotorWay Exec 162F', 185, 130, 'https://te.legra.ph/file/94ba572f4892d55b67400.jpg', 3500000),
+    1: ('Воздушный шар', 60, 0, 'https://te.legra.ph/file/94ba572f4892d55b67400.jpg', 100000),
+    2: ('RotorWay Exec 162F', 185, 130, 'https://te.legra.ph/file/ef8862d8ed65166bd729a.jpg', 3500000),
     3: ('Robinson R44', 240, 260, 'https://te.legra.ph/file/65893e7c188deae050ef1.jpg', 10000000),
     4: ('Hiller UH-12C', 154, 300, 'https://te.legra.ph/file/b26a1b234151bc964dcb2.jpg', 30000000),
     5: ('AW119 Koala', 267, 420, 'https://te.legra.ph/file/68145596e20a6dbf1742d.jpg', 63400000),

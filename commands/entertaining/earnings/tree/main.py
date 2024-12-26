@@ -1,201 +1,191 @@
 from aiogram import types, Dispatcher
 from bot import bot
 from commands.entertaining.earnings.tree import db
-from commands.db import url_name, get_balance, get_name
-from commands.main import win_luser
+from assets.transform import transform_int as tr
 from assets import kb
-from assets.antispam import new_earning_msg, antispam, antispam_earning
+from assets.antispam import new_earning, antispam, antispam_earning
+from user import BFGuser, BFGconst
 
 
 @antispam
-async def my_tree(message):
-    user_id = message.from_user.id
-    url = await url_name(user_id)
-    rwin, rloser = await win_luser()
-    data = await db.gettree(user_id)
+async def tree_cmd(message: types.Message, user: BFGuser):
+    await message.answer('''🌳 Добро пожаловать в новую возможность заработка - денежное дерево! Теперь, помимо управления своим бизнесом, у вас есть шанс выращивать деньги прямо на своем участке.
 
-    if not data:
-        await message.answer(f'{url}, у вас нет своего участка денежного дерева {rloser}')
-        return
+🏡 Для начала вам нужно создать участок под ваше денежное дерево. Используйте команду "Построить участок", чтобы купить небольшой участок земли для вашего нового источника дохода.
 
-    dox = int(3000 * (data[3] ** 3.8))
-    tre_price = int(5000 * (data[3] ** 3.8))
-    ter_price = int(5000 * (data[2] ** 3.8))
+💰 Далее вы сможете улучшать ваше денежное дерево, используя биоресурсы. Чем больше улучшений, тем больше денег оно будет приносить.
 
-    balance = '{:,}'.format(int(data[0])).replace(',', '.')
-    nalogs = '{:,}'.format((int(data[1]))).replace(',', '.')
-    dox = '{:,}'.format(dox).replace(',', '.')
-    tre_price = '{:,}'.format(tre_price).replace(',', '.')
-    ter_price = '{:,}'.format(ter_price).replace(',', '.')
-    yen = '{:,}'.format(data[4]).replace(',', '.')
-
-    msg = await message.answer(f'''{url}, информация о вашем участке "Денежное дерево":
-🏡 Участок: {data[2]} м²
-🆙 для следующего уровня: {ter_price} ☣️
-🌳 Размер дерева: {data[3]} м
-🆙 для следующего уровня: {tre_price} ☣️
-
-💷 Доход: {dox}$
-💸 Налоги: {nalogs}$/5.000.000$
-💰 Прибыль: {balance}$
-💴 Йены: {yen}¥''', reply_markup=kb.tree(user_id))
-    await new_earning_msg(msg.chat.id, msg.message_id)
-
-
-async def edit_tree_msg(call: types.CallbackQuery):
-    user_id = call.from_user.id
-    url = await url_name(user_id)
-    data = await db.gettree(user_id)
-
-    if not data:
-        return
-
-    dox = int(3000 * (data[3] ** 3.8))
-    tre_price = int(5000 * (data[3] ** 3.8))
-    ter_price = int(5000 * (data[2] ** 3.8))
-
-    balance = '{:,}'.format(int(data[0])).replace(',', '.')
-    nalogs = '{:,}'.format((int(data[1]))).replace(',', '.')
-    dox = '{:,}'.format(dox).replace(',', '.')
-    tre_price = '{:,}'.format(tre_price).replace(',', '.')
-    ter_price = '{:,}'.format(ter_price).replace(',', '.')
-    yen = '{:,}'.format(data[4]).replace(',', '.')
-
-    await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=f'''
-{url}, информация о вашем участке "Денежное дерево":
-🏡 Участок: {data[2]} м²
-🆙 для следующего уровня: {ter_price} ☣️
-🌳 Размер дерева: {data[3]} м
-🆙 для следующего уровня: {tre_price} ☣️
-
-💷 Доход: {dox}$
-💸 Налоги: {nalogs}$/5.000.000$
-💰 Прибыль: {balance}$
-💴 Йены: {yen}¥''', reply_markup=kb.tree(user_id))
+🌟 Не забывайте, что управление вашим денежным деревом поможет вам увеличить доход и достичь финансового успеха. Чтобы узнать все доступные команды, введите "Помощь" и выберите соответствующий раздел.''')
 
 
 @antispam
-async def buy_tree(message):
-    user_id = message.from_user.id
-    url = await url_name(user_id)
-    rwin, rloser = await win_luser()
-    data = await db.gettree(user_id)
+async def my_tree(message: types.Message, user: BFGuser):
+    win, lose = BFGconst.emj()
+    tree = user.tree
 
-    if data:
-        await message.answer(f'{url}, у вас уже есть свой участок. Для подробностей введите "Моё дерево" {rwin}')
+    if not tree:
+        await message.answer(f'{user.url}, у вас нет своего участка денежного дерева {lose}')
         return
 
-    balance = await db.getonlibiores(user_id)
-    if balance < 500_000_000:
-        await message.answer(f'{url}, у вас недостаточно биоресурсов для постройки участка денежного дерева. '
-                             f'Его стоимость 500.000.000 кг биоресурса {rloser}')
+    await edit_tree_msg(message, user, action='send')
+
+
+async def edit_tree_msg(call: types.CallbackQuery, user: BFGuser, action='edit'):
+    tree = user.tree
+    
+    if action == 'edit':
+        await user.update()
+
+    profit = int(3000 * (tree.tree.get() ** 3.8))
+    tre_price = int(5000 * (tree.tree.get() ** 3.8))
+    ter_price = int(5000 * (tree.territory.get() ** 3.8))
+
+    txt = f'''{user.url}, информация о вашем участке "Денежное дерево":
+🏡 Участок: {tree.territory} м²
+🆙 для следующего уровня: {tr(ter_price)} ☣️
+🌳 Размер дерева: {tree.tree} м
+🆙 для следующего уровня: {tr(tre_price)} ☣️
+
+💷 Доход: {tr(profit)}$
+💸 Налоги: {tree.nalogs.tr()}$/5.000.000$
+💰 Прибыль: {tree.balance.tr()}$
+💴 Йены: {tree.yen.tr()}¥'''
+    
+    try:
+        if action == 'edit':
+            await call.message.edit_text(text=txt, reply_markup=kb.tree(user.user_id))
+        else:
+            msg = await call.answer(text=txt, reply_markup=kb.tree(user.user_id))
+            await new_earning(msg)
+    except:
         return
 
-    await db.buy_tree_db(user_id)
-    await message.answer(f'{url}, вы успешно построили свой участок для подробностей введите "Моё дерево" {rwin}')
+
+@antispam
+async def buy_tree(message: types.Message, user: BFGuser):
+    win, lose = BFGconst.emj()
+    tree = user.tree
+
+    if tree:
+        await message.answer(f'{user.url}, у вас уже есть свой участок. Для подробностей введите "Моё дерево" {win}')
+        return
+
+    if int(user.biores) < 500_000_000:
+        await message.answer(f'{user.url}, у вас недостаточно биоресурсов для постройки участка денежного дерева. '
+                             f'Его стоимость 500.000.000 кг биоресурса {lose}')
+        return
+
+    await db.buy_tree(user.user_id)
+    await message.answer(f'{user.url}, вы успешно построили свой участок для подробностей введите "Моё дерево" {win}')
 
 
 @antispam_earning
-async def snyt_pribl(call):
-    user_id = call.from_user.id
-    url = await get_name(user_id)
-    rwin, rloser = await win_luser()
-    data = await db.gettree(user_id)
+async def withdraw_profit(call: types.CallbackQuery, user: BFGuser):
+    win, lose = BFGconst.emj()
+    tree = user.tree
 
-    if not data:
+    if not tree:
         return
 
-    if data[0] <= 0 and data[4] <= 0:
-        await bot.answer_callback_query(call.id, text=f'{url}, на данный момент на балансе вашего участка нет прибыли {rloser}')
+    if int(tree.balance) <= 0 and int(tree.yen) <= 0:
+        await bot.answer_callback_query(call.id, text=f'{user.name}, на данный момент на балансе вашего участка нет прибыли {lose}')
         return
 
-    balance2 = '{:,}'.format(data[0]).replace(',', '.')
-    yen2 = '{:,}'.format(data[4]).replace(',', '.')
-
-    await db.snyt_pribl_db(user_id, data[0], data[4])
-    await bot.answer_callback_query(call.id, text=f'{url}, вы успешно сняли {balance2}$ и {yen2}¥ с баланса вашего участка {rwin}')
-    await edit_tree_msg(call)
+    await db.withdraw_profit(user.user_id, tree.balance.get(), tree.yen.get())
+    await bot.answer_callback_query(call.id, text=f'{user.name}, вы успешно сняли {tree.balance.tr()}$ и {tree.yen.tr()}¥ с баланса вашего участка {win}')
+    await edit_tree_msg(call, user)
 
 
 @antispam_earning
-async def oplata_nalogov(call):
-    user_id = call.from_user.id
-    url = await get_name(user_id)
-    rwin, rloser = await win_luser()
-    data = await db.gettree(user_id)
-    balance = await get_balance(user_id)
+async def pay_taxes(call: types.CallbackQuery, user: BFGuser):
+    win, lose = BFGconst.emj()
+    tree = user.tree
 
-    if not data:
+    if not tree:
         return
 
-    if balance < data[1]:
-        await bot.answer_callback_query(call.id, text=f'{url}, у вас недостаточно денег чтоб оплатить налоги {rloser}')
+    if int(user.balance) < int(tree.nalogs):
+        await bot.answer_callback_query(call.id, text=f'{user.name}, у вас недостаточно денег чтоб оплатить налоги {lose}')
         return
 
-    if data[1] <= 0:
-        await bot.answer_callback_query(call.id, text=f'{url}, у вас нет налогов чтобы их оплатить {rwin}')
+    if int(tree.nalogs) <= 0:
+        await bot.answer_callback_query(call.id, text=f'{user.name}, у вас нет налогов чтобы их оплатить {win}')
         return
 
-    nalogs2 = '{:,}'.format(data[2]).replace(',', '.')
-    await db.oplata_nalogs_db(user_id, data[1])
-    await bot.answer_callback_query(call.id, text=f'{url}, вы успешно оплатили налоги на сумму {nalogs2}$ с вашего игрового баланса {rwin}')
-    await edit_tree_msg(call)
+    await db.pay_taxes(user.user_id, tree.nalogs.get())
+    await bot.answer_callback_query(call.id, text=f'{user.name}, вы успешно оплатили налоги на сумму {tree.nalogs.tr()}$ с вашего игрового баланса {win}')
+    await edit_tree_msg(call, user)
 
 
 @antispam_earning
-async def buy_ter(call):
-    user_id = call.from_user.id
-    url = await get_name(user_id)
-    rwin, rloser = await win_luser()
-    data = await db.gettree(user_id)
+async def buy_ter(call: types.CallbackQuery, user: BFGuser):
+    win, lose = BFGconst.emj()
+    tree = user.tree
 
-    if not data:
+    if not tree:
         return
 
-    balance = await db.getonlibiores(user_id)
-    summ = int(5000 * (data[2] ** 3.8))
+    summ = int(5000 * (tree.territory.get() ** 3.8))
 
-    if balance < summ:
-        await bot.answer_callback_query(call.id, text=f'{url}, у вас недостаточно биоресурсов {rloser}')
+    if int(user.biores) < summ:
+        await bot.answer_callback_query(call.id, text=f'{user.name}, у вас недостаточно биоресурсов {lose}')
         return
 
-    summ2 = '{:,}'.format(summ).replace(',', '.')
-    await db.buy_ter_db(user_id, summ)
-    await bot.answer_callback_query(call.id, text=f'{url}, вы успешно увеличили участок за {summ2}$ {rwin}')
-    await edit_tree_msg(call)
+    await db.buy_ter(user.user_id, summ)
+    await bot.answer_callback_query(call.id, text=f'{user.name}, вы успешно увеличили участок за {tr(summ)}☣️ {win}')
+    await edit_tree_msg(call, user)
 
 
 @antispam_earning
-async def buy_tree_call(call):
-    user_id = call.from_user.id
-    url = await get_name(user_id)
-    rwin, rloser = await win_luser()
-    data = await db.gettree(user_id)
+async def buy_tree_call(call: types.CallbackQuery, user: BFGuser):
+    win, lose = BFGconst.emj()
+    tree = user.tree
 
-    if not data:
+    if not tree:
         return
 
-    balance = await db.getonlibiores(user_id)
-    summ = int(5000 * (data[3] ** 3.8))
+    summ = int(5000 * (tree.tree.get() ** 3.8))
 
-    if balance < summ:
-        await bot.answer_callback_query(call.id, text=f'{url}, у вас недостаточно биоресурсов {rloser}')
+    if int(user.balance) < summ:
+        await bot.answer_callback_query(call.id, text=f'{user.name}, у вас недостаточно биоресурсов {lose}')
         return
 
-    if data[2] <= data[3]:
-        await bot.answer_callback_query(call.id, text=f'{url}, у вас недостаточно места {rloser}')
+    if int(tree.territory) <= int(tree.tree):
+        await bot.answer_callback_query(call.id, text=f'{user.name}, у вас недостаточно места {lose}')
         return
 
-    summ2 = '{:,}'.format(summ).replace(',', '.')
-    await db.buy_tree_ter_db(user_id, summ)
-    await bot.answer_callback_query(call.id, text=f'{url}, вы успешно увеличили дерево за {summ2}$ {rwin}')
-    await edit_tree_msg(call)
+    await db.buy_tree_ter(user.user_id, summ)
+    await bot.answer_callback_query(call.id, text=f'{user.name}, вы успешно увеличили дерево за {tr(summ)}☣️ {win}')
+    await edit_tree_msg(call, user)
+
+
+@antispam
+async def sell_tree(message: types.Message, user: BFGuser):
+    win, lose = BFGconst.emj()
+    tree = user.tree
+    
+    if not tree:
+        await message.answer(f'{user.url}, у вас нет своего участка денежного дерева {lose}')
+        return
+
+    summ = 250_000_000  # Половина стоимости дерева
+    
+    for i in range(1, tree.tree.get() + 1):  # Компенсация за деревья (50%)
+        summ += int(5000 * (tree.tree.get() ** 3.8)) // 2
+
+    for i in range(1, tree.territory.get() + 1):  # Компенсация за территорию (50%)
+        summ += int(5000 * (tree.territory.get() ** 3.8)) // 2
+    
+    await db.sell_tree(user.user_id, summ)
+    await message.answer(f'{user.url}, Вы успешно продали своё денежное дерево за {tr(summ)}☣️ {win}')
 
 
 def reg(dp: Dispatcher):
-    dp.register_message_handler(my_tree, lambda message: message.text.lower().startswith('моё дерево'))
-    dp.register_message_handler(buy_tree, lambda message: message.text.lower().startswith('построить участок'))
-    dp.register_callback_query_handler(snyt_pribl, text_startswith='tree-sobrat')
-    dp.register_callback_query_handler(oplata_nalogov, text_startswith='tree-nalog')
+    dp.register_message_handler(tree_cmd, lambda message: message.text.lower() == 'денежное дерево')
+    dp.register_message_handler(my_tree, lambda message: message.text.lower() in ['моё дерево', 'мое дерево'])
+    dp.register_message_handler(buy_tree, lambda message: message.text.lower() == 'построить участок')
+    dp.register_callback_query_handler(withdraw_profit, text_startswith='tree-sobrat')
+    dp.register_callback_query_handler(pay_taxes, text_startswith='tree-nalog')
     dp.register_callback_query_handler(buy_tree_call, text_startswith='tree-tree')
     dp.register_callback_query_handler(buy_ter, text_startswith='tree-ter')
+    dp.register_message_handler(sell_tree, lambda message: message.text.lower() == 'Продать участок')

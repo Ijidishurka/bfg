@@ -1,10 +1,9 @@
 from aiogram import Dispatcher, types
-from assets.antispam import antispam, antispam_earning, new_earning_msg
+from assets.antispam import antispam, antispam_earning, new_earning
 from commands.db import url_name, get_name
-from commands.main import win_luser
 from commands.clans.db import *
 from assets import kb
-from bot import bot
+from user import BFGuser, BFGconst
 
 
 async def get_clan_text(udata, url):
@@ -38,41 +37,36 @@ async def get_clan_text(udata, url):
 
 
 @antispam
-async def my_clan(message: types.message):
-	user_id = message.from_user.id
-	win, lose = await win_luser()
-	url = await url_name(user_id)
-	udata = await clan_info(user_id)
+async def my_clan(message: types.message, user: BFGuser):
+	win, lose = BFGconst.emj()
+	udata = await clan_info(user.user_id)
 
 	if not udata:
-		await message.answer(f'{url}, вы не состоите в клане {lose}')
+		await message.answer(f'{user.url}, вы не состоите в клане {lose}')
 		return
 
-	txt = await get_clan_text(udata, url)
-	msg = await message.answer(txt, reply_markup=kb.clan(user_id))
-	await new_earning_msg(msg.chat.id, msg.message_id)
+	txt = await get_clan_text(udata, user.url)
+	msg = await message.answer(txt, reply_markup=kb.clan(user.user_id))
+	await new_earning(msg)
 
 
 @antispam_earning
-async def my_clan_call(call: types.CallbackQuery):
-	user_id = call.from_user.id
-	url = await url_name(user_id)
-	udata = await clan_info(user_id)
+async def my_clan_call(call: types.CallbackQuery, user: BFGuser):
+	udata = await clan_info(user.user_id)
 
 	if not udata:
 		return
 
-	txt = await get_clan_text(udata, url)
-	try: await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-									text=txt, reply_markup=kb.clan(user_id))
-	except: pass
+	try:
+		txt = await get_clan_text(udata, user.url)
+		await call.message.edit_text(text=txt, reply_markup=kb.clan(user.user_id))
+	except:
+		pass
 
 
 @antispam_earning
-async def clan_users(call: types.CallbackQuery):
-	user_id = call.from_user.id
-	url = await url_name(user_id)
-	udata = await clan_info(user_id)
+async def clan_users(call: types.CallbackQuery, user: BFGuser):
+	udata = await clan_info(user.user_id)
 
 	if not udata:
 		return
@@ -86,19 +80,20 @@ async def clan_users(call: types.CallbackQuery):
 
 	data = await get_user_list(udata[1])
 
-	txt = f'{url}, участники клана:\n'
+	txt = f'{user.url}, участники клана:\n'
 	for user in data:
 		name = await get_name(user[0])
 		d = emojis.get(int(user[2]), emojis[1])
 		txt += f'[{d[0]}] | [{name} ({user[0]})] - [{d[1]}]\n'
 
-	try: await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-									text=txt, reply_markup=kb.clan(user_id))
-	except: pass
+	try:
+		await call.message.edit_text(text=txt, reply_markup=kb.clan(user.user_id))
+	except:
+		pass
 
 
 @antispam_earning
-async def clan_settings(call: types.CallbackQuery):
+async def clan_settings(call: types.CallbackQuery, user: BFGuser):
 	user_id = call.from_user.id
 	url = await url_name(user_id)
 	udata = await clan_info(user_id)
@@ -124,9 +119,10 @@ async def clan_settings(call: types.CallbackQuery):
 [⚔️] Начинать войну могут: {emojis[d[8]]}
 [✏️] Изменять название могут: {emojis[d[9]]}'''
 
-	try: await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-									text=txt, reply_markup=kb.clan(user_id))
-	except: pass
+	try:
+		await call.message.edit_text(text=txt, reply_markup=kb.clan(user.user_id))
+	except:
+		pass
 
 
 def reg(dp: Dispatcher):

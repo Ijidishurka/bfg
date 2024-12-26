@@ -1,10 +1,9 @@
 from datetime import datetime, timedelta
 from aiogram import Dispatcher, types
 from assets.antispam import antispam
-from commands.db import url_name, getads, get_balance, getstatus, get_name
 from commands.basic.bank.db import *
-from commands.main import win_luser
 from assets.transform import transform_int as tr
+from user import BFGuser, BFGconst
 
 
 async def bank_pc(status):
@@ -42,145 +41,130 @@ async def get_summ(msg, balance):
 
 
 @antispam
-async def bank_cmd(message: types.Message):
-    user_id = message.from_user.id
-    url = await url_name(user_id)
-    user_name = await get_name(user_id)
-    ads = await getads()
-    status = await getstatus(user_id)
-    p, c, st = await bank_pc(status)
+async def bank_cmd(message: types.Message, user: BFGuser):
+    p, c, st = await bank_pc(user.status)
 
-    depozit, timedepozit, bank = await getbankdb(user_id)
-
-    if depozit == 0:
+    if int(user.depozit) == 0:
         timedepozit = 'Нет депозита'
     else:
-        timedepozit = datetime.fromtimestamp(timedepozit)
+        timedepozit = datetime.fromtimestamp(user.depozit_time)
         timedepozit += timedelta(days=3)
         timedepozit = timedepozit.strftime('%Y-%m-%d в %H:%M:%S')
 
-    await message.answer(f'''{url}, ваш банковский счёт:
-👫 Владелец: {user_name}
-💰 Деньги в банке: {tr(bank)}$
+    await message.answer(f'''{user.url}, ваш банковский счёт:
+👫 Владелец: {user.name}
+💰 Деньги в банке: {user.bank.tr()}$
 💎 Статус: {st}
    〽 Процент под депозит: {p}%
    💱 Комиссия банка: {c}%
-   💵 Под депозитом: {tr(depozit)}$
+   💵 Под депозитом: {user.depozit.tr()}$
    ⏳ Можно снять: {timedepozit}
 
-{ads}''', disable_web_page_preview=True)
+{BFGconst.ads}''', disable_web_page_preview=True)
 
 
 @antispam
-async def putbank(message: types.Message):
-    user_id = message.from_user.id
-    balance = await get_balance(user_id)
-    url = await url_name(user_id)
-    win, lose = await win_luser()
+async def putbank(message: types.Message, user: BFGuser):
+    win, lose = BFGconst.emj()
 
     try:
         msg = message.text.split()
         if len(msg) < 3:
             return
-        summ = await get_summ(msg, balance)
+        summ = await get_summ(msg, user.balance)
     except:
         return
 
-    summ, balance = Decimal(summ), Decimal(balance)
+    summ, balance = Decimal(str(summ)), Decimal(str(user.balance))
 
     if summ > balance:
-        await message.answer(f'{url}, вы не можете положить в банк больше чем у вас на балансе {lose}')
+        await message.answer(f'{user.url}, вы не можете положить в банк больше чем у вас на балансе {lose}')
         return
 
     if summ <= 0:
-        await message.answer(f'{url}, вы не можете положить в банк отрицательную сумму денег {lose}')
+        await message.answer(f'{user.url}, вы не можете положить в банк отрицательную сумму денег {lose}')
         return
 
-    await putbank_db(summ, user_id)
-    await message.answer(f'{url}, вы успешно положили на банковский счёт {tr(summ)}$ {win}')
+    await user.balance.upd(summ, '-')
+    await user.bank.upd(summ, '+')
+    await message.answer(f'{user.url}, вы успешно положили на банковский счёт {tr(summ)}$ {win}')
 
 
 @antispam
-async def takeoffbank(message: types.Message):
-    user_id = message.from_user.id
-    _, _, balance = await getbankdb(user_id)
-    url = await url_name(user_id)
-    win, lose = await win_luser()
+async def takeoffbank(message: types.Message, user: BFGuser):
+    win, lose = BFGconst.emj()
 
     try:
         msg = message.text.split()
         if len(msg) < 3:
             return
-        summ = await get_summ(msg, balance)
+        summ = await get_summ(msg, user.bank)
     except:
         return
 
-    summ, balance = Decimal(summ), Decimal(balance)
+    summ, balance = Decimal(str(summ)), Decimal(str(user.bank))
 
     if summ > balance:
-        await message.answer(f'{url}, вы не можете снять с банка больше чем у вас есть {lose}')
+        await message.answer(f'{user.url}, вы не можете снять с банка больше чем у вас есть {lose}')
         return
 
     if summ <= 0:
-        await message.answer(f'{url}, вы не можете снять с банка отрицательную сумму денег {lose}')
+        await message.answer(f'{user.url}, вы не можете снять с банка отрицательную сумму денег {lose}')
         return
 
-    await takeoffbank_db(summ, user_id)
-    await message.answer(f'{url}, вы успешно сняли с банковского счёта {tr(summ)}$ {win}')
+    await user.bank.upd(summ, '-')
+    await user.balance.upd(summ, '+')
+    await message.answer(f'{user.url}, вы успешно сняли с банковского счёта {tr(summ)}$ {win}')
 
 
 @antispam
-async def pudepozit(message: types.Message):
-    user_id = message.from_user.id
-    balance = await get_balance(user_id)
-    depozitb, _, _ = await getbankdb(user_id)
-    status = await getstatus(user_id)
-    p, c, st = await bank_pc(status)
-    url = await url_name(user_id)
-    win, lose = await win_luser()
+async def pudepozit(message: types.Message, user: BFGuser):
+    p, c, st = await bank_pc(user.status)
+    win, lose = BFGconst.emj()
 
     try:
         msg = message.text.split()
         if len(msg) < 3:
             return
-        summ = await get_summ(msg, balance)
+        summ = await get_summ(msg, user.balance)
     except:
         return
 
     if summ < 1000:
-        await message.answer(f'{url}, ваш взнос не может быть меньше 1000$ {lose}')
+        await message.answer(f'{user.url}, ваш взнос не может быть меньше 1000$ {lose}')
         return
 
-    if depozitb != 0:
-        await message.answer(f'{url}, у вас уже открыт депозит. Вы не можете дополнить его {lose}')
+    if int(user.depozit) != 0:
+        await message.answer(f'{user.url}, у вас уже открыт депозит. Вы не можете дополнить его {lose}')
         return
 
-    if summ > balance:
-        await message.answer(f'{url}, вы не можете положить на депозит больше чем у вас на балансе {lose}')
+    if summ > int(user.balance):
+        await message.answer(f'{user.url}, вы не можете положить на депозит больше чем у вас на балансе {lose}')
         return
 
     comsa = int(summ * 0.15)
     csumm = int(summ - comsa)
 
     dt = int(datetime.now().timestamp())
-    await putdep_db(csumm, user_id, dt, summ)
-    await message.answer(f'{url}, вы успешно положили на депозитный счёт {tr(summ)}$ под {p}% {win}.\n\n'
+    
+    await putdep_db(user.user_id, dt)
+    await user.balance.upd(summ, '-')
+    await user.depozit.upd(csumm, '+')
+
+    await message.answer(f'{user.url}, вы успешно положили на депозитный счёт {tr(summ)}$ под {p}% {win}.\n\n'
                          f'Вы заплатили комиссию в размере {tr(comsa)}$ (1.5%) за использование банковских услуг.')
 
 
 @antispam
-async def takeoffdepozit(message: types.Message):
-    user_id = message.from_user.id
-    balance, timedepozit, bank = await getbankdb(user_id)
-    url = await url_name(user_id)
-    win, lose = await win_luser()
+async def takeoffdepozit(message: types.Message, user: BFGuser):
+    win, lose = BFGconst.emj()
+    balance = int(user.depozit)
 
-    timedepozit = datetime.fromtimestamp(timedepozit)
+    timedepozit = datetime.fromtimestamp(user.depozit_time)
     timedepozit += timedelta(days=3)
     dt = datetime.now().timestamp()
 
-    status = await getstatus(user_id)
-    c, p = await dep_comsa(status)
+    c, p = await dep_comsa(user.status)
 
     try:
         msg = message.text.split()
@@ -191,30 +175,32 @@ async def takeoffdepozit(message: types.Message):
         return
 
     if int(timedepozit.timestamp()) > dt:
-        await message.answer(f'{url}, у вас уже открыт депозит. Вы не можете снять с него деньги раньше времени {lose}')
+        await message.answer(f'{user.url}, у вас уже открыт депозит. Вы не можете снять с него деньги раньше времени {lose}')
         return
 
     if summ > balance:
-        await message.answer(f'{url}, вы не можете снять с депозита больше чем у вас есть {lose}')
+        await message.answer(f'{user.url}, вы не можете снять с депозита больше чем у вас есть {lose}')
         return
 
     if summ <= 0:
-        await message.answer(f'{url}, вы не можете снять с депозита отрицательную сумму денег {lose}')
+        await message.answer(f'{user.url}, вы не можете снять с депозита отрицательную сумму денег {lose}')
         return
 
     if summ < 100:
-        await message.answer(f'{url}, вы не можете снять меньше 100$ {lose}')
+        await message.answer(f'{user.url}, вы не можете снять меньше 100$ {lose}')
         return
+    
+    await user.depozit.upd(0)
 
     if summ < balance:
         ost = balance - summ
-        await getdepost(ost, user_id)
+        await user.bank.upd(ost, '+')
 
     comsa = int(summ * float(c))
     csumm = int(summ - comsa)
 
-    await sndep_db(csumm, user_id)
-    await message.answer(f'''{url}, вы успешно сняли с депозитного счёта {tr(summ)}$ 😁
+    await user.balance.upd(csumm, '+')
+    await message.answer(f'''{user.url}, вы успешно сняли с депозитного счёта {tr(csumm)}$ 😁
 
 Учтите, сняв деньги вы закрыли свой депозитный счёт. Чтобы его вновь активировать положите под депозит любую сумму.
 

@@ -1,16 +1,15 @@
 from aiogram import types, Dispatcher
 import commands.basic.property.db as db
-from commands.db import url_name, get_balance
-from commands.main import win_luser
 from bot import bot
 from assets.antispam import antispam
 from commands.basic.property.lists import *
+from assets.transform import transform_int as tr
+from user import BFGuser, BFGconst
 
 
 @antispam
-async def helicopters_list(message: types.Message):
-    name = await url_name(message.from_user.id)
-    await message.answer(f'''{name}, доступные вертолёты:
+async def helicopters_list(message: types.Message, user: BFGuser):
+    await message.answer(f'''{user.url}, доступные вертолёты:
 🚁 1. Воздушный шар - 100.000$
 🚁 2. RotorWay Exec 162F - 3.500.000$
 🚁 3. Robinson R44 - 10.000.000$
@@ -29,9 +28,8 @@ async def helicopters_list(message: types.Message):
 
 
 @antispam
-async def cars_list(message: types.Message):
-    name = await url_name(message.from_user.id)
-    await message.answer(f'''{name}, доступные машины:
+async def cars_list(message: types.Message, user: BFGuser):
+    await message.answer(f'''{user.url}, доступные машины:
 🚗 1. Самокат - 10.000.000$
 🚗 2. Велосипед - 15.000.000$
 🚗 3. Гироскутер - 30.000.000$
@@ -63,9 +61,8 @@ async def cars_list(message: types.Message):
 
 
 @antispam
-async def house_list(message: types.Message):
-    name = await url_name(message.from_user.id)
-    await message.answer(f'''{name}, доступные дома:
+async def house_list(message: types.Message, user: BFGuser):
+    await message.answer(f'''{user.url}, доступные дома:
 🏠 1. Коробка - 500.000$
 🏠 2. Подвал - 1.000.000$
 🏠 3. Сарай - 3.000.000$
@@ -87,9 +84,8 @@ async def house_list(message: types.Message):
 
 
 @antispam
-async def yahta_list(message: types.Message):
-    name = await url_name(message.from_user.id)
-    await message.answer(f'''{name}, доступные дома:
+async def yahta_list(message: types.Message, user: BFGuser):
+    await message.answer(f'''{user.url}, доступные дома:
 🏠 1. Коробка - 500.000$
 🏠 2. Подвал - 1.000.000$
 🏠 3. Сарай - 3.000.000$
@@ -111,9 +107,8 @@ async def yahta_list(message: types.Message):
 
 
 @antispam
-async def phone_list(message: types.Message):
-    name = await url_name(message.from_user.id)
-    await message.answer(f'''{name}, доступные телефоны:
+async def phone_list(message: types.Message, user: BFGuser):
+    await message.answer(f'''{user.url}, доступные телефоны:
 📱 1. Nokia 3310 - 100.000$
 📱 2. ASUS ZenFone 4 - 3.500.000$
 📱 3. BQ Aquaris X - 10.000.000$
@@ -128,9 +123,8 @@ async def phone_list(message: types.Message):
 
 
 @antispam
-async def yahts_list(message: types.Message):
-    name = await url_name(message.from_user.id)
-    await message.answer(f'''{name}, доступные яхты:
+async def yahts_list(message: types.Message, user: BFGuser):
+    await message.answer(f'''{user.url}, доступные яхты:
 🛳 1. Ванна - 1.000.000$
 🛳 2. Nauticat 331 - 10.000.000$
 🛳 3. Nordhavn 56 MS - 30.000.000$
@@ -149,9 +143,8 @@ async def yahts_list(message: types.Message):
 
 
 @antispam
-async def plane_list(message: types.Message):
-    name = await url_name(message.from_user.id)
-    await message.answer(f'''{name}, доступные самолеты:
+async def plane_list(message: types.Message, user: BFGuser):
+    await message.answer(f'''{user.url}, доступные самолеты:
 ✈️ 1. Параплан - 100.000.000$
 ✈️ 2. АН-2 - 350.000.000$
 ✈️ 3. Cessna-172E - 700.000.000$
@@ -173,17 +166,16 @@ async def plane_list(message: types.Message):
 
 
 @antispam
-async def my_helicopter(message: types.Message):
-    name = await url_name(message.from_user.id)
-    rwin, rloser = await win_luser()
-    data = await db.get_property(message.from_user.id)
-    if data[1] == 0:
-        await message.answer(f'{name}, к сожалению у вас нет вертолёта {rloser}')
+async def my_helicopter(message: types.Message, user: BFGuser):
+    win, lose = BFGconst.emj()
+    
+    if int(user.property.helicopter) == 0:
+        await message.answer(f'{user.url}, к сожалению у вас нет вертолёта {lose}')
         return
 
-    hdata = helicopters.get(data[1])
+    hdata = helicopters.get(user.property.helicopter.get())
 
-    txt = f'''{name}, информация о вашем вертолёте "{hdata[0]}"
+    txt = f'''{user.url}, информация о вашем вертолёте "{hdata[0]}"
 ⛽️ Максимальная скорость: {hdata[1]} км/ч
 🐎 Лошадиных сил: {hdata[2]}'''
 
@@ -191,30 +183,28 @@ async def my_helicopter(message: types.Message):
 
 
 @antispam
-async def my_phone(message: types.Message):
-    name = await url_name(message.from_user.id)
-    rwin, rloser = await win_luser()
-    data = await db.get_property(message.from_user.id)
-    if data[4] == 0:
-        await message.answer(f'{name}, к сожалению у вас нет телефона {rloser}')
+async def my_phone(message: types.Message, user: BFGuser):
+    win, lose = BFGconst.emj()
+    
+    if int(user.property.phone) == 0:
+        await message.answer(f'{user.url}, к сожалению у вас нет телефона {lose}')
         return
 
-    hdata = phones.get(data[4])
-    await bot.send_photo(chat_id=message.chat.id, photo=hdata[1], caption=f'{name}, ваш телефон "{hdata[0]}"')
+    hdata = phones.get(user.property.phone.get())
+    await bot.send_photo(chat_id=message.chat.id, photo=hdata[1], caption=f'{user.url}, ваш телефон "{hdata[0]}"')
 
 
 @antispam
-async def my_car(message: types.Message):
-    name = await url_name(message.from_user.id)
-    rwin, rloser = await win_luser()
-    data = await db.get_property(message.from_user.id)
-    if data[2] == 0:
-        await message.answer(f'{name}, к сожалению у вас нет автомобиля {rloser}')
+async def my_car(message: types.Message, user: BFGuser):
+    win, lose = BFGconst.emj()
+    
+    if int(user.property.car) == 0:
+        await message.answer(f'{user.url}, к сожалению у вас нет автомобиля {lose}')
         return
 
-    hdata = cars.get(data[2])
+    hdata = cars.get(user.property.car.get())
 
-    txt = f'''{name}, информация о вашем автомобиле "{hdata[0]}"
+    txt = f'''{user.url}, информация о вашем автомобиле "{hdata[0]}"
 ⛽️ Максимальная скорость: {hdata[1]} км/ч
 🐎 Лошадиных сил: {hdata[2]}
 ⏱ Разгон до 100 за {hdata[3]} сек'''
@@ -223,30 +213,28 @@ async def my_car(message: types.Message):
 
 
 @antispam
-async def my_house(message: types.Message):
-    name = await url_name(message.from_user.id)
-    rwin, rloser = await win_luser()
-    data = await db.get_property(message.from_user.id)
-    if data[5] == 0:
-        await message.answer(f'{name}, к сожалению у вас нет своего дома {rloser}')
+async def my_house(message: types.Message, user: BFGuser):
+    win, lose = BFGconst.emj()
+    
+    if int(user.property.house) == 0:
+        await message.answer(f'{user.url}, к сожалению у вас нет своего дома {lose}')
         return
 
-    hdata = house.get(data[5])
-    await bot.send_photo(chat_id=message.chat.id, photo=hdata[1], caption=f'{name}, ваш дом "{hdata[0]}"')
+    hdata = house.get(user.property.house.get())
+    await bot.send_photo(chat_id=message.chat.id, photo=hdata[1], caption=f'{user.url}, ваш дом "{hdata[0]}"')
 
 
 @antispam
-async def my_yahta(message: types.Message):
-    name = await url_name(message.from_user.id)
-    rwin, rloser = await win_luser()
-    data = await db.get_property(message.from_user.id)
-    if data[3] == 0:
-        await message.answer(f'{name}, к сожалению у вас нет своей яхты {rloser}')
+async def my_yahta(message: types.Message, user: BFGuser):
+    win, lose = BFGconst.emj()
+    
+    if int(user.property.yahta) == 0:
+        await message.answer(f'{user.url}, к сожалению у вас нет своей яхты {lose}')
         return
 
-    hdata = yahts.get(data[3])
+    hdata = yahts.get(user.property.yahta.get())
 
-    txt = f'''{name}, информация о вашей яхте "{hdata[0]}"
+    txt = f'''{user.url}, информация о вашей яхте "{hdata[0]}"
 ⛽️ Максимальная скорость: {hdata[1]} км/ч
 🐎 Лошадиных сил: {hdata[2]}'''
 
@@ -254,17 +242,16 @@ async def my_yahta(message: types.Message):
 
 
 @antispam
-async def my_plane(message: types.Message):
-    name = await url_name(message.from_user.id)
-    rwin, rloser = await win_luser()
-    data = await db.get_property(message.from_user.id)
-    if data[6] == 0:
-        await message.answer(f'{name}, к сожалению у вас нет своего самолёта {rloser}')
+async def my_plane(message: types.Message, user: BFGuser):
+    win, lose = BFGconst.emj()
+    
+    if int(user.property.plane) == 0:
+        await message.answer(f'{user.url}, к сожалению у вас нет своего самолёта {lose}')
         return
 
-    hdata = planes.get(data[6])
+    hdata = planes.get(user.property.plane.get())
 
-    txt = f'''{name}, информация о вашем самолёте "{hdata[0]}"
+    txt = f'''{user.url}, информация о вашем самолёте "{hdata[0]}"
 ⛽️ Максимальная скорость: {hdata[1]} км/ч
 🐎 Лошадиных сил: {hdata[2]}'''
 
@@ -272,303 +259,262 @@ async def my_plane(message: types.Message):
 
 
 @antispam
-async def buy_helicopter(message: types.Message):
-    user_id = message.from_user.id
-    name = await url_name(user_id)
-    balance = await get_balance(user_id)
-    rwin, rloser = await win_luser()
-    data = await db.get_property(user_id)
-
-    if data[1] != 0:
-        await message.answer(f'{name}, у вас уже есть данный тип имущества {rloser}')
+async def buy_helicopter(message: types.Message, user: BFGuser):
+    win, lose = BFGconst.emj()
+    
+    if int(user.property.helicopter) != 0:
+        await message.answer(f'{user.url}, у вас уже есть данный тип имущества {lose}')
         return
 
     try:
         num = int(message.text.split()[2])
     except:
-        await message.answer(f'{name}, вы не ввели число имущества или привелегии которое хотите купить {rloser}')
+        await message.answer(f'{user.url}, вы не ввели число имущества или привелегии которое хотите купить {lose}')
         return
 
-    hdata = helicopters.get(num, 'no')
-    if hdata == 'no':
-        await message.answer(f'{name}, вы не ввели число имущества или привелегии которое хотите купить {rloser}')
+    hdata = helicopters.get(num)
+    
+    if not hdata:
+        await message.answer(f'{user.url}, вы не ввели число имущества или привелегии которое хотите купить {lose}')
         return
 
-    if balance < hdata[4]:
-        await message.answer(f'{name}, у вас недостаточно денег для покупки имущества {rloser}')
+    if int(user.balance) < hdata[4]:
+        await message.answer(f'{user.url}, у вас недостаточно денег для покупки имущества {lose}')
         return
 
-    await message.answer(f'{name}, вы успешно купили вертолёт "{hdata[0]}" 🎉')
-    await db.buy_property(user_id, num, 'helicopter', hdata[4])
+    await message.answer(f'{user.url}, вы успешно купили вертолёт "{hdata[0]}" 🎉')
+    await db.buy_property(user.user_id, num, 'helicopter', hdata[4])
 
 
 @antispam
-async def buy_phone(message: types.Message):
-    user_id = message.from_user.id
-    name = await url_name(user_id)
-    balance = await get_balance(user_id)
-    rwin, rloser = await win_luser()
-    data = await db.get_property(user_id)
-
-    if data[4] != 0:
-        await message.answer(f'{name}, у вас уже есть данный тип имущества {rloser}')
+async def buy_phone(message: types.Message, user: BFGuser):
+    win, lose = BFGconst.emj()
+    
+    if int(user.property.phone) != 0:
+        await message.answer(f'{user.url}, у вас уже есть данный тип имущества {lose}')
         return
 
     try:
         num = int(message.text.split()[2])
     except:
-        await message.answer(f'{name}, вы не ввели число имущества или привелегии которое хотите купить {rloser}')
+        await message.answer(f'{user.url}, вы не ввели число имущества или привелегии которое хотите купить {lose}')
         return
 
-    hdata = phones.get(num, 'no')
-    if hdata == 'no':
-        await message.answer(f'{name}, вы не ввели число имущества или привелегии которое хотите купить {rloser}')
+    hdata = phones.get(num)
+    
+    if not hdata:
+        await message.answer(f'{user.url}, вы не ввели число имущества или привелегии которое хотите купить {lose}')
         return
 
-    if balance < hdata[2]:
-        await message.answer(f'{name}, у вас недостаточно денег для покупки имущества {rloser}')
+    if int(user.balance) < hdata[2]:
+        await message.answer(f'{user.url}, у вас недостаточно денег для покупки имущества {lose}')
         return
 
-    await message.answer(f'{name}, вы успешно купили телефон "{hdata[0]}" 🎉')
-    await db.buy_property(user_id, num, 'phone', hdata[2])
+    await message.answer(f'{user.url}, вы успешно купили телефон "{hdata[0]}" 🎉')
+    await db.buy_property(user.user_id, num, 'phone', hdata[2])
 
 
 @antispam
-async def buy_car(message: types.Message):
-    user_id = message.from_user.id
-    name = await url_name(user_id)
-    balance = await get_balance(user_id)
-    rwin, rloser = await win_luser()
-    data = await db.get_property(user_id)
-
-    if data[2] != 0:
-        await message.answer(f'{name}, у вас уже есть данный тип имущества {rloser}')
+async def buy_car(message: types.Message, user: BFGuser):
+    win, lose = BFGconst.emj()
+    
+    if int(user.property.car) != 0:
+        await message.answer(f'{user.url}, у вас уже есть данный тип имущества {lose}')
         return
 
     try:
         num = int(message.text.split()[2])
     except:
-        await message.answer(f'{name}, вы не ввели число имущества или привелегии которое хотите купить {rloser}')
+        await message.answer(f'{user.url}, вы не ввели число имущества или привелегии которое хотите купить {lose}')
         return
 
-    hdata = cars.get(num, 'no')
-    if hdata == 'no':
-        await message.answer(f'{name}, вы не ввели число имущества или привелегии которое хотите купить {rloser}')
+    hdata = cars.get(num)
+    
+    if not hdata:
+        await message.answer(f'{user.url}, вы не ввели число имущества или привелегии которое хотите купить {lose}')
         return
 
-    if balance < hdata[5]:
-        await message.answer(f'{name}, у вас недостаточно денег для покупки имущества {rloser}')
+    if int(user.balance) < hdata[5]:
+        await message.answer(f'{user.url}, у вас недостаточно денег для покупки имущества {lose}')
         return
 
-    await message.answer(f'{name}, вы успешно купили машину "{hdata[0]}" 🎉')
-    await db.buy_property(user_id, num, 'car', hdata[5])
+    await message.answer(f'{user.url}, вы успешно купили машину "{hdata[0]}" 🎉')
+    await db.buy_property(user.user_id, num, 'car', hdata[5])
 
 
 @antispam
-async def buy_house(message: types.Message):
-    user_id = message.from_user.id
-    name = await url_name(user_id)
-    balance = await get_balance(user_id)
-    rwin, rloser = await win_luser()
-    data = await db.get_property(user_id)
-
-    if data[4] != 0:
-        await message.answer(f'{name}, у вас уже есть данный тип имущества {rloser}')
+async def buy_house(message: types.Message, user: BFGuser):
+    win, lose = BFGconst.emj()
+    
+    if int(user.property.house) != 0:
+        await message.answer(f'{user.url}, у вас уже есть данный тип имущества {lose}')
         return
 
     try:
         num = int(message.text.split()[2])
     except:
-        await message.answer(f'{name}, вы не ввели число имущества или привелегии которое хотите купить {rloser}')
+        await message.answer(f'{user.url}, вы не ввели число имущества или привелегии которое хотите купить {lose}')
         return
 
-    hdata = house.get(num, 'no')
-    if hdata == 'no':
-        await message.answer(f'{name}, вы не ввели число имущества или привелегии которое хотите купить {rloser}')
+    hdata = house.get(num)
+    
+    if not hdata:
+        await message.answer(f'{user.url}, вы не ввели число имущества или привелегии которое хотите купить {lose}')
         return
 
-    if balance < hdata[2]:
-        await message.answer(f'{name}, у вас недостаточно денег для покупки имущества {rloser}')
+    if int(user.balance) < hdata[2]:
+        await message.answer(f'{user.url}, у вас недостаточно денег для покупки имущества {lose}')
         return
 
-    await message.answer(f'{name}, вы успешно купили дом "{hdata[0]}" 🎉')
-    await db.buy_property(user_id, num, 'house', hdata[2])
+    await message.answer(f'{user.url}, вы успешно купили дом "{hdata[0]}" 🎉')
+    await db.buy_property(user.user_id, num, 'house', hdata[2])
 
 
 @antispam
-async def buy_yahta(message: types.Message):
-    user_id = message.from_user.id
-    name = await url_name(user_id)
-    balance = await get_balance(user_id)
-    rwin, rloser = await win_luser()
-    data = await db.get_property(user_id)
-
-    if data[3] != 0:
-        await message.answer(f'{name}, у вас уже есть данный тип имущества {rloser}')
+async def buy_yahta(message: types.Message, user: BFGuser):
+    win, lose = BFGconst.emj()
+    
+    if int(user.property.yahta) != 0:
+        await message.answer(f'{user.url}, у вас уже есть данный тип имущества {lose}')
         return
 
     try:
         num = int(message.text.split()[2])
     except:
-        await message.answer(f'{name}, вы не ввели число имущества или привелегии которое хотите купить {rloser}')
+        await message.answer(f'{user.url}, вы не ввели число имущества или привелегии которое хотите купить {lose}')
         return
 
-    hdata = yahts.get(num, 'no')
-    if hdata == 'no':
-        await message.answer(f'{name}, вы не ввели число имущества или привелегии которое хотите купить {rloser}')
+    hdata = yahts.get(num)
+    
+    if not hdata:
+        await message.answer(f'{user.url}, вы не ввели число имущества или привелегии которое хотите купить {lose}')
         return
 
-    if balance < hdata[4]:
-        await message.answer(f'{name}, у вас недостаточно денег для покупки имущества {rloser}')
+    if int(user.balance) < hdata[4]:
+        await message.answer(f'{user.url}, у вас недостаточно денег для покупки имущества {lose}')
         return
 
-    await message.answer(f'{name}, вы успешно купили яхту "{hdata[0]}" 🎉')
-    await db.buy_property(user_id, num, 'yahta', hdata[4])
+    await message.answer(f'{user.url}, вы успешно купили яхту "{hdata[0]}" 🎉')
+    await db.buy_property(user.user_id, num, 'yahta', hdata[4])
 
 
 @antispam
-async def buy_plane(message: types.Message):
-    user_id = message.from_user.id
-    name = await url_name(user_id)
-    balance = await get_balance(user_id)
-    rwin, rloser = await win_luser()
-    data = await db.get_property(user_id)
-
-    if data[6] != 0:
-        await message.answer(f'{name}, у вас уже есть данный тип имущества {rloser}')
+async def buy_plane(message: types.Message, user: BFGuser):
+    win, lose = BFGconst.emj()
+    
+    if int(user.property.plane) != 0:
+        await message.answer(f'{user.url}, у вас уже есть данный тип имущества {lose}')
         return
 
     try:
         num = int(message.text.split()[2])
     except:
-        await message.answer(f'{name}, вы не ввели число имущества или привелегии которое хотите купить {rloser}')
+        await message.answer(f'{user.url}, вы не ввели число имущества или привелегии которое хотите купить {lose}')
         return
 
-    hdata = planes.get(num, 'no')
-    if hdata == 'no':
-        await message.answer(f'{name}, вы не ввели число имущества или привелегии которое хотите купить {rloser}')
+    hdata = planes.get(num)
+    
+    if not hdata:
+        await message.answer(f'{user.url}, вы не ввели число имущества или привелегии которое хотите купить {lose}')
         return
 
-    if balance < hdata[4]:
-        await message.answer(f'{name}, у вас недостаточно денег для покупки имущества {rloser}')
+    if int(user.balance) < hdata[4]:
+        await message.answer(f'{user.url}, у вас недостаточно денег для покупки имущества {lose}')
         return
 
-    await message.answer(f'{name}, вы успешно купили самолёт "{hdata[0]}" 🎉')
-    await db.buy_property(user_id, num, 'plane', hdata[4])
+    await message.answer(f'{user.url}, вы успешно купили самолёт "{hdata[0]}" 🎉')
+    await db.buy_property(user.user_id, num, 'plane', hdata[4])
 
 
 @antispam
-async def sell_helicopter(message: types.Message):
-    user_id = message.from_user.id
-    name = await url_name(user_id)
-    rwin, rloser = await win_luser()
-    data = await db.get_property(user_id)
-
-    if data[1] == 0:
-        await message.answer(f'{name}, у вас нет данного имущества {rloser}')
+async def sell_helicopter(message: types.Message, user: BFGuser):
+    win, lose = BFGconst.emj()
+    
+    if int(user.property.helicopter) == 0:
+        await message.answer(f'{user.url}, у вас нет данного имущества {lose}')
         return
 
-    hdata = helicopters.get(data[1])
+    hdata = helicopters.get(int(user.property.helicopter))
+    
     summ = int(hdata[4] * 0.75)
-    summ2 = '{:,}'.format(summ).replace(',', '.')
 
-    await message.answer(f'{name}, вы успешно продали вертолёт за {summ2}$ 🎉')
-    await db.sell_property(user_id, 'helicopter', summ)
+    await message.answer(f'{user.url}, вы успешно продали вертолёт за {tr(summ)}$ 🎉')
+    await db.sell_property(user.user_id, 'helicopter', summ)
 
 
 @antispam
-async def sell_phone(message: types.Message):
-    user_id = message.from_user.id
-    name = await url_name(user_id)
-    rwin, rloser = await win_luser()
-    data = await db.get_property(user_id)
-
-    if data[4] == 0:
-        await message.answer(f'{name}, у вас нет данного имущества {rloser}')
+async def sell_phone(message: types.Message, user: BFGuser):
+    win, lose = BFGconst.emj()
+    
+    if int(user.property.phone) == 0:
+        await message.answer(f'{user.url}, у вас нет данного имущества {lose}')
         return
 
-    hdata = phones.get(data[4])
+    hdata = phones.get(int(user.property.phone))
     summ = int(hdata[2] * 0.75)
-    summ2 = '{:,}'.format(summ).replace(',', '.')
 
-    await message.answer(f'{name}, вы успешно продали телефон за {summ2}$ 🎉')
-    await db.sell_property(user_id, 'phone', summ)
+    await message.answer(f'{user.url}, вы успешно продали телефон за {tr(summ)}$ 🎉')
+    await db.sell_property(user.user_id, 'phone', summ)
 
 
 @antispam
-async def sell_car(message: types.Message):
-    user_id = message.from_user.id
-    name = await url_name(user_id)
-    rwin, rloser = await win_luser()
-    data = await db.get_property(user_id)
-
-    if data[2] == 0:
-        await message.answer(f'{name}, у вас нет данного имущества {rloser}')
+async def sell_car(message: types.Message, user: BFGuser):
+    win, lose = BFGconst.emj()
+    
+    if int(user.property.car) == 0:
+        await message.answer(f'{user.url}, у вас нет данного имущества {lose}')
         return
 
-    hdata = cars.get(data[2])
+    hdata = cars.get(int(user.property.car))
     summ = int(hdata[5] * 0.75)
-    summ2 = '{:,}'.format(summ).replace(',', '.')
 
-    await message.answer(f'{name}, вы успешно продали машину за {summ2}$ 🎉')
-    await db.sell_property(user_id, 'car', summ)
+    await message.answer(f'{user.url}, вы успешно продали машину за {tr(summ)}$ 🎉')
+    await db.sell_property(user.user_id, 'car', summ)
 
 
 @antispam
-async def sell_house(message: types.Message):
-    user_id = message.from_user.id
-    name = await url_name(user_id)
-    rwin, rloser = await win_luser()
-    data = await db.get_property(user_id)
-
-    if data[5] == 0:
-        await message.answer(f'{name}, у вас нет данного имущества {rloser}')
+async def sell_house(message: types.Message, user: BFGuser):
+    win, lose = BFGconst.emj()
+    
+    if int(user.property.house) == 0:
+        await message.answer(f'{user.url}, у вас нет данного имущества {lose}')
         return
 
-    hdata = house.get(data[5])
+    hdata = house.get(int(user.property.house))
     summ = int(hdata[2] * 0.75)
-    summ2 = '{:,}'.format(summ).replace(',', '.')
 
-    await message.answer(f'{name}, вы успешно продали дом за {summ2}$ 🎉')
-    await db.sell_property(user_id, 'house', summ)
-
-
-@antispam
-async def sell_yahta(message: types.Message):
-    user_id = message.from_user.id
-    name = await url_name(user_id)
-    rwin, rloser = await win_luser()
-    data = await db.get_property(user_id)
-
-    if data[3] == 0:
-        await message.answer(f'{name}, у вас нет данного имущества {rloser}')
-        return
-
-    hdata = yahts.get(data[3])
-    summ = int(hdata[4] * 0.75)
-    summ2 = '{:,}'.format(summ).replace(',', '.')
-
-    await message.answer(f'{name}, вы успешно продали яхту за {summ2}$ 🎉')
-    await db.sell_property(user_id, 'yahta', summ)
+    await message.answer(f'{user.url}, вы успешно продали дом за {tr(summ)}$ 🎉')
+    await db.sell_property(user.user_id, 'house', summ)
 
 
 @antispam
-async def sell_plane(message: types.Message):
-    user_id = message.from_user.id
-    name = await url_name(user_id)
-    rwin, rloser = await win_luser()
-    data = await db.get_property(user_id)
-
-    if data[6] == 0:
-        await message.answer(f'{name}, у вас нет данного имущества {rloser}')
+async def sell_yahta(message: types.Message, user: BFGuser):
+    win, lose = BFGconst.emj()
+    
+    if int(user.property.yahta) == 0:
+        await message.answer(f'{user.url}, у вас нет данного имущества {lose}')
         return
 
-    hdata = planes.get(data[6])
+    hdata = yahts.get(int(user.property.yahta))
     summ = int(hdata[4] * 0.75)
-    summ2 = '{:,}'.format(summ).replace(',', '.')
 
-    await message.answer(f'{name}, вы успешно продали самолёт за {summ2}$ 🎉')
-    await db.sell_property(user_id, 'plane', summ)
+    await message.answer(f'{user.url}, вы успешно продали яхту за {tr(summ)}$ 🎉')
+    await db.sell_property(user.user_id, 'yahta', summ)
+
+
+@antispam
+async def sell_plane(message: types.Message, user: BFGuser):
+    win, lose = BFGconst.emj()
+    
+    if int(user.property.plane) == 0:
+        await message.answer(f'{user.url}, у вас нет данного имущества {lose}')
+        return
+
+    hdata = planes.get(int(user.property.plane))
+    summ = int(hdata[4] * 0.75)
+
+    await message.answer(f'{user.url}, вы успешно продали самолёт за {tr(summ)}$ 🎉')
+    await db.sell_property(user.user_id, 'plane', summ)
 
 
 def reg(dp: Dispatcher):

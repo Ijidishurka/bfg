@@ -1,15 +1,14 @@
-from assets.antispam import new_earning_msg, antispam, antispam_earning
+from assets.antispam import new_earning, antispam, antispam_earning
 from assets.transform import transform_int as tr
 from aiogram import types, Dispatcher
 from bot import bot
 from commands.entertaining.earnings.quarry import db
-from commands.db import url_name, get_name, get_balance
-from commands.main import win_luser
 from assets import kb
+from user import BFGuser, BFGconst
 
 
 @antispam
-async def quarry_list(message: types.Message):
+async def quarry_list(message: types.Message, user: BFGuser):
     await message.answer(f'''Привет! 🚀 Готов покорить мир карьеров?
 
 🛠 Построй свой первый карьер всего за 25 палладия! Для этого напиши "<code>Построить карьер</code>". Палладий можно получить, открыв рудные кейсы.
@@ -25,124 +24,128 @@ async def quarry_list(message: types.Message):
 
 
 @antispam
-async def my_quarry(message: types.Message):
-    user_id = message.from_user.id
-    url = await url_name(user_id)
-    win, lose = await win_luser()
-    data = await db.getquarry(user_id)
+async def my_quarry(message: types.Message, user: BFGuser):
+    quarry = user.quarry
+    win, lose = BFGconst.emj()
     
-    if not data:
-        await message.answer(f'{url}, у вас нет своего карьера. Введите команду "Построить карьер" {lose}')
+    if not quarry:
+        await message.answer(f'{user.url}, у вас нет своего карьера. Введите команду "Построить карьер" {lose}')
         return
-
-    ter_upd = data[2] * 130
-    bur_upd = data[2] * 166
     
-    msg = await message.answer(f'''{url}, информация о вашем карьере "Карьер":
-🔧 Уровень: {data[4]}
-🧱 Размер территории: {data[2]}м²
+    await edit_quarry_msg(message, user, action='send')
+
+
+async def edit_quarry_msg(call: types.CallbackQuery, user: BFGuser, action='edit'):
+    quarry = user.quarry
+    
+    if action == 'edit':
+        await user.update()
+
+    ter_upd = quarry.territory.get() * 130
+    bur_upd = quarry.bur.get() * 166
+
+    txt = f'''
+{user.url}, информация о вашем карьере "Карьер":
+🔧 Уровень: {quarry.lvl}
+🧱 Размер территории: {quarry.territory.tr()}м²
 🆙 для следующего уровня: {tr(ter_upd)} 🧪
-🕳 Количество буровых установок: {data[3]}
+🕳 Количество буровых установок: {quarry.bur.tr()}
 🆙 для следующего уровня: {tr(bur_upd)} ⚙
 
-💸 Налоги: {tr(data[1])}/5.000.000$''', reply_markup=kb.quarry(user_id))
-    await new_earning_msg(msg.chat.id, msg.message_id)
-
-
-async def edit_quarry_msg(call: types.CallbackQuery):
-    user_id = call.from_user.id
-    url = await url_name(user_id)
-    data = await db.getquarry(user_id)
-    if not data:
+💸 Налоги: {quarry.nalogs.tr()}/5.000.000$'''
+    
+    try:
+        if action == 'edit':
+            await call.message.edit_text(text=txt, reply_markup=kb.quarry(user.user_id))
+        else:
+            msg = await call.answer(text=txt, reply_markup=kb.quarry(user.user_id))
+            await new_earning(msg)
+    except:
         return
-
-    ter_upd = data[2] * 130
-    bur_upd = data[2] * 166
-
-    await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=f'''
-{url}, информация о вашем карьере "Карьер":
-🔧 Уровень: {data[4]}
-🧱 Размер территории: {data[2]}м²
-🆙 для следующего уровня: {tr(ter_upd)} 🧪
-🕳 Количество буровых установок: {data[3]}
-🆙 для следующего уровня: {tr(bur_upd)} ⚙
-
-💸 Налоги: {tr(data[2])}/5.000.000$''', reply_markup=kb.quarry(user_id))
 
 
 @antispam
-async def buy_quarry(message: types.Message):
-    user_id = message.from_user.id
-    url = await url_name(user_id)
-    win, lose = await win_luser()
-    data = await db.getquarry(user_id)
+async def buy_quarry(message: types.Message, user: BFGuser):
+    quarry = user.quarry
+    win, lose = BFGconst.emj()
     
-    if data:
-        await message.answer(f'{url}, у вас уже есть построенный карьер. Чтобы узнать подробнее, введите "Мой карьер" {lose}')
+    if quarry:
+        await message.answer(f'{user.url}, у вас уже есть построенный карьер. Чтобы узнать подробнее, введите "Мой карьер" {lose}')
         return
 
-    balance = await db.getonlipalladium(user_id)
-    if balance < 25:
-        await message.answer(f'{url}, у вас недостаточно палладия для постройки карьера. Его стоимость 25 палладия {lose}')
-    else:
-        await db.buy_quarry_db(user_id)
-        await message.answer(f'{url}, вы успешно построили карьер для подробностей введите "Мой карьер" {win}')
+    if int(user.mine.palladium) < 25:
+        await message.answer(f'{user.url}, у вас недостаточно палладия для постройки карьера. Его стоимость 25 палладия {lose}')
+        return
+    
+    await db.buy_quarry_db(user.user_id)
+    await message.answer(f'{user.url}, вы успешно построили карьер для подробностей введите "Мой карьер" {win}')
 
 
 @antispam_earning
-async def snyt_pribl(call: types.CallbackQuery):
-    user_id = call.from_user.id
-    url = await get_name(user_id)
-    data = await db.getquarry(user_id)
-    win, lose = await win_luser()
+async def withdraw_profit(call: types.CallbackQuery, user: BFGuser):
+    quarry = user.quarry
+    win, lose = BFGconst.emj()
 
-    if not data:
+    if not quarry:
         return
 
-    summ = int(data[1])
+    if int(quarry.balance) == 0:
+        await bot.answer_callback_query(call.id, text=f'{user.name}, на данный момент на балансе вашего карьера нету прибыли {lose}')
+        return
 
-    if summ == 0:
-        await bot.answer_callback_query(call.id, text=f'{url}, на данный момент на балансе вашего карьера нету прибыли {lose}')
-    else:
-        await db.snyt_pribl_quarry_db(user_id, summ)
-        await bot.answer_callback_query(call.id, text=f'{url}, вы успешно сняли {summ}⚗️ с баланса вашего карьера {win}')
-        await edit_quarry_msg(call)
+    await db.withdraw_profit_db(user.user_id, quarry.balance.get())
+    await bot.answer_callback_query(call.id, text=f'{user.name}, вы успешно сняли {quarry.balance.tr()}⚗️ с баланса вашего карьера {win}')
+    await edit_quarry_msg(call, user)
 
 
 @antispam_earning
-async def oplata_nalogov(call: types.CallbackQuery):
-    user_id = call.from_user.id
-    url = await get_name(user_id)
-    data = await db.getquarry(user_id)
-    balance = await get_balance(user_id)
-    win, lose = await win_luser()
+async def payment_taxes(call: types.CallbackQuery, user: BFGuser):
+    quarry = user.quarry
+    win, lose = BFGconst.emj()
 
-    if not data:
+    if not quarry:
         return
 
-    if balance < data[2]:
-        await bot.answer_callback_query(call.id, text=f'{url}, у вас недостаточно денег чтоб оплатить налоги {lose}')
+    if int(user.balance) < int(quarry.nalogs):
+        await bot.answer_callback_query(call.id, text=f'{user.name}, у вас недостаточно денег чтоб оплатить налоги {lose}')
         return
 
-    if data[2] == 0:
-        await bot.answer_callback_query(call.id, text=f'{url}, у вас нет налогов чтобы их оплатить {win}')
+    if int(quarry.nalogs) == 0:
+        await bot.answer_callback_query(call.id, text=f'{user.name}, у вас нет налогов чтобы их оплатить {win}')
         return
 
-    await db.oplata_nalogs_db(user_id, data[2])
-    await bot.answer_callback_query(call.id, text=f'{url}, вы успешно оплатили налоги на сумму {tr(data[2])}$ с вашего игрового баланса {win}')
-    await edit_quarry_msg(call)
+    await db.payment_taxes_db(user.user_id, quarry.nalogs.get())
+    await bot.answer_callback_query(call.id, text=f'{user.name}, вы успешно оплатили налоги на сумму {quarry.nalogs.tr()}$ с вашего игрового баланса {win}')
+    await edit_quarry_msg(call, user)
 
 
 @antispam_earning
-async def up_level(call: types.CallbackQuery):
-    url = await get_name(call.from_user.id)
-    await bot.answer_callback_query(call.id, text=f'{url}, на данный момент у Вас максимальный уровень карьера.')
+async def up_level(call: types.CallbackQuery, user: BFGuser):
+    await bot.answer_callback_query(call.id, text=f'{user.name}, на данный момент у Вас максимальный уровень карьера.')
 
+
+# @antispam
+# async def sell_quarry(message: types.Message, user: BFGuser):
+#     win, lose = BFGconst.emj()
+#     quarry = user.quarry
+#
+#     if not quarry:
+#         await message.answer(f'{user.url}, у вас нет своего генератора {lose}')
+#         return
+#
+#     palladium = 25
+#     cobalt = titanium = 0
+#
+#     cobalt = (1000 * quarry.territory.get())
+#
+#     await db.sell_quarry(user.user_id, summ)
+#     await message.answer(f'{user.url}, Вы успешно продали свой карьер, получено {palladium}⚗️, {cobalt}🧪 и {titanium}⚙️ {win}')
+    
 
 def reg(dp: Dispatcher):
     dp.register_message_handler(my_quarry, lambda message: message.text.lower().startswith('мой карьер'))
     dp.register_message_handler(quarry_list, lambda message: message.text.lower().startswith('карьер'))
     dp.register_message_handler(buy_quarry, lambda message: message.text.lower().startswith('построить карьер'))
-    dp.register_callback_query_handler(snyt_pribl, text_startswith='quarry-sobrat')
-    dp.register_callback_query_handler(oplata_nalogov, text_startswith='quarry-nalog')
+    dp.register_callback_query_handler(withdraw_profit, text_startswith='quarry-sobrat')
+    dp.register_callback_query_handler(payment_taxes, text_startswith='quarry-nalog')
     dp.register_callback_query_handler(up_level, text_startswith='quarry-lvl')

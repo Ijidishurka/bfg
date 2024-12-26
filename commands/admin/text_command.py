@@ -3,8 +3,8 @@ import re
 from aiogram import types, Dispatcher
 import time
 from assets.antispam import admin_only
-from commands.db import url_name
 from commands.admin import db
+from commands.db import url_name
 
 
 @admin_only()

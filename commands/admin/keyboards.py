@@ -44,13 +44,6 @@ def modules_menu():
 	return keyboard
 
 
-def control_menu():
-	keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-	keyboard.add(types.KeyboardButton("🔄 Перезагрузка"), types.KeyboardButton("💽 ОЗУ"))
-	keyboard.add(types.KeyboardButton("🔙 Назад"))
-	return keyboard
-
-
 def ram_clear():
 	keyboard = types.InlineKeyboardMarkup()
 	keyboard.add(types.InlineKeyboardButton("🗑 Очистить все", callback_data="ram-clear"))
@@ -66,7 +59,7 @@ def unloading_menu():
 
 def admin_menu():
 	keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-	keyboard.add(types.KeyboardButton("📣 Реклама"), types.KeyboardButton("🕹 Управление"))
+	keyboard.add(types.KeyboardButton("📣 Реклама"), types.KeyboardButton("🔄 Перезагрузка"))
 	keyboard.add(types.KeyboardButton("✨ Промокоды"), types.KeyboardButton("📥 Выгрузка"))
 	keyboard.add(types.KeyboardButton("🌟 Модули"))
 	return keyboard
@@ -85,9 +78,10 @@ def cancel():
 	return keyboard
 
 
-def update_bot():
+def update_bot(forse=False):
+	forse = 1 if forse else 0
 	keyboard = types.InlineKeyboardMarkup()
-	keyboard.add(types.InlineKeyboardButton("🐙 Обновить", callback_data="update-bot"))
+	keyboard.add(types.InlineKeyboardButton("🐙 Обновить", callback_data=f"update-bot_{forse}"))
 	return keyboard
 
 
