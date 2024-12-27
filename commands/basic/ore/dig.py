@@ -115,7 +115,7 @@ def mine_level(expe: int) -> tuple:
     ]
 
     for level, next_level, limit, threshold in levels:
-        if expe >= threshold:
+        if int(expe) >= threshold:
             return level, next_level, limit
 
 
@@ -136,7 +136,7 @@ async def digmine(message: types.Message, user: BFGuser):
     ads = BFGconst.ads
     win, lose = BFGconst.emj()
 
-    if user.energy == 0:
+    if int(user.energy) == 0:
         await message.answer(f'{user.url}, у вас недостаточно энергии для копки {lose}')
         return
 
@@ -168,15 +168,15 @@ async def digmine(message: types.Message, user: BFGuser):
 
     if ruda in ruda_data:
         eng_ruda, min_i, op, min_expe = ruda_data[ruda]
-        if user.expe < min_expe:
+        if user.expe.get() < min_expe:
             await message.answer(f'{user.url}, чтобы копать {ruda} вам требуется {tr(min_expe)} опыта {lose}')
             return
 
         i = random.randint(min_i, min_i + 5) * coff
         await db.digdb(i, user.user_id, eng_ruda, op)
-        opit = user.expe + op
+        opit = user.expe.get() + op
 
-        await message.answer(f'{user.url}, +{i} {ruda}.\n💡 Энергия: {user.energy - 1}, опыт: {tr(opit)}\n\n{ads}', disable_web_page_preview=True)
+        await message.answer(f'{user.url}, +{i} {ruda}.\n💡 Энергия: {user.energy.get() - 1}, опыт: {tr(opit)}\n\n{ads}', disable_web_page_preview=True)
     else:
         await message.answer(f'{user.url}, данной руды не существует {lose}')
 

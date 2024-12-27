@@ -79,7 +79,7 @@ async def buy_case(message: types.Message, user: BFGuser):
     elif case == 3:
         summ = 50 * case
         
-        if summ > user.mine.titanium:
+        if summ > int(user.mine.titanium):
             await message.answer(f'{user.url}, у вас недостаточно средств для покупки данного кейса {lose}')
             return
         
@@ -90,7 +90,7 @@ async def buy_case(message: types.Message, user: BFGuser):
     elif case == 4:
         summ = 200 * case
         
-        if summ > user.mine.matter:
+        if summ > int(user.mine.matter):
             await message.answer(f'{user.url}, у вас недостаточно средств для покупки данного кейса {lose}')
             return
         

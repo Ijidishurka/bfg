@@ -93,7 +93,7 @@ class User:
 		self.game_id = data[21]
 		self.yen.set(data[22], self.user_id)
 		self.perlimit.set(data[23], self.user_id)
-		self.biores = mine[13]
+		self.biores.set(mine[13], self.user_id)
 		
 		self.mine.update_data(mine)
 		self.property.update_data(property)

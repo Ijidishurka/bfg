@@ -46,8 +46,8 @@ async def transfer_cmd(message: types.Message, user: BFGuser):
         await message.reply(f'{user.url}, вы не ввели сумму которую хотите передать игроку {lose}')
         return
 
-    limit = Decimal(str(limit)) + Decimal(user.perlimit)
-    d_per = Decimal(user.per) + Decimal(str(summ))
+    limit = Decimal(str(limit)) + Decimal(int(user.perlimit))
+    d_per = Decimal(int(user.per)) + Decimal(str(summ))
 
     if d_per > limit:
         await message.reply(f'{user.url}, вы уже исчерпали свой дневной лимит передачи денег')

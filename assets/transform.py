@@ -40,9 +40,9 @@ def transform(value: str | int) -> str:
     return f"{value:1.1e}"
 
 
-def transform_int(value: str | int) -> str:
+def transform_int(value: str | int, limit=21) -> str:
     value = int(value)
-    if len(str(value)) < 21:
+    if len(str(value)) < limit:
         return '{:,}'.format(value).replace(',', '.')
     value = Decimal(value)
     return f"{value:1.1e}"
