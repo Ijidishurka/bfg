@@ -13,10 +13,12 @@ def get_text_status(status):
 	
 
 class User:
-	def __init__(self, message=None, call=None):
+	def __init__(self, message=None, call=None, not_class=None):
 		self.message = message
 		self.call = call
 		self.user_id = None
+		self.id = None
+		self.not_class = not_class
 		self.name = ''
 		self.url = ''
 		self.balance = FormattableValue('balance', big=True)
@@ -61,8 +63,13 @@ class User:
 	async def update(self):
 		if self.message:
 			self.user_id = self.message.from_user.id
+			self.id = self.message.from_user.id
 		elif self.call:
 			self.user_id = self.call.from_user.id
+			self.id = self.call.from_user.id
+		elif self.not_class:
+			self.user_id = self.not_class
+			self.id = self.not_class
 		else:
 			raise ValueError("Нет данных для создания класса: отсутствуют 'message' или 'call'")
 		
