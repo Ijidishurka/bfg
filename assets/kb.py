@@ -125,7 +125,6 @@ def profil_back(user_id):
 
 
 def top(user_id, tab):
-    sh = random.randint(1, 100)
     keyboards = InlineKeyboardMarkup()
     buttons = [
         InlineKeyboardButton("👑 Топ рейтинга", callback_data=f"top-rating|{user_id}|{tab}"),
@@ -143,10 +142,8 @@ def top(user_id, tab):
     keyboards.add(buttons[0], buttons[1])
     keyboards.add(buttons[2], buttons[3])
     keyboards.add(buttons[4], buttons[5])
-    if sh >= 50:
-        keyboards.add(buttons[6], buttons[7])
-    else:
-        keyboards.add(buttons[8], buttons[9])
+    keyboards.add(buttons[6], buttons[7])
+    keyboards.add(buttons[8], buttons[9])
     return keyboards
 
 

@@ -9,6 +9,7 @@ from user import BFGuser, BFGconst
 
 @antispam
 async def balance_cmd(message: types.Message, user: BFGuser):
+    print('osn')
     await message.answer(f'''👫 Ник: {user.name}
 💰 Деньги: {user.balance.tr()}$
 💴 Йены: {user.yen.tr()}¥

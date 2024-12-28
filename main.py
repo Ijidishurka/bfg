@@ -41,6 +41,7 @@ MODULES = [
 
 async def main(dp):
     load_modules(dp)
+    reg_handlers()
     await autokursbtc_new()
     await automatisation()
 
@@ -53,5 +54,4 @@ def reg_handlers():
 
 
 if __name__ == '__main__':
-    reg_handlers()
     executor.start_polling(dp, on_startup=main, skip_updates=True)

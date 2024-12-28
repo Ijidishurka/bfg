@@ -9,6 +9,7 @@ import commands.db as db
 from bot import bot
 
 from user import BFGuser
+from assets.classes import FunEvent
 
 
 earning_msg = {}
@@ -46,6 +47,7 @@ def antispam(func):
         user = BFGuser(message=message)
         await user.update()
 
+        await FunEvent.emit(func.__name__, message, user, 'message')
         await func(message, user)
 
     return wrapper

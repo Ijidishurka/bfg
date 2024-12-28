@@ -147,12 +147,12 @@ async def buy_status(message: types.Message, user: BFGuser):
         await message.answer(f'{user.url}, данного доната не существует. Проверьте введеную вами цифру.')
         return
 
-    if user.bcoins < data[1]:
+    if int(user.bcoins) < data[1]:
         await message.answer(f'{user.url},к сожалению у вас недостаточно B-Coins для покупки данной привелегии, '
                              f'чтобы пополнить напишите команду "Донат" {lose}')
         return
 
-    if user.bcoins > u:
+    if int(user.status) >= u:
         await message.answer(f'{user.url}, у вас уже есть этот или более высокий статус {win}.')
         return
 
@@ -172,7 +172,7 @@ async def exchange_value(message: types.Message, user: BFGuser):
     if u > 100000000 or u <= 0:
         return
 
-    if user.bcoins < u:
+    if int(user.bcoins) < u:
         await message.answer(f'На твоём счету {user.bcoins.tr()} B-Coins, чтобы пополнить введите - Донат {lose}')
         return
 
@@ -197,7 +197,7 @@ async def buy_limit(message: types.Message, user: BFGuser):
     if not data:
         return
 
-    if user.bcoins < data[1]:
+    if int(user.bcoins) < data[1]:
         await message.answer(f'{user.url}, к сожалению у вас недостаточно B-Coins для покупки лимита,'
                              f' чтобы пополнить напишите команду "Донат" {lose}')
         return
@@ -221,7 +221,7 @@ async def buy_energy(message: types.Message, user: BFGuser):
     if not data:
         return
 
-    if user.bcoins < data[1]:
+    if int(user.bcoins) < data[1]:
         await message.answer(f'{user.url}, к сожалению у вас недостаточно B-Coins для покупки фляги,'
                              f' чтобы пополнить напишите команду "Донат" {lose}')
         return
@@ -231,9 +231,9 @@ async def buy_energy(message: types.Message, user: BFGuser):
 
 
 def reg(dp: Dispatcher):
-    dp.register_message_handler(donat_list, lambda message: message.text.lower().startswith('донат'))
-    dp.register_message_handler(status_list, lambda message: message.text.lower().startswith('статусы'))
-    dp.register_message_handler(my_status, lambda message: message.text.lower().startswith('мой статус'))
+    dp.register_message_handler(donat_list, lambda message: message.text.lower() == 'донат')
+    dp.register_message_handler(status_list, lambda message: message.text.lower() == 'статусы')
+    dp.register_message_handler(my_status, lambda message: message.text.lower() == 'мой статус')
     dp.register_message_handler(buy_status, lambda message: message.text.lower().startswith('купить привилегию'))
     dp.register_message_handler(exchange_value, lambda message: message.text.lower().startswith('обменять'))
     dp.register_message_handler(buy_limit, lambda message: message.text.lower().startswith('купить лимит'))
