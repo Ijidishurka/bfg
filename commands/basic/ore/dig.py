@@ -136,7 +136,7 @@ async def digmine(message: types.Message, user: BFGuser):
     ads = BFGconst.ads
     win, lose = BFGconst.emj()
 
-    if int(user.energy) == 0:
+    if int(user.energy) <= 0:
         await message.answer(f'{user.url}, у вас недостаточно энергии для копки {lose}')
         return
 

@@ -1,9 +1,9 @@
 import importlib
+from assets.logger import check_log_size
 from commands.admin.module_manager import load_modules
 from aiogram import executor
 from assets.auto import automatisation
 from commands.basic.ore.db import autokursbtc_new
-# from assets.logger import check_log_size
 from bot import dp
 
 
