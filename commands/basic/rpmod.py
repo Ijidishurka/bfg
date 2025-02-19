@@ -1,6 +1,7 @@
 import re
 
 from aiogram import types, Dispatcher
+
 from assets.antispam import antispam
 from commands.db import url_name
 from user import BFGuser
@@ -60,7 +61,7 @@ rplist = {  # Спасибo @ x0x1dead за составление списка 
 
 
 @antispam
-async def rp(message: types.Message, user: BFGuser):
+async def rp_cmd(message: types.Message, user: BFGuser):
 	if message.chat.type != 'supergroup' or not message.reply_to_message:
 		return
 	
@@ -77,4 +78,5 @@ pattern = rf'\b({rplist_keys})\b'
 
 
 def reg(dp: Dispatcher):
-    dp.register_message_handler(rp, regexp=pattern)
+    dp.register_message_handler(rp_cmd, regexp=pattern)
+	

@@ -1,5 +1,5 @@
 from aiogram import types, Dispatcher
-from bot import bot
+
 from commands.entertaining.earnings.tree import db
 from assets.transform import transform_int as tr
 from assets import kb
@@ -30,7 +30,7 @@ async def my_tree(message: types.Message, user: BFGuser):
     await edit_tree_msg(message, user, action='send')
 
 
-async def edit_tree_msg(call: types.CallbackQuery, user: BFGuser, action='edit'):
+async def edit_tree_msg(call: types.CallbackQuery | types.Message, user: BFGuser, action='edit') -> None:
     tree = user.tree
     
     if action == 'edit':
@@ -53,9 +53,9 @@ async def edit_tree_msg(call: types.CallbackQuery, user: BFGuser, action='edit')
     
     try:
         if action == 'edit':
-            await call.message.edit_text(text=txt, reply_markup=kb.tree(user.user_id))
+            await call.message.edit_text(text=txt, reply_markup=kb.tree(user.id))
         else:
-            msg = await call.answer(text=txt, reply_markup=kb.tree(user.user_id))
+            msg = await call.answer(text=txt, reply_markup=kb.tree(user.id))
             await new_earning(msg)
     except:
         return
@@ -75,7 +75,7 @@ async def buy_tree(message: types.Message, user: BFGuser):
                              f'Его стоимость 500.000.000 кг биоресурса {lose}')
         return
 
-    await db.buy_tree(user.user_id)
+    await db.buy_tree(user.id)
     await message.answer(f'{user.url}, вы успешно построили свой участок для подробностей введите "Моё дерево" {win}')
 
 
@@ -88,11 +88,11 @@ async def withdraw_profit(call: types.CallbackQuery, user: BFGuser):
         return
 
     if int(tree.balance) <= 0 and int(tree.yen) <= 0:
-        await bot.answer_callback_query(call.id, text=f'{user.name}, на данный момент на балансе вашего участка нет прибыли {lose}')
+        await call.answer(f'{user.name}, на данный момент на балансе вашего участка нет прибыли {lose}')
         return
 
-    await db.withdraw_profit(user.user_id, tree.balance.get(), tree.yen.get())
-    await bot.answer_callback_query(call.id, text=f'{user.name}, вы успешно сняли {tree.balance.tr()}$ и {tree.yen.tr()}¥ с баланса вашего участка {win}')
+    await db.withdraw_profit(user.id, tree.balance.get(), tree.yen.get())
+    await call.answer(f'{user.name}, вы успешно сняли {tree.balance.tr()}$ и {tree.yen.tr()}¥ с баланса вашего участка {win}')
     await edit_tree_msg(call, user)
 
 
@@ -105,15 +105,15 @@ async def pay_taxes(call: types.CallbackQuery, user: BFGuser):
         return
 
     if int(user.balance) < int(tree.nalogs):
-        await bot.answer_callback_query(call.id, text=f'{user.name}, у вас недостаточно денег чтоб оплатить налоги {lose}')
+        await call.answer(f'{user.name}, у вас недостаточно денег чтоб оплатить налоги {lose}')
         return
 
     if int(tree.nalogs) <= 0:
-        await bot.answer_callback_query(call.id, text=f'{user.name}, у вас нет налогов чтобы их оплатить {win}')
+        await call.answer(f'{user.name}, у вас нет налогов чтобы их оплатить {win}')
         return
 
-    await db.pay_taxes(user.user_id, tree.nalogs.get())
-    await bot.answer_callback_query(call.id, text=f'{user.name}, вы успешно оплатили налоги на сумму {tree.nalogs.tr()}$ с вашего игрового баланса {win}')
+    await db.pay_taxes(user.id, tree.nalogs.get())
+    await call.answer(f'{user.name}, вы успешно оплатили налоги на сумму {tree.nalogs.tr()}$ с вашего игрового баланса {win}')
     await edit_tree_msg(call, user)
 
 
@@ -128,11 +128,11 @@ async def buy_ter(call: types.CallbackQuery, user: BFGuser):
     summ = int(5000 * (tree.territory.get() ** 3.8))
 
     if int(user.biores) < summ:
-        await bot.answer_callback_query(call.id, text=f'{user.name}, у вас недостаточно биоресурсов {lose}')
+        await call.answer(f'{user.name}, у вас недостаточно биоресурсов {lose}')
         return
 
-    await db.buy_ter(user.user_id, summ)
-    await bot.answer_callback_query(call.id, text=f'{user.name}, вы успешно увеличили участок за {tr(summ)}☣️ {win}')
+    await db.buy_ter(user.id, summ)
+    await call.answer(f'{user.name}, вы успешно увеличили участок за {tr(summ)}☣️ {win}')
     await edit_tree_msg(call, user)
 
 
@@ -147,15 +147,15 @@ async def buy_tree_call(call: types.CallbackQuery, user: BFGuser):
     summ = int(5000 * (tree.tree.get() ** 3.8))
 
     if int(user.balance) < summ:
-        await bot.answer_callback_query(call.id, text=f'{user.name}, у вас недостаточно биоресурсов {lose}')
+        await call.answer(f'{user.name}, у вас недостаточно биоресурсов {lose}')
         return
 
     if int(tree.territory) <= int(tree.tree):
-        await bot.answer_callback_query(call.id, text=f'{user.name}, у вас недостаточно места {lose}')
+        await call.answer(f'{user.name}, у вас недостаточно места {lose}')
         return
 
-    await db.buy_tree_ter(user.user_id, summ)
-    await bot.answer_callback_query(call.id, text=f'{user.name}, вы успешно увеличили дерево за {tr(summ)}☣️ {win}')
+    await db.buy_tree_ter(user.id, summ)
+    await call.answer(f'{user.name}, вы успешно увеличили дерево за {tr(summ)}☣️ {win}')
     await edit_tree_msg(call, user)
 
 
@@ -176,7 +176,7 @@ async def sell_tree(message: types.Message, user: BFGuser):
     for i in range(1, tree.territory.get() + 1):  # Компенсация за территорию (50%)
         summ += int(5000 * (tree.territory.get() ** 3.8)) // 2
     
-    await db.sell_tree(user.user_id, summ)
+    await db.sell_tree(user.id, summ)
     await message.answer(f'{user.url}, Вы успешно продали своё денежное дерево за {tr(summ)}☣️ {win}')
 
 

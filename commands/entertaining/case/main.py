@@ -7,7 +7,7 @@ from user import BFGuser, BFGconst
 
 
 @antispam
-async def getcase_cmd(message: types.Message, user: BFGuser):
+async def my_cases_cmd(message: types.Message, user: BFGuser):
     ycase = {
         "case1": {"name": "📦 Обычный кейс", "quantity": user.case[1].get()},
         "case2": {"name": "🏵 Золотой кейс", "quantity": user.case[2].get()},
@@ -33,11 +33,11 @@ async def getcase_cmd(message: types.Message, user: BFGuser):
 {txt}
 🛒 Для покупки введите «Купить кейс [1/2/3] [кол-во]»
 
-{BFGconst.ads}''', disable_web_page_preview=True)
+{BFGconst.ads}''')
 
 
 @antispam
-async def buy_case(message: types.Message, user: BFGuser):
+async def buy_case_cmd(message: types.Message, user: BFGuser):
     win, lose = BFGconst.emj()
     
     try:
@@ -47,34 +47,34 @@ async def buy_case(message: types.Message, user: BFGuser):
         return
     
     try:
-        arg = int(message.text.split()[3])
+        amount = int(message.text.split()[3])
     except:
-        arg = 1
+        amount = 1
     
-    if arg <= 0:
+    if amount <= 0:
         return
     
     if case == 1:
-        summ = 750_000_000_000_000_000 * arg
+        summ = 750_000_000_000_000_000 * amount
         
         if summ > int(user.balance):
             await message.answer(f'{user.url}, у вас недостаточно средств для покупки данного кейса {lose}')
             return
         
+        await user.case[1].upd(amount, '+')
         await user.balance.upd(summ, '-')
-        await user.case[1].upd(case, '+')
-        await message.answer(f'{user.url}, вы успешно купили {arg} «Обычный кейс» за {tr(summ)}$ ✅')
+        await message.answer(f'{user.url}, вы успешно купили {amount} «Обычный кейс» за {tr(summ)}$ ✅')
     
     elif case == 2:
-        summ = 5_000_000_000_000_000_000 * arg
+        summ = 5_000_000_000_000_000_000 * amount
         
         if summ > int(user.balance):
             await message.answer(f'{user.url}, у вас недостаточно средств для покупки данного кейса {lose}')
             return
         
+        await user.case[2].upd(amount, '+')
         await user.balance.upd(summ, '-')
-        await user.case[2].upd(case, '+')
-        await message.answer(f'{user.url}, вы успешно купили {arg} «Золотой кейс» за {tr(summ)}$ ✅')
+        await message.answer(f'{user.url}, вы успешно купили {amount} «Золотой кейс» за {tr(summ)}$ ✅')
     
     elif case == 3:
         summ = 50 * case
@@ -84,7 +84,7 @@ async def buy_case(message: types.Message, user: BFGuser):
             return
         
         await message.answer(f'{user.url}, вы успешно купили {case} «Рудный кейс» за {tr(summ)}⚙️ ✅')
-        await user.case[3].upd(case, '+')
+        await user.case[3].upd(amount, '+')
         await user.mine.titanium.upd(summ, '-')
     
     elif case == 4:
@@ -95,12 +95,12 @@ async def buy_case(message: types.Message, user: BFGuser):
             return
         
         await message.answer(f'{user.url}, вы успешно купили {case} «Материальный кейс» за {tr(summ)}🌌 ✅')
-        await user.case[4].upd(case, '+')
+        await user.case[4].upd(amount, '+')
         await user.mine.matter.upd(summ, '-')
 
 
 @antispam
-async def open_case(message: types.Message, user: BFGuser):
+async def open_case_cmd(message: types.Message, user: BFGuser):
     win, lose = BFGconst.emj()
 
     try:
@@ -114,34 +114,34 @@ async def open_case(message: types.Message, user: BFGuser):
         return
 
     try:
-        u = int(message.text.split()[3])
+        amount = int(message.text.split()[3])
     except:
-        u = 1
+        amount = 1
 
     ncase = int({1: user.case[1], 2: user.case[2], 3: user.case[3], 4: user.case[4]}.get(case, 0))
     climit = {0: 10, 1: 20, 2: 40, 3: 60, 4: 100}.get(user.status, 10)
 
-    if u <= 0:
-        await message.answer(f'🎁 | {user.url}, нельзя открывать отрицательное количество кейсов! {lose}\n\n{BFGconst.ads}', disable_web_page_preview=True)
+    if amount <= 0:
+        await message.answer(f'🎁 | {user.url}, нельзя открывать отрицательное количество кейсов! {lose}\n\n{BFGconst.ads}')
         return
 
-    if ncase < u:
-        await message.answer(f'🎁 | {user.url}, у вас недостаточно кейсов! {lose}\n\n{BFGconst.ads}', disable_web_page_preview=True)
+    if ncase < amount:
+        await message.answer(f'🎁 | {user.url}, у вас недостаточно кейсов! {lose}\n\n{BFGconst.ads}')
         return
 
-    if climit < u:
-        await message.answer(f'🎁 | {user.url}, вы не можете открывать более {climit} кейсов за раз! {lose}\n\n{BFGconst.ads}', disable_web_page_preview=True)
+    if climit < amount:
+        await message.answer(f'🎁 | {user.url}, вы не можете открывать более {climit} кейсов за раз! {lose}\n\n{BFGconst.ads}')
         return
 
-    await open_case_logic(message, u, case, user)
+    await open_case_logic(message, amount, case, user)
     
     
-async def open_case_logic(message, u, case, user):
+async def open_case_logic(message: types.Message, amount: int, case: int, user: BFGuser) -> None:
     coff = 11 if case == 2 else 1
     smoney = srating = sexpe = stitan = spalladium = smatter = 0
     txt = ''
     
-    for _ in range(u):
+    for _ in range(amount):
         prize = random.randint(1, 100)
 
         if case in [1, 2]:
@@ -198,11 +198,11 @@ async def open_case_logic(message, u, case, user):
         await db.open_case_db(user.user_id, smatter, 'matter', table='mine')
         txt += f'🌌 Итого материи - {tr(smatter)}шт\n'
 
-    await db.open_case2_db(user.user_id, u, f'case{case}')
-    await message.answer(f'🎁 | {user.url}, вам выпало:\n\n{txt}\n\n{BFGconst.ads}', disable_web_page_preview=True)
+    await db.open_case2_db(user.user_id, amount, f'case{case}')
+    await message.answer(f'🎁 | {user.url}, вам выпало:\n\n{txt}\n\n{BFGconst.ads}')
 
 
 def reg(dp: Dispatcher):
-    dp.register_message_handler(getcase_cmd, lambda message: message.text.lower() == 'кейсы')
-    dp.register_message_handler(buy_case, lambda message: message.text.lower().startswith('купить кейс'))
-    dp.register_message_handler(open_case, lambda message: message.text.lower().startswith('открыть кейс'))
+    dp.register_message_handler(my_cases_cmd, lambda message: message.text.lower() == 'кейсы')
+    dp.register_message_handler(buy_case_cmd, lambda message: message.text.lower().startswith('купить кейс'))
+    dp.register_message_handler(open_case_cmd, lambda message: message.text.lower().startswith('открыть кейс'))

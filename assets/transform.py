@@ -46,4 +46,3 @@ def transform_int(value: str | int, limit=21) -> str:
         return '{:,}'.format(value).replace(',', '.')
     value = Decimal(value)
     return f"{value:1.1e}"
-

@@ -1,10 +1,10 @@
 from aiogram import Dispatcher, types
-from commands.db import getpofildb, chek_user
-from assets.antispam import antispam, new_earning_msg, antispam_earning
-from commands.basic.property import lists
-from assets import kb
 
+from assets.antispam import antispam, new_earning_msg, antispam_earning
+from commands.db import getpofildb, chek_user
+from commands.basic.property import lists
 from user import BFGuser, BFGconst
+from assets import kb
 
 
 @antispam
@@ -15,12 +15,12 @@ async def balance_cmd(message: types.Message, user: BFGuser):
 🏦 Банк: {user.bank.tr()}$
 💽 Биткоины: {user.btc.tr()}🌐
 
-{BFGconst.ads}''', disable_web_page_preview=True)
+{BFGconst.ads}''')
 
 
 @antispam
 async def btc_cmd(message: types.Message, user: BFGuser):
-    await message.answer(f'{user.url}, на вашем балансе {user.btc.tr()} BTC 🌐', disable_web_page_preview=True)
+    await message.answer(f'{user.url}, на вашем балансе {user.btc.tr()} BTC 🌐')
 
 
 async def creat_help_msg(profil, user: BFGuser):

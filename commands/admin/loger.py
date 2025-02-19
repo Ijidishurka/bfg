@@ -28,8 +28,10 @@ async def new_log(txt: str, log_type: str) -> None:
     log_message = f'новый лог: {txt}'
 
     if logging_level == 1 or logging_level == 3:
-        try: await bot.send_message(chat_id=cfg.chat_log, text=log_message)
-        except: print('указан не верный айди чата для логов')
+        try:
+            await bot.send_message(chat_id=cfg.chat_log, text=log_message)
+        except:
+            print('указан не верный айди чата для логов')
 
     if logging_level == 2 or logging_level == 3:
         with open('commands/admin/logs.txt', 'a', encoding='utf-8') as file:

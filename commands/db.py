@@ -1,8 +1,10 @@
-import sqlite3
 from datetime import datetime
+from decimal import Decimal
+import sqlite3
+
+from user import BFGconst
 import config as cfg
 from bot import bot
-from decimal import Decimal
 
 
 conn = sqlite3.connect('users.db')
@@ -204,7 +206,14 @@ async def get_user_info(user_id: int) -> tuple:
     quarry = cursor.execute("SELECT * FROM quarry WHERE user_id = ?", (user_id,)).fetchone()
     tree = cursor.execute("SELECT * FROM tree WHERE user_id = ?", (user_id,)).fetchone()
     
-    return user, mine, property, ferma, business, garden, generator, quarry, tree
+    clan = None
+    cinfo = cursor.execute("SELECT clan_id, rank FROM clan WHERE user_id = ?", (user_id,)).fetchone()
+    rank = cinfo[1] if cinfo else 0
+    
+    if cinfo:
+        clan = cursor.execute("SELECT * FROM clans WHERE clan_id = ?", (cinfo[0],)).fetchone()
+    
+    return user, mine, property, ferma, business, garden, generator, quarry, tree, clan, rank
 
 
 async def sql_zapros(sql: str, summ: int, user_id: int) -> None:
@@ -266,12 +275,6 @@ async def getpofildb(user_id: int) -> tuple:
     return data, (ferma, business, garden, generator), property
 
 
-async def getads(message=None) -> str:
-    ads = cursor.execute("SELECT ads FROM sett").fetchone()[0]
-    ads = ads.replace(r'\n', '\n')
-    return ads
-
-
 async def top_db(user_id: int, st: str, table='users') -> tuple:
     cursor.execute(f"SELECT * FROM {table} ORDER BY CAST({st} AS REAL) DESC LIMIT 1000")
     top_players = cursor.fetchall()
@@ -329,3 +332,10 @@ async def setname(name: str, user_id: int) -> None:
     
 async def get_name(user_id: int) -> str:
     return cursor.execute('SELECT name FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]
+
+
+async def update_ads_const() -> None:
+    ads = cursor.execute("SELECT ads FROM sett").fetchone()[0]
+    ads = ads.replace(r'\n', '\n')
+    BFGconst.ads = ads
+    

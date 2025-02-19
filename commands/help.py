@@ -1,9 +1,10 @@
 from aiogram import types, Dispatcher
+
 from assets.antispam import antispam, admin_only, antispam_earning, new_earning_msg
+from user import BFGuser
 from assets import kb
 import config as cfg
 
-from user import BFGuser
 
 adm_us = cfg.admin_username.replace('@', '')
 adm = f'<a href="t.me/{adm_us}">{cfg.admin_username}</a>'
@@ -159,13 +160,13 @@ CONFIG = {
 
 @antispam
 async def help_cmd(message: types.Message, user: BFGuser):
-    msg = await message.answer(CONFIG['help_cmd'].format(user.url), reply_markup=kb.help_menu(user.user_id), disable_web_page_preview=True)
+    msg = await message.answer(CONFIG['help_cmd'].format(user.url), reply_markup=kb.help_menu(user.user_id))
     await new_earning_msg(msg.chat.id, msg.message_id)
 
 
 @admin_only(private=False)
-async def help_adm(message: types.Message, user: BFGuser):
-    await message.answer(CONFIG['help_adm'].format(user.url))
+async def help_adm(message: types.Message):
+    await message.answer(CONFIG['help_adm'].format('Admin'))
     
 
 @antispam
@@ -175,7 +176,7 @@ async def help_game_msg(message: types.Message, user: BFGuser):
 
 @antispam_earning
 async def help_back(call: types.CallbackQuery, user: BFGuser):
-    await call.message.edit_text(text=CONFIG['help_cmd'].format(user.url), reply_markup=kb.help_menu(user.user_id), disable_web_page_preview=True)
+    await call.message.edit_text(text=CONFIG['help_cmd'].format(user.url), reply_markup=kb.help_menu(user.user_id))
 
 
 @antispam_earning

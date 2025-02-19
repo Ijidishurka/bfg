@@ -29,7 +29,7 @@ async def shans_cmd(message: types.Message, user: BFGuser):
 
 
 @antispam
-async def setname_cmd(message: types.Message, user: BFGuser):
+async def set_name_cmd(message: types.Message, user: BFGuser):
     user_id = message.from_user.id
     win, lose = BFGconst.emj()
     
@@ -39,8 +39,7 @@ async def setname_cmd(message: types.Message, user: BFGuser):
         await message.answer(f'{user.url}, ваш ник не может быть короче 5 символов {lose}')
         return
 
-    status_limits = {0: 20, 1: 25, 2: 30, 3: 45, 4: 50}
-    climit = status_limits.get(user.status, status_limits[0])
+    climit = {0: 20, 1: 25, 2: 30, 3: 45, 4: 50}.get(user.status, 20)
 
     if re.search(r'<|>|@|t\.me|http', name):
         await message.answer(f'{user.url}, ваш ник содержит запрещённые символы {lose}')
@@ -72,8 +71,7 @@ async def ogr_kazna(message: types.Message, user: BFGuser):
         await message.answer(f'{user.url}, вы уже грабили казну сегодня. Бегите скорее, полиция уже в пути 🚫')
         return
 
-    i = random.randint(1, 3)
-    if i == 1:
+    if random.randint(1, 3) == 1:
         await message.answer(f'{user.url}, к сожалению вам не удалось ограбить казну ❎')
         return
 
@@ -84,7 +82,7 @@ async def ogr_kazna(message: types.Message, user: BFGuser):
 
 
 @antispam
-async def try_luck(message: types.Message, user: BFGuser):
+async def try_luck_cmd(message: types.Message, user: BFGuser):
     user_id = message.from_user.id
     bt, left = await lucktime(user_id)
     
@@ -114,6 +112,7 @@ async def bonus_cmd(message: types.Message, user: BFGuser):
         return
 
     i = random.randint(1, 4)
+    
     if i == 1:
         summ = random.randint(1_000_000, 4_000_000)
         await user.balance.upd(summ, '+')
@@ -159,11 +158,11 @@ def reg(dp: Dispatcher):
     dp.register_message_handler(shar_cmd, lambda message: message.text.lower().startswith('шар '))
     dp.register_message_handler(vibor_cmd, lambda message: message.text.lower().startswith('выбери '))
     dp.register_message_handler(shans_cmd, lambda message: message.text.lower().startswith('шанс '))
-    dp.register_message_handler(setname_cmd, lambda message: message.text.lower().startswith('сменить ник'))
+    dp.register_message_handler(set_name_cmd, lambda message: message.text.lower().startswith('сменить ник'))
     dp.register_message_handler(kazna_cmd, lambda message: message.text.lower().startswith('казна'))
     dp.register_message_handler(stats_cmd, lambda message: message.text.lower().startswith('статистика бота'))
     dp.register_message_handler(bonus_cmd, lambda message: message.text.lower().startswith('ежедневный бонус'))
-    dp.register_message_handler(try_luck, lambda message: message.text.lower().startswith('испытать удачу'))
+    dp.register_message_handler(try_luck_cmd, lambda message: message.text.lower().startswith('испытать удачу'))
     dp.register_message_handler(ogr_kazna, lambda message: message.text.lower().startswith(('ограбить казну', 'ограбить мерию')))
     dp.register_message_handler(my_name, lambda message: message.text.lower().startswith('мой ник'))
     dp.register_message_handler(chat_list, lambda message: message.text.lower().startswith('!беседа'))

@@ -1,12 +1,14 @@
 import asyncio
-import os
 import requests
-from bot import dp
-from aiogram import types, Dispatcher
-from assets.antispam import new_earning_msg, antispam_earning, admin_only
+import os
+
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram import types, Dispatcher
+
+from assets.antispam import new_earning, antispam_earning, admin_only
 from commands.admin import keyboards as kb
 from user import BFGuser
+from bot import dp
 
 MODULES = {}
 CATALOG = {}
@@ -69,7 +71,7 @@ async def load_modules_cmd(message: types.Message):
     txt = f'✨ Модуль <code>{MODULES[mod]["name"]}</code>\n<i>{MODULES[mod]["description"]}</i>'
     
     msg = await message.answer(txt, reply_markup=kb.my_modules_kb(module_keys, 0, user_id, mod))
-    await new_earning_msg(msg.chat.id, msg.message_id)
+    await new_earning(msg)
     
 
 @antispam_earning
@@ -137,14 +139,13 @@ async def catalog_modules(message: types.Message):
     colvo = (len(CATALOG['games']), len(CATALOG['events']), len(CATALOG['other']), len(CATALOG['system']))
     
     msg = await message.answer(txt, reply_markup=kb.load_modules_type(user_id, colvo))
-    await new_earning_msg(msg.chat.id, msg.message_id)
+    await new_earning(msg)
 
 
 @antispam_earning
 async def catalog_type(call: types.CallbackQuery, user: BFGuser):
     global MOD_TYPE
     MOD_TYPE = call.data.split('_')[1].split('|')[0]
-    user_id = user.user_id
     
     if len(CATALOG[MOD_TYPE]) == 0:
         return
@@ -155,13 +156,11 @@ async def catalog_type(call: types.CallbackQuery, user: BFGuser):
 
     txt = f'✨ Модуль <code>{mod["name"]}</code>\n<i>{mod["description"]}</i>'
 
-    await call.message.edit_text(txt, reply_markup=kb.load_modules_kb(module_keys, 0, user_id, name, MODULES))
+    await call.message.edit_text(txt, reply_markup=kb.load_modules_kb(module_keys, 0, user.id, name, MODULES))
     
 
 @antispam_earning
 async def catalog_modules_next(call: types.CallbackQuery, user: BFGuser):
-    user_id = user.user_id
-    
     if not CATALOG[MOD_TYPE] or len(CATALOG[MOD_TYPE]) < 2:
         return
     
@@ -178,7 +177,7 @@ async def catalog_modules_next(call: types.CallbackQuery, user: BFGuser):
     name = list(CATALOG[MOD_TYPE].keys())[current_index]
     txt = f'✨ Модуль <code>{mod["name"]}</code>\n<i>{mod["description"]}</i>'
     
-    await call.message.edit_text(txt, reply_markup=kb.load_modules_kb(module_keys, current_index, user_id, name, MODULES))
+    await call.message.edit_text(txt, reply_markup=kb.load_modules_kb(module_keys, current_index, user.id, name, MODULES))
     
     
 @antispam_earning
@@ -221,7 +220,7 @@ async def load_mod_cmd(message: types.Message):
             load_new_mod(filename, dp)
             await msg.edit_text(f'🌟 Модуль {url} загружен')
         else:
-            await msg.edit_text('🍎 Ошибка загрузки модуля.')
+            await msg.edit_text(f'🍎 Ошибка загрузки модуля ({response.status_code}).')
     except:
         await message.answer('🍎 Ошибка загрузки модуля.')
 

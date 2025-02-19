@@ -1,9 +1,10 @@
 from aiogram import Dispatcher, types
+
 from assets.antispam import antispam
 from assets.transform import transform_int as tr
 from commands.basic.status.db import *
-import config as cfg
 from user import BFGuser, BFGconst
+import config as cfg
 
 CONFIG = {
     'money_for_bcoins': 2_000_000_000_000_000,  # "обменять" (цена)

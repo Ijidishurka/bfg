@@ -5,6 +5,7 @@ from user.format import FormattableValue
 
 from user.earnings import Ferma, Business, Garden, Generator, Quarry, Tree
 from user.other import Mine, Property
+from user.clan import Clan
 
 
 def get_text_status(status):
@@ -59,6 +60,7 @@ class User:
 		self.generator = Generator()
 		self.quarry = Quarry()
 		self.tree = Tree()
+		self.clan = Clan()
 
 	async def update(self):
 		if self.message:
@@ -73,7 +75,7 @@ class User:
 		else:
 			raise ValueError("Нет данных для создания класса: отсутствуют 'message' или 'call'")
 		
-		data, mine, property, ferma, business, garden, generator, quarry, tree = await db.get_user_info(self.user_id)
+		data, mine, property, ferma, business, garden, generator, quarry, tree, clan, rank = await db.get_user_info(self.id)
 		
 		self.name = data[1]
 		self.balance.set(data[2], self.user_id)
@@ -134,6 +136,11 @@ class User:
 			self.tree.update_data(tree)
 		else:
 			self.tree = None
+			
+		if clan:
+			self.clan.update_data(clan, rank)
+		else:
+			self.clan = None
 		
 		self.Fstatus = get_text_status(self.status)
 		self.Fregister = datetime.fromtimestamp(data[17]).strftime('%Y-%m-%d в %H:%M:%S')

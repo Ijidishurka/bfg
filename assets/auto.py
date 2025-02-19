@@ -1,4 +1,3 @@
-from datetime import datetime
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from commands.entertaining.earnings.farm.db import autoferma
@@ -9,11 +8,10 @@ from commands.entertaining.earnings.tree.db import autotree
 from commands.basic.ore.db import autoenergy, autokursbtc_new
 from commands.basic.bank.db import autobank
 from commands.admin.updater import search_update, check_updates
-from commands.db import reset_limit
+from commands.db import reset_limit, update_ads_const
 
 from bot import bot
 import config as cfg
-from assets.antispam import earning_msg
 
 
 scheduler = AsyncIOScheduler()
@@ -57,19 +55,7 @@ async def upd_bot_username() -> None:
     cfg.bot_username = bot_info.username
     await check_updates()
     await search_update()
-
-
-async def auto_clear() -> None:
-    """Очистить лишние данные из antispam"""
-    dt = int(datetime.now().timestamp())
-    keys_to_delete = []
-
-    for key, value in earning_msg.items():
-        if int(dt - 3500) > int(value[1]):
-            keys_to_delete.append(key)
-
-    for key in keys_to_delete:
-        earning_msg.pop(key, None)
+    await update_ads_const()
 
 
 async def automatisation() -> None:
@@ -79,5 +65,5 @@ async def automatisation() -> None:
     scheduler.add_job(autocommands2, 'interval', minutes=15)
     scheduler.add_job(autocommands3, 'interval', minutes=5)
     scheduler.add_job(autocommands4, 'cron', hour=00, minute=00)
-    scheduler.add_job(auto_clear, 'interval', minutes=cfg.cleaning)
     scheduler.start()
+    

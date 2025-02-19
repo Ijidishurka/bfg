@@ -1,9 +1,10 @@
-from commands.db import conn, cursor
 from decimal import Decimal
 
+from commands.db import conn, cursor, update_ads_const
 
-async def give_money_db(user_id, r_user_id, summ, st):
-    if st == 'adm':
+
+async def give_money_db(user_id: int, r_user_id: int, summ: str, status: str) -> str | None:
+    if status == 'adm':
         limit = 150_000_000_000_000  # лимит выдачи денег у статуса админ (4)
         per = cursor.execute(f"SELECT issued FROM users WHERE user_id = ?", (user_id,)).fetchone()[0]
         if (per + summ) > limit:
@@ -18,17 +19,18 @@ async def give_money_db(user_id, r_user_id, summ, st):
     conn.commit()
 
 
-async def give_bcoins_db(r_user_id, summ):
+async def give_bcoins_db(r_user_id: int, summ: int) -> None:
     cursor.execute(f'UPDATE users SET ecoins = ecoins + ? WHERE user_id = ?', (summ, r_user_id))
     conn.commit()
 
 
-async def upd_ads(txt):
-    cursor.execute(f'UPDATE sett SET ads = ?', (txt,))
+async def upd_ads(text: str) -> None:
+    cursor.execute('UPDATE sett SET ads = ?', (text,))
     conn.commit()
+    await update_ads_const()
 
 
-async def new_promo_db(data):
+async def new_promo_db(data: tuple) -> str | None:
     res = cursor.execute(f"SELECT name FROM promo WHERE name = ?", (data[0],)).fetchone()
     if res:
         return 'error'
@@ -37,7 +39,7 @@ async def new_promo_db(data):
     conn.commit()
 
 
-async def dell_promo_db(name):
+async def dell_promo_db(name: str) -> str | None:
     res = cursor.execute(f"SELECT name FROM promo WHERE name = ?", (name,)).fetchone()
     if not res:
         return 'error'
@@ -47,7 +49,7 @@ async def dell_promo_db(name):
     conn.commit()
 
 
-async def activ_promo_db(name, user_id):
+async def activ_promo_db(name: str, user_id: int) -> str | tuple:
     data = cursor.execute(f"SELECT * FROM promo WHERE name = ?", (name,)).fetchone()
     if not data:
         return 'no promo'
@@ -75,26 +77,26 @@ async def activ_promo_db(name, user_id):
     return data
 
 
-async def promo_info_db(name):
+async def promo_info_db(name: str) -> tuple:
     return cursor.execute(f"SELECT * FROM promo WHERE name = ?", (name,)).fetchone()
 
 
-async def get_users_chats():
-    d1 = cursor.execute(f"SELECT user_id FROM users").fetchall()
-    d2 = cursor.execute(f"SELECT chat_id FROM chats").fetchall()
-    return d1, d2
+async def get_users_chats() -> tuple:
+    users = cursor.execute(f"SELECT user_id FROM users").fetchall()
+    chats = cursor.execute(f"SELECT chat_id FROM chats").fetchall()
+    return users, chats
 
 
-async def zap_sql(txt):
+async def zap_sql(query: str) -> str | None:
     try:
-        cursor.execute(txt)
+        cursor.execute(query)
         conn.commit()
     except Exception as e:
         conn.rollback()
         return e
     
     
-async def new_ban(user_id, time_s, reason):
+async def new_ban(user_id: int, time_s: int, reason: str) -> None:
     user_id = cursor.execute(f"SELECT user_id FROM users WHERE game_id = ?", (user_id,)).fetchone()
     if user_id:
         res = cursor.execute(f"SELECT * FROM ban_list WHERE user_id = ?", (user_id[0],)).fetchone()
@@ -106,14 +108,14 @@ async def new_ban(user_id, time_s, reason):
         conn.commit()
 
 
-async def unban_user(user_id):
+async def unban_user(user_id: int) -> None:
     user_id = cursor.execute(f"SELECT user_id FROM users WHERE game_id = ?", (user_id,)).fetchone()
     if user_id:
         cursor.execute('DELETE FROM ban_list WHERE user_id = ?', (user_id[0],))
         conn.commit()
         
     
-async def take_the_money(user_id, summ):
+async def take_the_money(user_id: int, summ: str) -> None:
     balance = cursor.execute('SELECT balance FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]
     
     new_balance = Decimal(str(balance)) - Decimal(str(summ))
@@ -123,7 +125,7 @@ async def take_the_money(user_id, summ):
     conn.commit()
 
 
-async def reset_the_money(user_id):
+async def reset_the_money(user_id: int) -> None:
     cursor.execute("UPDATE users SET balance = 0, bank = 0, btc = 0, depozit = 0, energy = 10, corn = 0, yen = 0 WHERE user_id = ?", (user_id,))
     cursor.execute("UPDATE mine SET iron = 0, gold = 0, diamond = 0, amestit = 0, aquamarine = 10, emeralds = 0, "
                    "matter = 0, plasma = 0, nickel = 0, titanium = 0, cobalt = 0, ectoplasm = 0, biores = 0, palladium = 0 WHERE user_id = ?", (user_id,))

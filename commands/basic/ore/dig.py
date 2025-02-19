@@ -1,10 +1,11 @@
-from assets.transform import transform_int as tr
-from aiogram import types, Dispatcher
-from assets.antispam import antispam
-from commands.basic.ore import db
 import random
 
+from aiogram import types, Dispatcher
+
+from assets.transform import transform_int as tr
 from user import BFGuser, BFGconst
+from assets.antispam import antispam
+from commands.basic.ore import db
 
 
 @antispam
@@ -52,7 +53,7 @@ async def mine_cmd(message: types.Message, user: BFGuser):
 
 
 @antispam
-async def kursrud_cmd(message: types.Message, user: BFGuser):
+async def price_cmd(message: types.Message, user: BFGuser):
     await message.answer(f'''{user.url}, курс руды:
 ⛓ 1 железо - 230.000$
 🌕 1 золото - 1.000.000$
@@ -120,7 +121,7 @@ def mine_level(expe: int) -> tuple:
 
 
 @antispam
-async def mymine_cmd(message: types.Message, user: BFGuser):
+async def my_mine_cmd(message: types.Message, user: BFGuser):
     mine_level_t, mine_level_s, opit = mine_level(user.expe)
 
     await message.answer(f'''{user.url}, это ваш профиль шахты:
@@ -132,7 +133,7 @@ async def mymine_cmd(message: types.Message, user: BFGuser):
 
 
 @antispam
-async def digmine(message: types.Message, user: BFGuser):
+async def dig_mine_cmd(message: types.Message, user: BFGuser):
     ads = BFGconst.ads
     win, lose = BFGconst.emj()
 
@@ -176,13 +177,13 @@ async def digmine(message: types.Message, user: BFGuser):
         await db.digdb(i, user.user_id, eng_ruda, op)
         opit = user.expe.get() + op
 
-        await message.answer(f'{user.url}, +{i} {ruda}.\n💡 Энергия: {user.energy.get() - 1}, опыт: {tr(opit)}\n\n{ads}', disable_web_page_preview=True)
+        await message.answer(f'{user.url}, +{i} {ruda}.\n💡 Энергия: {user.energy.get() - 1}, опыт: {tr(opit)}\n\n{ads}')
     else:
         await message.answer(f'{user.url}, данной руды не существует {lose}')
 
 
 @antispam
-async def sellruda_cmd(message: types.Message, user: BFGuser):
+async def sell_cmd(message: types.Message, user: BFGuser):
     user_id = message.from_user.id
     txt = message.text.split()
     win, lose = BFGconst.emj()
@@ -234,8 +235,8 @@ ruds = ['железо', 'золото', 'алмазы', 'аметисты', 'а�
 def reg(dp: Dispatcher):
     dp.register_message_handler(mine_cmd, lambda message: message.text.lower() == 'шахта')
     dp.register_message_handler(energy_cmd, lambda message: message.text.lower() == 'энергия')
-    dp.register_message_handler(kursrud_cmd, lambda message: message.text.lower() == 'курс руды')
-    dp.register_message_handler(mymine_cmd, lambda message: message.text.lower() == 'моя шахта')
-    dp.register_message_handler(digmine, lambda message: message.text.lower().startswith('копать '))
-    dp.register_message_handler(sellruda_cmd, lambda message: message.text.lower().startswith('продать') and any(ruda in message.text.lower() for ruda in ruds))
+    dp.register_message_handler(price_cmd, lambda message: message.text.lower() == 'курс руды')
+    dp.register_message_handler(my_mine_cmd, lambda message: message.text.lower() == 'моя шахта')
+    dp.register_message_handler(dig_mine_cmd, lambda message: message.text.lower().startswith('копать '))
+    dp.register_message_handler(sell_cmd, lambda message: message.text.lower().startswith('продать') and any(ruda in message.text.lower() for ruda in ruds))
     dp.register_message_handler(inventary_cmd, lambda message: message.text.lower() == 'инвентарь')

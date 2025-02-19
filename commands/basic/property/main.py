@@ -1,6 +1,6 @@
 from aiogram import types, Dispatcher
+
 import commands.basic.property.db as db
-from bot import bot
 from assets.antispam import antispam
 from commands.basic.property.lists import *
 from assets.transform import transform_int as tr
@@ -179,7 +179,7 @@ async def my_helicopter(message: types.Message, user: BFGuser):
 ⛽️ Максимальная скорость: {hdata[1]} км/ч
 🐎 Лошадиных сил: {hdata[2]}'''
 
-    await bot.send_photo(chat_id=message.chat.id, photo=hdata[3], caption=txt)
+    await message.answer_photo(photo=hdata[3], caption=txt)
 
 
 @antispam
@@ -191,7 +191,7 @@ async def my_phone(message: types.Message, user: BFGuser):
         return
 
     hdata = phones.get(user.property.phone.get())
-    await bot.send_photo(chat_id=message.chat.id, photo=hdata[1], caption=f'{user.url}, ваш телефон "{hdata[0]}"')
+    await message.answer_photo(photo=hdata[1], caption=f'{user.url}, ваш телефон "{hdata[0]}"')
 
 
 @antispam
@@ -209,7 +209,7 @@ async def my_car(message: types.Message, user: BFGuser):
 🐎 Лошадиных сил: {hdata[2]}
 ⏱ Разгон до 100 за {hdata[3]} сек'''
 
-    await bot.send_photo(chat_id=message.chat.id, photo=hdata[4], caption=txt)
+    await message.answer_photo(photo=hdata[4], caption=txt)
 
 
 @antispam
@@ -221,7 +221,7 @@ async def my_house(message: types.Message, user: BFGuser):
         return
 
     hdata = house.get(user.property.house.get())
-    await bot.send_photo(chat_id=message.chat.id, photo=hdata[1], caption=f'{user.url}, ваш дом "{hdata[0]}"')
+    await message.answer_photo(photo=hdata[1], caption=f'{user.url}, ваш дом "{hdata[0]}"')
 
 
 @antispam
@@ -238,7 +238,7 @@ async def my_yahta(message: types.Message, user: BFGuser):
 ⛽️ Максимальная скорость: {hdata[1]} км/ч
 🐎 Лошадиных сил: {hdata[2]}'''
 
-    await bot.send_photo(chat_id=message.chat.id, photo=hdata[3], caption=txt)
+    await message.answer_photo(photo=hdata[3], caption=txt)
 
 
 @antispam
@@ -255,7 +255,7 @@ async def my_plane(message: types.Message, user: BFGuser):
 ⛽️ Максимальная скорость: {hdata[1]} км/ч
 🐎 Лошадиных сил: {hdata[2]}'''
 
-    await bot.send_photo(chat_id=message.chat.id, photo=hdata[3], caption=txt)
+    await message.answer_photo(photo=hdata[3], caption=txt)
 
 
 @antispam

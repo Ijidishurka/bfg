@@ -60,11 +60,11 @@ async def bank_cmd(message: types.Message, user: BFGuser):
    💵 Под депозитом: {user.depozit.tr()}$
    ⏳ Можно снять: {timedepozit}
 
-{BFGconst.ads}''', disable_web_page_preview=True)
+{BFGconst.ads}''')
 
 
 @antispam
-async def putbank(message: types.Message, user: BFGuser):
+async def put_bank_cmd(message: types.Message, user: BFGuser):
     win, lose = BFGconst.emj()
 
     try:
@@ -91,7 +91,7 @@ async def putbank(message: types.Message, user: BFGuser):
 
 
 @antispam
-async def takeoffbank(message: types.Message, user: BFGuser):
+async def takeoff_bank_cmd(message: types.Message, user: BFGuser):
     win, lose = BFGconst.emj()
 
     try:
@@ -118,7 +118,7 @@ async def takeoffbank(message: types.Message, user: BFGuser):
 
 
 @antispam
-async def pudepozit(message: types.Message, user: BFGuser):
+async def put_depozit_cmd(message: types.Message, user: BFGuser):
     p, c, st = await bank_pc(user.status)
     win, lose = BFGconst.emj()
 
@@ -156,7 +156,7 @@ async def pudepozit(message: types.Message, user: BFGuser):
 
 
 @antispam
-async def takeoffdepozit(message: types.Message, user: BFGuser):
+async def takeoff_depozit_cmd(message: types.Message, user: BFGuser):
     win, lose = BFGconst.emj()
     balance = int(user.depozit)
 
@@ -208,8 +208,8 @@ async def takeoffdepozit(message: types.Message, user: BFGuser):
 
 
 def reg(dp: Dispatcher):
-    dp.register_message_handler(putbank, lambda message: message.text.lower().startswith('банк положить'))
-    dp.register_message_handler(takeoffbank, lambda message: message.text.lower().startswith('банк снять'))
-    dp.register_message_handler(pudepozit, lambda message: message.text.lower().startswith('депозит положить'))
-    dp.register_message_handler(takeoffdepozit, lambda message: message.text.lower().startswith('депозит снять'))
+    dp.register_message_handler(put_bank_cmd, lambda message: message.text.lower().startswith('банк положить'))
+    dp.register_message_handler(takeoff_bank_cmd, lambda message: message.text.lower().startswith('банк снять'))
+    dp.register_message_handler(put_depozit_cmd, lambda message: message.text.lower().startswith('депозит положить'))
+    dp.register_message_handler(takeoff_depozit_cmd, lambda message: message.text.lower().startswith('депозит снять'))
     dp.register_message_handler(bank_cmd, lambda message: message.text.lower() == 'банк')

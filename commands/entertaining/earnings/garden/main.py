@@ -1,9 +1,9 @@
 from aiogram import types, Dispatcher
+
 import commands.entertaining.earnings.garden.db as db
 from assets.transform import transform_int as tr
 from assets import kb
 from assets.antispam import antispam_earning, antispam, new_earning
-from bot import bot
 from user import BFGuser, BFGconst
 
 
@@ -28,7 +28,7 @@ async def my_garden(message: types.Message, user: BFGuser):
     await upd_garden_text(message, user, action='send')
 
 
-async def upd_garden_text(call: types.CallbackQuery, user: BFGuser, action='edit'):
+async def upd_garden_text(call: types.CallbackQuery | types.Message, user: BFGuser, action='edit') -> None:
     garden = user.garden
     
     if action == 'edit':
@@ -50,9 +50,9 @@ async def upd_garden_text(call: types.CallbackQuery, user: BFGuser, action='edit
     
     try:
         if action == 'edit':
-            await call.message.edit_text(text=txt, reply_markup=kb.garden(user.user_id))
+            await call.message.edit_text(text=txt, reply_markup=kb.garden(user.id))
         else:
-            msg = await call.answer(text=txt, reply_markup=kb.garden(user.user_id))
+            msg = await call.answer(text=txt, reply_markup=kb.garden(user.id))
             await new_earning(msg)
     except:
         return
@@ -71,7 +71,7 @@ async def buy_garden(message: types.Message, user: BFGuser):
         await message.answer(f'{user.url}, у вас недостаточно денег для постройки Сада. Его стоимость 1.00.000.000$ {lose}')
         return
 
-    await db.buy_garden(user.user_id)
+    await db.buy_garden(user.id)
     await message.answer(f'{user.url}, вы успешно купили сад для подробностей введите "Мой сад" {win}')
 
 
@@ -84,17 +84,17 @@ async def buy_tree(call: types.CallbackQuery, user: BFGuser):
         return
 
     if garden.tree.get() == 10:
-        await bot.answer_callback_query(call.id, text=f'{user.name}, у вас уже куплено максимальное количество деревьев {lose}')
+        await call.answer(f'{user.name}, у вас уже куплено максимальное количество деревьев {lose}')
         return
 
     ch = int(1_000_000_000 * (1 + 0.15) ** (garden.tree.get() + 1))
 
     if int(user.balance) < ch:
-        await bot.answer_callback_query(call.id, text=f'{user.name}, у вас недостаточно денег для покупки дерева. Её стоимость {tr(ch)}$ {lose}')
+        await call.answer(f'{user.name}, у вас недостаточно денег для покупки дерева. Её стоимость {tr(ch)}$ {lose}')
         return
     
-    await db.buy_tree(user.user_id, ch)
-    await bot.answer_callback_query(call.id, text=f'{user.name}, вы успешно увеличили количество деревьев в вашем саду за {tr(ch)}$ {win}')
+    await db.buy_tree(user.id, ch)
+    await call.answer(f'{user.name}, вы успешно увеличили количество деревьев в вашем саду за {tr(ch)}$ {win}')
     await upd_garden_text(call, user)
 
 
@@ -107,11 +107,11 @@ async def withdraw_profit(call: types.CallbackQuery, user: BFGuser):
         return
 
     if int(garden.balance) == 0:
-        await bot.answer_callback_query(call.id, text=f'{user.name}, на данный момент на балансе вашего сада нет прибыли {lose}')
+        await call.answer(f'{user.name}, на данный момент на балансе вашего сада нет прибыли {lose}')
         return
 
-    await db.withdraw_profit(user.user_id, garden.balance.get())
-    await bot.answer_callback_query(call.id, text=f'{user.name}, вы успешно сняли {garden.balance.tr()} зёрен с баланса вашего сада {win}')
+    await db.withdraw_profit(user.id, garden.balance.get())
+    await call.answer(f'{user.name}, вы успешно сняли {garden.balance.tr()} зёрен с баланса вашего сада {win}')
     await upd_garden_text(call, user)
 
 
@@ -124,11 +124,11 @@ async def water_garden_call(call: types.CallbackQuery, user: BFGuser):
         return
 
     if int(garden.water) >= 100:
-        await bot.answer_callback_query(call.id, text=f'{user.name}, вы уже полили свой сад {lose}')
+        await call.answer(f'{user.name}, вы уже полили свой сад {lose}')
         return
 
     await garden.water.upd(100)
-    await bot.answer_callback_query(call.id, text=f'{user.name}, вы успешно полили свой сад {win}')
+    await call.answer(f'{user.name}, вы успешно полили свой сад {win}')
     await upd_garden_text(call, user)
 
 
@@ -158,15 +158,15 @@ async def pay_taxes(call: types.CallbackQuery, user: BFGuser):
         return
 
     if int(user.balance) < int(garden.nalogs):
-        await bot.answer_callback_query(call.id, text=f'{user.name}, у вас недостаточно денег чтоб оплатить налоги {lose}')
+        await call.answer(f'{user.name}, у вас недостаточно денег чтоб оплатить налоги {lose}')
         return
 
     if int(garden.nalogs) == 0:
-        await bot.answer_callback_query(call.id, text=f'{user.name}, у вас нет налогов чтобы их оплатить {win}')
+        await call.answer(f'{user.name}, у вас нет налогов чтобы их оплатить {win}')
         return
 
-    await db.payment_taxes(user.user_id, garden.nalogs.get())
-    await bot.answer_callback_query(call.id, text=f'{user.name}, вы успешно оплатили налоги на сумму {garden.nalogs.tr()}$ с вашего игрового баланса {win}')
+    await db.payment_taxes(user.id, garden.nalogs.get())
+    await call.answer(f'{user.name}, вы успешно оплатили налоги на сумму {garden.nalogs.tr()}$ с вашего игрового баланса {win}')
     await upd_garden_text(call, user)
 
 
@@ -184,7 +184,7 @@ async def sell_garden(message: types.Message, user: BFGuser):
     for i in range(1, garden.tree.get() + 1):  # Компенсация за деревья (50%)
         summ += int(1_000_000_000 * (1 + 0.15) ** (i + 1)) // 2
 
-    await db.sell_garden(user.user_id, summ)
+    await db.sell_garden(user.id, summ)
     await message.answer(f'{user.url}, Вы успешно продали свой сад за {tr(summ)}$ {win}')
 
 

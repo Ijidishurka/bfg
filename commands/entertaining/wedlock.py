@@ -1,4 +1,5 @@
 from aiogram import Dispatcher, types
+
 from assets.antispam import antispam
 from commands.db import url_name, get_name
 from commands.entertaining.db import *
@@ -10,11 +11,11 @@ from assets.gettime import get_ptime
 
 @antispam
 async def my_wedlock(message: types.message, user: BFGuser):
-	data = await get_wedlock(user.user_id)
+	data = await get_wedlock(user.id)
 	win, lose = BFGconst.emj()
 	
 	if not data:
-		await message.answer(f'{user.url}, к сожалению вы не женаты {lose}')
+		await message.answer(f'{user.url}, к сожалению вы не состоите в браке {lose}')
 		return
 
 	name1 = await get_name(data[0])
@@ -26,9 +27,7 @@ async def my_wedlock(message: types.message, user: BFGuser):
 	dt = datetime.fromtimestamp(data[2]).strftime('%d.%m.%y в %H:%M:%S')
 	dt_delta = get_ptime(data[2])
 
-	await message.answer(f'''Брак между {name1} и {name2}:
-🗓 Зарегестрирован: {dt}
-👩‍❤️‍👨 Существует: {dt_delta}''')
+	await message.answer(f'Брак между {name1} и {name2}:\n🗓 Зарегестрирован: {dt}\n👩‍❤️‍👨 Существует: {dt_delta}')
 
 
 @antispam
@@ -42,11 +41,11 @@ async def wedlock(message: types.message, user: BFGuser):
 		await message.answer(f'{user.url}, вы не ответили на сообщение партнёра на котором вы хотите пожениться {lose}')
 		return
 
-	if user.user_id == r_id:
+	if user.id == r_id:
 		await message.answer(f'{user.url}, к сожалению вы не можете жениться на самому себе {lose}')
 		return
 
-	res = await get_new_wedlock(user.user_id, r_id)
+	res = await get_new_wedlock(user.id, r_id)
 
 	if res == 'u_not':
 		await message.answer(f'{user.url}, вы уже находитесь в браке {lose}')
@@ -55,7 +54,7 @@ async def wedlock(message: types.message, user: BFGuser):
 	else:
 		await message.answer(f'''💍 {rname}, минуту внимания!
 💓 {user.url} сделал вам предложение руки и сердца.
-😍 Принять решение можно кнопками внизу.''', reply_markup=kb.wedlock(user.user_id, r_id))
+😍 Принять решение можно кнопками внизу.''', reply_markup=kb.wedlock(user.id, r_id))
 
 
 async def wedlock_call(call: types.CallbackQuery):
@@ -67,7 +66,7 @@ async def wedlock_call(call: types.CallbackQuery):
 		try:
 			await call.message.delete()
 		except:
-			return
+			...
 		return
 
 	if user_id != r_id:
@@ -85,10 +84,8 @@ async def wedlock_call(call: types.CallbackQuery):
 	if action != 'true':
 		await call.message.answer(f'💔 {name1}, cожалеем, но {name2} отклонил ваше предложение о бракосочетании.')
 		return
-		
-	res = await new_wedlock(u_id, r_id)
-	
-	if res == 'error':
+
+	if (await new_wedlock(u_id, r_id)):
 		return
 	
 	await call.message.answer(f'''💍 Вы успешно приняли предложение о браке
@@ -98,18 +95,18 @@ async def wedlock_call(call: types.CallbackQuery):
 
 @antispam
 async def divorce(message: types.message, user: BFGuser):
-	data = await get_wedlock(user.user_id)
+	data = await get_wedlock(user.id)
 	win, lose = BFGconst.emj()
 	
 	if not data:
 		await message.answer(f'{user.url}, к сожалению вы не женаты {lose}')
 		return
 
-	await message.answer(f'📝 Убедитесь что вы согласны разводится.\nЧтобы развестись, нажмите на кнопку ниже', reply_markup=kb.divorce(user.user_id))
+	await message.answer(f'📝 Убедитесь что вы согласны разводится.\nЧтобы развестись, нажмите на кнопку ниже', reply_markup=kb.divorce(user.id))
 
 
 async def divorce_call(call: types.CallbackQuery):
-	type = call.data.split('-')[1].split('|')[0]
+	action = call.data.split('-')[1].split('|')[0]
 	uid = int(call.data.split('|')[1])
 	user_id = call.from_user.id
 
@@ -128,7 +125,7 @@ async def divorce_call(call: types.CallbackQuery):
 	except:
 		return
 
-	if type == 'true':
+	if action == 'true':
 		await divorce_db(uid)
 		dt_delta = get_ptime(data[2])
 		name1 = await url_name(data[0])

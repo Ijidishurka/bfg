@@ -15,9 +15,7 @@ class BFGstateClass:
     def emj(self):
         win = ['🙂', '😋', '😄', '🤑', '😃', '😇']
         loser = ['😔', '😕', '😣', '😞', '😢']
-        rwin = random.choice(win)
-        rloser = random.choice(loser)
-        return rwin, rloser
+        return random.choice(win), random.choice(loser)
         
         
 BFGconst = BFGstateClass()

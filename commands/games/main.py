@@ -32,7 +32,7 @@ async def game_check(message: types.Message, user: BFGuser, index=1) -> int | No
         await message.answer(f'{user.url}, ваша ставка не может быть меньше 10$ {lose}')
         return
 
-    gt = await gametime(user.user_id)
+    gt = await gametime(user.id)
     if gt == 1:
         await message.answer(f'{user.url}, играть можно каждые 5 секунды. Подождите немного {lose}')
         return
@@ -56,11 +56,11 @@ async def darts_cmd(message: types.Message, user: BFGuser):
 
     elif int(rx) == 6:
         c = round(Decimal(summ * 2))
-        await gXX(user.user_id, c, 1)
+        await gXX(user.id, c, 1)
         await message.answer(f'{user.url}, в яблочко! 🎯\n💰 Ваш приз: {tr(c)}$!')
 
     else:
-        await gXX(user.user_id, summ, 0)
+        await gXX(user.id, summ, 0)
         await message.answer(f'{lose} | К сожалению Ваша победа ускользнула от Вас! 🎯️')
 
 
@@ -87,11 +87,11 @@ async def dice_cmd(message: types.Message, user: BFGuser):
 
     if int(rx) == ch:
         c = round(Decimal(summ * 4))
-        await gXX(user.user_id, c, 1)
+        await gXX(user.id, c, 1)
         await message.answer(f'{win} | Поздравляю! Вы угадали число. Ваш выигрыш составил - {tr(c)}$')
         return
     else:
-        await gXX(user.user_id, summ, 0)
+        await gXX(user.id, summ, 0)
         await message.answer(f'{win} | К сожалению вы не угадали число! 🎲')
         return
 
@@ -109,13 +109,13 @@ async def basketball_cmd(message: types.Message, user: BFGuser):
 
     if int(rx) == 5:
         c = round(Decimal(summ * 2))
-        await gXX(user.user_id, c, 1)
+        await gXX(user.id, c, 1)
         await message.answer(f'{user.url}, мяч в кольце, ура! 🏀\n💰 Ваш приз: {tr(c)}$!')
 
     elif int(rx) == 4:
         await message.answer(f'{user.url}, бросок оказался на грани фола! 🏀\n💰 Ваши средства в безопасности! (х1)')
     else:
-        await gXX(user.user_id, summ, 0)
+        await gXX(user.id, summ, 0)
         await message.answer(f'{win} | К сожалению вы не попали в кольцо! 🏀')
 
 
@@ -131,13 +131,13 @@ async def football_cmd(message: types.Message, user: BFGuser):
     
     if int(rx) in [3, 5]:
         c = round(Decimal(summ * 2))
-        await gXX(user.user_id, c, 1)
+        await gXX(user.id, c, 1)
         await message.answer(f'{user.url}, мяч в воротах, ура! ⚽️\n💰 Ваш приз: {tr(c)}$!')
     
     elif int(rx) == 4:
         await message.answer(f'{user.url}, мяч попал в штангу, но не в ворота! 😱\n💔 Удача в следующий раз!')
     else:
-        await gXX(user.user_id, summ, 0)
+        await gXX(user.id, summ, 0)
         await message.answer(f'{user.url}, вы пробили по мячу, но он пролетел мимо! ⚽️💨')
 
 
@@ -154,13 +154,13 @@ async def bowling_cmd(message: types.Message, user: BFGuser):
 
     if int(rx) == 6:
         c = round(Decimal(summ * 2))
-        await gXX(user.user_id, c, 1)
+        await gXX(user.id, c, 1)
         await message.answer(f'{user.url}, страйк! Полная победа! 🎳️\n💰 Ваш приз: {tr(c)}$!')
 
     elif int(rx) == 5:
         await message.answer(f'{user.url}, так близко к победе! 🎳\n💰 Ваши средства в безопасности! (х1)')
     else:
-        await gXX(user.user_id, summ, 0)
+        await gXX(user.id, summ, 0)
         await message.answer(f'{win} | К сожалению мимо всех кеглей! 🎳')
 
 
@@ -185,11 +185,11 @@ async def casino_cmd(message: types.Message, user: BFGuser):
         c = int(summ * x)
         c2 = int(c - summ)
         await message.answer(f'{user.url}, вы выиграли {tr(c)}$ (x{x})  {win}')
-        await gXX(user.user_id, c2, 1)
+        await gXX(user.id, c2, 1)
     else:
         c = summ - int(summ * x)
         await message.answer(f'{user.url}, вы проиграли {tr(c)}$ (x{x})  {win}')
-        await gXX(user.user_id, c, 0)
+        await gXX(user.id, c, 0)
 
 
 @antispam
@@ -218,11 +218,11 @@ async def spin_cmd(message: types.Message, user: BFGuser):
 
     if payout != 0:
         c2 = tr(int(summ + payout))
-        await gXX(user.user_id, payout, 1)
+        await gXX(user.id, payout, 1)
         await message.answer(f'{user.url}\n{emj} выигрыш: {c2}$')
     else:
         await message.answer(f'{user.url}\n{emj} Удача не на твоей стороне. Выигрыш: 0$')
-        await gXX(user.user_id, summ, 0)
+        await gXX(user.id, summ, 0)
 
 
 @antispam
@@ -250,11 +250,11 @@ async def trade_cmd(message: types.Message, user: BFGuser):
     if action.lower() == result:
         payout = int(summ * random_number / 100)
         await message.answer(f'{user.url}\n📈 Курс пошёл {result} на {random_number}%\n✅ Ваш выигрыш составил - {tr(payout)}$')
-        await gXX(user.user_id, payout, 1)
+        await gXX(user.id, payout, 1)
     else:
         payout = int(summ - (summ * random_number / 100))
         await message.answer(f'{user.url}\n📈 Курс пошёл {result} на {random_number}%\n❌ Вы проиграли - {tr(payout)}$')
-        await gXX(user.user_id, payout, 0)
+        await gXX(user.id, payout, 0)
 
 
 def reg(dp: Dispatcher):

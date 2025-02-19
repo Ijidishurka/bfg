@@ -1,46 +1,38 @@
-from aiogram import Dispatcher, types
-from assets.antispam import antispam
-from commands.clans.db import *
-from commands.db import url_name
-from assets import kb
 import re
 
+from aiogram import Dispatcher, types
+
+from assets.antispam import antispam, antispam_earning, new_earning
 from user import BFGuser, BFGconst
+from commands.clans import db
+from assets import kb
 
 
 @antispam
 async def clan_dell(message: types.message, user: BFGuser):
 	win, lose = BFGconst.emj()
-	data = await clan_info(user.user_id)
 
-	if not data:
+	if not user.clan:
 		await message.answer(f'{user.url}, вы не состоите в клане {lose}')
 		return
 
-	if data[2] != 4:
+	if user.clan.rank != 4:
 		await message.answer(f'{user.url}, вы не можете удалить данный клан так как не являетесь создателем клана {lose}')
 		return
 
-	d, _, _ = await clan_full_info(data[1])
+	msg = await message.answer(f'''<b>[Внимание]</b>
+😔 Вы действительно хотите удалить клан <b>[{user.clan.name}]</b>
+✅ Для подтверждения нажмите кнопку ниже''', reply_markup=kb.dell_clan(user.id, user.clan.id))
+	await new_earning(msg)
 
-	await message.answer(f'''<b>[Внимание]</b>
-😔 Вы действительно хотите удалить клан <b>[{d[2]}]</b>
-✅ Для подтверждения нажмите кнопку ниже''', reply_markup=kb.dell_clan(user.user_id, data[1]))
 
-
-async def clan_dell_call(call: types.CallbackQuery):
-	user_id = call.from_user.id
-	cdata = call.data.split('|')
-	zap = cdata[0].split('_')[1]
-	uid, cid = int(cdata[1]), int(cdata[2])
+@antispam_earning
+async def clan_dell_call(call: types.CallbackQuery, user: BFGuser):
+	zap = call.data.split('|')[0].split('_')[1]
+	cid = int(call.data.split('|')[1])
 	win, lose = BFGconst.emj()
-	data = await clan_info(user_id)
-	name = await url_name(user_id)
 
-	if uid != user_id:
-		return
-
-	if not data or data[2] != 4 or data[1] != cid:
+	if not user.clan or user.clan.rank != 4 or user.clan.id != cid:
 		zap = 'false'
 
 	try:
@@ -51,16 +43,15 @@ async def clan_dell_call(call: types.CallbackQuery):
 	if zap == 'false':
 		return
 
-	res = await clan_dell_db(data[1])
-	await call.message.answer(f'{name}, вы успешно удалили клан <b>[{res}]</b> {win}')
+	await db.clan_dell_db(user.clan.id)
+	await call.message.answer(f'{user.url}, вы успешно удалили клан <b>[{user.clan.name}]</b> {win}')
 
 
 @antispam
 async def clan_name(message: types.message, user: BFGuser):
 	win, lose = BFGconst.emj()
-	data = await clan_info(user.user_id)
 
-	if not data:
+	if not user.clan:
 		await message.answer(f'{user.url}, вы не состоите в клане {lose}')
 		return
 
@@ -68,6 +59,10 @@ async def clan_name(message: types.message, user: BFGuser):
 		name = " ".join(message.text.split()[2:])
 	except:
 		await message.answer(f'{user.url}, вы не ввели название клана на которое хотите поменять {lose}')
+		return
+	
+	if user.clan.rank < user.clan.settings['upd_name']:
+		await message.answer(f'{user.url}, ваш ранг слишком мал, для того чтобы изменить название клана {lose}')
 		return
 
 	if len(name) < 5:
@@ -82,20 +77,15 @@ async def clan_name(message: types.message, user: BFGuser):
 		await message.answer(f'{user.url}, название вашего клана содержит запрещённые символы {lose}')
 		return
 
-	res = await new_name_clan_db(name, data[1], data[2])
-
-	if res == '<small rank':
-		await message.answer(f'{user.url}, ваш ранг слишком мал, для того чтобы изменить название клана {lose}')
-	else:
-		await message.answer(f'<b>[Внимание]</b>\n✏️ Вы успешно изменили название клана на <b>[{name}]</b>')
+	await message.answer(f'<b>[Внимание]</b>\n✏️ Вы успешно изменили название клана на <b>[{name}]</b>')
+	await db.new_name_clan_db(name, user.clan.id)
 
 
 @antispam
 async def clan_new_owner(message: types.message, user: BFGuser):
 	win, lose = BFGconst.emj()
-	data = await clan_info(user.user_id)
 
-	if not data:
+	if not user.clan:
 		await message.answer(f'{user.url}, вы не состоите в клане {lose}')
 		return
 
@@ -105,40 +95,36 @@ async def clan_new_owner(message: types.message, user: BFGuser):
 		await message.answer(f'{user.url}, вы не указали ID игрока которому хотите передать клан {lose}')
 		return
 
-	if data[2] != 4:
+	if user.clan.rank != 4:
 		await message.answer(f'{user.url}, к сожалению Вы не можете передать клан так как не являетесь его основателем {lose}')
 		return
 
-	if user.user_id == uid:
+	if user.id == uid:
 		await message.answer(f'{user.url}, вы не можете передать клан самому себе {lose}')
 		return
 
-	r_data = await clan_info(user.user_id)
-	d, _, _ = await clan_full_info(data[1])
+	r_data = await db.clan_info(user.id)
 
-	if r_data and r_data[1] == data[1]:
-		await message.answer(f'''<b>⚠️ ВАЖНОЕ УВЕДОМЛЕНИЕ ⚠️</b>
-<b>Передача клана "{d[2]}"</b>
+	if r_data and r_data[1] == user.clan.id:
+		msg = await message.answer(f'''<b>⚠️ ВАЖНОЕ УВЕДОМЛЕНИЕ ⚠️</b>
+<b>Передача клана "{user.clan.name}"</b>
 🔴 <b>Внимание:</b> Это действие является окончательным и <u>не может быть отменено</u> после подтверждения.
 ❗ Пожалуйста, убедитесь в своем решении перед подтверждением.
-✅ Если вы полностью уверены в своем решении и готовы передать клан, нажмите кнопку ниже для подтверждения.''', reply_markup=kb.new_own_clan(uid, data[1], user.user_id))
+✅ Если вы полностью уверены в своем решении и готовы передать клан, нажмите кнопку ниже для подтверждения.''',
+							 reply_markup=kb.new_own_clan(uid, user.clan.id, user.id))
+		await new_earning(msg)
 	else:
 		await message.answer(f'{user.url}, данный игрок не находиться в вашем клане, вы не можете передать ему клан {lose}')
 
 
-async def clan_new_owner_call(call: types.CallbackQuery):
-	user_id = call.from_user.id
+@antispam_earning
+async def clan_new_owner_call(call: types.CallbackQuery, user: BFGuser):
+	zap = call.data.split('|')[0].split('_')[1]
 	cdata = call.data.split('|')
-	zap = cdata[0].split('_')[1]
-	uid, cid, uid2 = int(cdata[1]), int(cdata[2]), int(cdata[3])
-	data = await clan_info(user_id)
-	data2 = await clan_info(uid)
-	user_name = await url_name(user_id)
+	rid, cid = int(cdata[1]), int(cdata[2])
+	data = await db.clan_info(rid)
 
-	if uid2 != user_id:
-		return
-
-	if not data or not data2 or data[2] != 4 or data[1] != cid or data2[1] != data[1]:
+	if not user.clan or not data or user.clan.rank != 4 or user.clan.id != cid or data[1] != user.clan.id:
 		zap = 'false'
 
 	try:
@@ -149,53 +135,47 @@ async def clan_new_owner_call(call: types.CallbackQuery):
 	if zap == 'false':
 		return
 
-	name = await new_owner_db(uid, cid, user_id)
-	await call.message.answer(f'{user_name}, вы успешно передали клан <b>[{name}]</b> игроку с ID: {uid}')
+	await db.new_owner_db(user.id, cid, rid)
+	await call.message.answer(f'{user.url}, вы успешно передали клан <b>[{user.clan.name}]</b> игроку с ID: {rid}')
 
 
 @antispam
 async def clan_setting_type(message: types.message, user: BFGuser):
 	win, lose = BFGconst.emj()
-	data = await clan_info(user.user_id)
 
-	if not data:
+	if not user.clan:
 		await message.answer(f'{user.url}, вы не состоите в клане {lose}')
 		return
 
-	d, _, _ = await clan_full_info(data[1])
-
 	try:
-		type = message.text.lower().split()[3]
+		action = message.text.lower().split()[3]
 	except:
 		await message.answer(f'{user.url}, вы не указали тип клана, который хотите установить.\nДоступные типы: [закрытый, открытый] {lose}')
 		return
 
-	if data[2] != 4:
+	if user.clan.rank != 4:
 		await message.answer(f'{user.url}, вы не можете изменять настройки данного клана так как не являетесь создателем клана {lose}')
 		return
 
-	if type == 'закрытый':
-		u = 0
-	elif type == 'открытый':
-		u = 1
+	if action == 'закрытый':
+		clan_type = 0
+	elif action == 'открытый':
+		clan_type = 1
 	else:
 		await message.answer(f'{user.url}, неизвестный тип клана. Доступные типы: [закрытый, открытый] {lose}')
 		return
 
-	await upd_settings_type_db(u, data[1])
-	await message.answer(f'<b>[Внимание]</b>\n📥 Вы успешно изменили тип клана <b>[{d[2]}]</b> на {type}')
+	await db.upd_settings_type_db(clan_type, user.clan.id)
+	await message.answer(f'<b>[Внимание]</b>\n📥 Вы успешно изменили тип клана <b>[{user.clan.name}]</b> на {action}')
 
 
 @antispam
 async def clan_settings(message: types.message, user: BFGuser):
 	win, lose = BFGconst.emj()
-	data = await clan_info(user.user_id)
 
-	if not data:
+	if not user.clan:
 		await message.answer(f'{user.url}, вы не состоите в клане {lose}')
 		return
-
-	d, _, _ = await clan_full_info(data[1])
 
 	try:
 		msg = message.text.lower().split()[2]
@@ -211,7 +191,7 @@ async def clan_settings(message: types.message, user: BFGuser):
 		await message.answer(f'{user.url}, вы не можете поставить ранг выше 4 {lose}')
 		return
 
-	if data[2] != 4:
+	if user.clan.rank != 4:
 		await message.answer(f'{user.url}, вы не можете изменять настройки данного клана так как не являетесь создателем клана {lose}')
 		return
 
@@ -231,8 +211,8 @@ async def clan_settings(message: types.message, user: BFGuser):
 		await message.answer(f'<b>[Внимание]</b>\n❌ Данной настройки не существует. Проверьте название и введите ещё раз')
 		return
 
-	await upd_settings(st, data[1], u)
-	await message.answer(f'<b>[Внимание]</b>\n📥 Вы успешно изменили настройки {txt} <b>[{d[2]}]</b>')
+	await db.upd_settings(st, user.clan.id, u)
+	await message.answer(f'<b>[Внимание]</b>\n📥 Вы успешно изменили настройки {txt} <b>[{user.clan.name}]</b>')
 
 
 def reg(dp: Dispatcher):

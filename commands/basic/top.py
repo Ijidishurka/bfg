@@ -1,9 +1,10 @@
 from aiogram import Dispatcher, types
+
 from assets.antispam import antispam_earning, new_earning, antispam
 from commands.db import url_name, top_db, get_name, top_clans_db
 from commands.clans.db import clan_full_info
-from assets import kb
 from user import BFGuser, BFGconst
+from assets import kb
 
 
 def get_num_user(num: list, user_position: int | None) -> str:
@@ -58,7 +59,7 @@ async def handle_top(call, tab, st, index, top, top_emj) -> None:
 	name = await get_username(tab, userinfo)
 	top_message += f"{emoji} {name} — {value}{top_emj}"
 
-	await call.message.edit_text(text=top_message, reply_markup=kb.top(user_id, st), disable_web_page_preview=True)
+	await call.message.edit_text(text=top_message, reply_markup=kb.top(user_id, st))
 
 
 async def handle_top_earning(call, tab, st, index, top, top_emj) -> None:
@@ -84,7 +85,7 @@ async def handle_top_earning(call, tab, st, index, top, top_emj) -> None:
 		top_message += f"—————————————————\n"
 		top_message += f"{emoji} {name} — {value}{top_emj}"
 
-	await call.message.edit_text(text=top_message, reply_markup=kb.top(user_id, st), disable_web_page_preview=True)
+	await call.message.edit_text(text=top_message, reply_markup=kb.top(user_id, st))
 
 
 @antispam
@@ -146,7 +147,7 @@ async def top_clans(message: types.Message, user: BFGuser):
 
 	top_message += f'\n\n{BFGconst.ads}'
 
-	await message.answer(top_message, disable_web_page_preview=True)
+	await message.answer(top_message)
 
 
 def reg(dp: Dispatcher):

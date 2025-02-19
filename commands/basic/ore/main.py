@@ -1,5 +1,7 @@
-from aiogram import Dispatcher, types
 from decimal import Decimal
+
+from aiogram import Dispatcher, types
+
 from assets.antispam import antispam
 from commands.basic.ore import db
 import commands.basic.ore.dig
@@ -8,7 +10,7 @@ from user import BFGuser, BFGconst
 
 
 @antispam
-async def sellbtc(message: types.Message, user: BFGuser):
+async def sell_btc_cmd(message: types.Message, user: BFGuser):
     win, lose = BFGconst.emj()
 
     try:
@@ -36,7 +38,7 @@ async def sellbtc(message: types.Message, user: BFGuser):
 
 
 @antispam
-async def buybtc(message: types.Message, user: BFGuser):
+async def buy_btc_cmd(message: types.Message, user: BFGuser):
     win, lose = BFGconst.emj()
     
     try:
@@ -64,18 +66,18 @@ async def buybtc(message: types.Message, user: BFGuser):
 
 
 @antispam
-async def btc_kurs(message: types.Message, user: BFGuser):
+async def price_btc_cmd(message: types.Message, user: BFGuser):
     kurs = await db.getkurs()
     await message.answer(f'{user.url}, на данный момент курс 1 BTC составляет - {tr(kurs)}$ 🌐\n\n{BFGconst.ads}', disable_web_page_preview=True)
 
 
 @antispam
-async def rrating_cmd(message: types.Message, user: BFGuser):
+async def rating_cmd(message: types.Message, user: BFGuser):
     await message.answer(f'''{user.url}, ваш рейтинг {user.rating.tr()}👑\n\n{BFGconst.ads}''', disable_web_page_preview=True)
 
 
 @antispam
-async def sellrating(message: types.Message, user: BFGuser):
+async def sell_rating_cmd(message: types.Message, user: BFGuser):
     win, lose = BFGconst.emj()
 
     try:
@@ -103,7 +105,7 @@ async def sellrating(message: types.Message, user: BFGuser):
 
 
 @antispam
-async def buy_ratting(message: types.Message, user: BFGuser):
+async def buy_ratting_cmd(message: types.Message, user: BFGuser):
     win, lose = BFGconst.emj()
     
     try:
@@ -130,11 +132,11 @@ async def buy_ratting(message: types.Message, user: BFGuser):
 
 
 def reg(dp: Dispatcher):
-    dp.register_message_handler(sellbtc, lambda message: message.text.lower().startswith(('продать биткоин', 'биткоин продать')))
-    dp.register_message_handler(buybtc, lambda message: message.text.lower().startswith(('купить биткоин', 'биткоин купить')))
-    dp.register_message_handler(btc_kurs, lambda message: message.text.lower() in ['курс биткоина', 'курс биткоин', 'биткоин курс'])
-    dp.register_message_handler(rrating_cmd, lambda message: message.text.lower() == 'рейтинг')
-    dp.register_message_handler(buy_ratting, lambda message: message.text.lower().startswith('рейтинг'))
-    dp.register_message_handler(sellrating, lambda message: message.text.lower().startswith('продать рейтинг'))
+    dp.register_message_handler(sell_btc_cmd, lambda message: message.text.lower().startswith(('продать биткоин', 'биткоин продать')))
+    dp.register_message_handler(buy_btc_cmd, lambda message: message.text.lower().startswith(('купить биткоин', 'биткоин купить')))
+    dp.register_message_handler(price_btc_cmd, lambda message: message.text.lower() in ['курс биткоина', 'курс биткоин', 'биткоин курс'])
+    dp.register_message_handler(rating_cmd, lambda message: message.text.lower() == 'рейтинг')
+    dp.register_message_handler(buy_ratting_cmd, lambda message: message.text.lower().startswith('рейтинг'))
+    dp.register_message_handler(sell_rating_cmd, lambda message: message.text.lower().startswith('продать рейтинг'))
 
     commands.basic.ore.dig.reg(dp)

@@ -1,7 +1,7 @@
+from aiogram import types, Dispatcher
+
 from assets.antispam import new_earning, antispam, antispam_earning
 from assets.transform import transform_int as tr
-from aiogram import types, Dispatcher
-from bot import bot
 from commands.entertaining.earnings.quarry import db
 from assets import kb
 from user import BFGuser, BFGconst
@@ -35,7 +35,7 @@ async def my_quarry(message: types.Message, user: BFGuser):
     await edit_quarry_msg(message, user, action='send')
 
 
-async def edit_quarry_msg(call: types.CallbackQuery, user: BFGuser, action='edit'):
+async def edit_quarry_msg(call: types.CallbackQuery | types.Message, user: BFGuser, action='edit') -> None:
     quarry = user.quarry
     
     if action == 'edit':
@@ -56,9 +56,9 @@ async def edit_quarry_msg(call: types.CallbackQuery, user: BFGuser, action='edit
     
     try:
         if action == 'edit':
-            await call.message.edit_text(text=txt, reply_markup=kb.quarry(user.user_id))
+            await call.message.edit_text(text=txt, reply_markup=kb.quarry(user.id))
         else:
-            msg = await call.answer(text=txt, reply_markup=kb.quarry(user.user_id))
+            msg = await call.answer(text=txt, reply_markup=kb.quarry(user.id))
             await new_earning(msg)
     except:
         return
@@ -77,7 +77,7 @@ async def buy_quarry(message: types.Message, user: BFGuser):
         await message.answer(f'{user.url}, у вас недостаточно палладия для постройки карьера. Его стоимость 25 палладия {lose}')
         return
     
-    await db.buy_quarry_db(user.user_id)
+    await db.buy_quarry(user.id)
     await message.answer(f'{user.url}, вы успешно построили карьер для подробностей введите "Мой карьер" {win}')
 
 
@@ -90,11 +90,11 @@ async def withdraw_profit(call: types.CallbackQuery, user: BFGuser):
         return
 
     if int(quarry.balance) == 0:
-        await bot.answer_callback_query(call.id, text=f'{user.name}, на данный момент на балансе вашего карьера нету прибыли {lose}')
+        await call.answer(f'{user.name}, на данный момент на балансе вашего карьера нету прибыли {lose}')
         return
 
-    await db.withdraw_profit_db(user.user_id, quarry.balance.get())
-    await bot.answer_callback_query(call.id, text=f'{user.name}, вы успешно сняли {quarry.balance.tr()}⚗️ с баланса вашего карьера {win}')
+    await db.withdraw_profit(user.id, quarry.balance.get())
+    await call.answer(f'{user.name}, вы успешно сняли {quarry.balance.tr()}⚗️ с баланса вашего карьера {win}')
     await edit_quarry_msg(call, user)
 
 
@@ -107,21 +107,21 @@ async def payment_taxes(call: types.CallbackQuery, user: BFGuser):
         return
 
     if int(user.balance) < int(quarry.nalogs):
-        await bot.answer_callback_query(call.id, text=f'{user.name}, у вас недостаточно денег чтоб оплатить налоги {lose}')
+        await call.answer(f'{user.name}, у вас недостаточно денег чтоб оплатить налоги {lose}')
         return
 
     if int(quarry.nalogs) == 0:
-        await bot.answer_callback_query(call.id, text=f'{user.name}, у вас нет налогов чтобы их оплатить {win}')
+        await call.answer(f'{user.name}, у вас нет налогов чтобы их оплатить {win}')
         return
 
-    await db.payment_taxes_db(user.user_id, quarry.nalogs.get())
-    await bot.answer_callback_query(call.id, text=f'{user.name}, вы успешно оплатили налоги на сумму {quarry.nalogs.tr()}$ с вашего игрового баланса {win}')
+    await db.payment_taxes(user.id, quarry.nalogs.get())
+    await call.answer(f'{user.name}, вы успешно оплатили налоги на сумму {quarry.nalogs.tr()}$ с вашего игрового баланса {win}')
     await edit_quarry_msg(call, user)
 
 
 @antispam_earning
 async def up_level(call: types.CallbackQuery, user: BFGuser):
-    await bot.answer_callback_query(call.id, text=f'{user.name}, на данный момент у Вас максимальный уровень карьера.')
+    await call.answer(f'{user.name}, на данный момент у Вас максимальный уровень карьера.')
 
 
 # @antispam
@@ -138,7 +138,7 @@ async def up_level(call: types.CallbackQuery, user: BFGuser):
 #
 #     cobalt = (1000 * quarry.territory.get())
 #
-#     await db.sell_quarry(user.user_id, summ)
+#     await db.sell_quarry(user.id, summ)
 #     await message.answer(f'{user.url}, Вы успешно продали свой карьер, получено {palladium}⚗️, {cobalt}🧪 и {titanium}⚙️ {win}')
     
 

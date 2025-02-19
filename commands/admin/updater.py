@@ -27,7 +27,7 @@ async def check_updates() -> None:
 		await bot.edit_message_text(chat_id=data['message'][0], message_id=data['message'][1], text=txt)
 	
 
-async def search_update(force=False, check=False) -> bool:
+async def search_update(force: bool = False, check: bool = False) -> bool:
 	global if_notification
 	try:
 		if not check and if_notification and not force:
@@ -60,7 +60,7 @@ async def search_update(force=False, check=False) -> bool:
 		
 		for admin in cfg.admin:
 			try:
-				await bot.send_message(admin, txt, reply_markup=kb.update_bot(), disable_web_page_preview=True)
+				await bot.send_message(admin, txt, reply_markup=kb.update_bot())
 			except:
 				pass
 				
@@ -73,7 +73,7 @@ async def update_bot(message: types.Message):
 	forse = False
 	check = await search_update(check=True)
 	if not check and '-f' not in message.text:
-		await message.answer(f'<b>😄 У вас установлена последняя версия бота!</b>\n Вы также можете попробовать <a href="https://github.com/Ijidishurka/bfg">обновиться вручную</a>', disable_web_page_preview=True)
+		await message.answer(f'<b>😄 У вас установлена последняя версия бота!</b>\n Вы также можете попробовать <a href="https://github.com/Ijidishurka/bfg">обновиться вручную</a>')
 		return
 	
 	if not check:
@@ -83,7 +83,7 @@ async def update_bot(message: types.Message):
 		response = requests.get("https://raw.githubusercontent.com/Ijidishurka/bfg/refs/heads/main/update_list.txt")
 		txt = f'<b>🔍 Доступно обновление 🛎</b>\nЧто нового?\n\n<i>{response.text}</i>'
 
-	await message.answer(txt, reply_markup=kb.update_bot(forse=forse), disable_web_page_preview=True)
+	await message.answer(txt, reply_markup=kb.update_bot(forse=forse))
 	
 	
 async def bot_update(call: types.CallbackQuery) -> None:

@@ -1,32 +1,31 @@
-from aiogram import types
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
 
 
-def my_modules_kb(module_keys, index, user_id, mod):
+def my_modules_kb(module_keys: list, index: int, user_id: int, mod: str) -> InlineKeyboardMarkup:
 	keyboard = InlineKeyboardMarkup(row_width=3)
 	keyboard.row(
 		InlineKeyboardButton(text="‹", callback_data=f"mymodules-list_{index}_down|{user_id}"),
-		InlineKeyboardButton(text=f"{index +1}/{len(module_keys)}", callback_data="userbotik"),
+		InlineKeyboardButton(text=f"{index+1}/{len(module_keys)}", callback_data="userbotik"),
 		InlineKeyboardButton(text="›", callback_data=f"mymodules-list_{index}_up|{user_id}")
 	)
 	keyboard.add(InlineKeyboardButton(text="❌ Удалить", callback_data=f"dell-modul_{mod}|{user_id}"))
 	return keyboard
 
 
-def load_modules_type(user_id, colvo):
+def load_modules_type(user_id: int, amount: tuple) -> InlineKeyboardMarkup:
 	keyboard = InlineKeyboardMarkup(row_width=1)
-	keyboard.add(InlineKeyboardButton(text=f"🕹 Игры ({colvo[0]})", callback_data=f"mod-catalog_games|{user_id}"))
-	keyboard.add(InlineKeyboardButton(text=f"👾 Ивенты ({colvo[1]})", callback_data=f"mod-catalog_events|{user_id}"))
-	keyboard.add(InlineKeyboardButton(text=f"✨ Разные ({colvo[2]})", callback_data=f"mod-catalog_other|{user_id}"))
-	keyboard.add(InlineKeyboardButton(text=f"⚙️ Системные ({colvo[3]})", callback_data=f"mod-catalog_system|{user_id}"))
+	keyboard.add(InlineKeyboardButton(text=f"🕹 Игры ({amount[0]})", callback_data=f"mod-catalog_games|{user_id}"))
+	keyboard.add(InlineKeyboardButton(text=f"👾 Ивенты ({amount[1]})", callback_data=f"mod-catalog_events|{user_id}"))
+	keyboard.add(InlineKeyboardButton(text=f"✨ Разные ({amount[2]})", callback_data=f"mod-catalog_other|{user_id}"))
+	keyboard.add(InlineKeyboardButton(text=f"⚙️ Системные ({amount[3]})", callback_data=f"mod-catalog_system|{user_id}"))
 	return keyboard
 
 
-def load_modules_kb(module_keys, index, user_id, mod, MODULES):
+def load_modules_kb(module_keys: list, index: int, user_id: int, mod: str, MODULES: dict) -> InlineKeyboardMarkup:
 	keyboard = InlineKeyboardMarkup(row_width=3)
 	keyboard.row(
 		InlineKeyboardButton(text="‹", callback_data=f"catalogmod-list_{index}_down|{user_id}"),
-		InlineKeyboardButton(text=f"{index +1}/{len(module_keys)}", callback_data="userbotik"),
+		InlineKeyboardButton(text=f"{index+1}/{len(module_keys)}", callback_data="userbotik"),
 		InlineKeyboardButton(text="›", callback_data=f"catalogmod-list_{index}_up|{user_id}")
 	)
 	
@@ -37,57 +36,51 @@ def load_modules_kb(module_keys, index, user_id, mod, MODULES):
 	return keyboard
 
 
-def modules_menu():
-	keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-	keyboard.add(types.KeyboardButton("🛎 Загруженые"), types.KeyboardButton("📂 Каталог"))
-	keyboard.add(types.KeyboardButton("🔙 Назад"))
+def modules_menu() -> ReplyKeyboardMarkup:
+	keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+	keyboard.add(KeyboardButton("🛎 Загруженые"), KeyboardButton("📂 Каталог"))
+	keyboard.add(KeyboardButton("🔙 Назад"))
 	return keyboard
 
 
-def ram_clear():
-	keyboard = types.InlineKeyboardMarkup()
-	keyboard.add(types.InlineKeyboardButton("🗑 Очистить все", callback_data="ram-clear"))
+def unloading_menu() -> ReplyKeyboardMarkup:
+	keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+	keyboard.add(KeyboardButton("💾 Бд"), KeyboardButton("❗️ Ошибки"), KeyboardButton("📋 Логи"))
+	keyboard.add(KeyboardButton("🔙 Назад"))
 	return keyboard
 
 
-def unloading_menu():
-	keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-	keyboard.add(types.KeyboardButton("💾 Бд"), types.KeyboardButton("❗️ Ошибки"), types.KeyboardButton("📋 Логи"))
-	keyboard.add(types.KeyboardButton("🔙 Назад"))
+def admin_menu() -> ReplyKeyboardMarkup:
+	keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+	keyboard.add(KeyboardButton("📣 Реклама"), KeyboardButton("🔄 Перезагрузка"))
+	keyboard.add(KeyboardButton("✨ Промокоды"), KeyboardButton("📥 Выгрузка"))
+	keyboard.add(KeyboardButton("🌟 Модули"))
 	return keyboard
 
 
-def admin_menu():
-	keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-	keyboard.add(types.KeyboardButton("📣 Реклама"), types.KeyboardButton("🔄 Перезагрузка"))
-	keyboard.add(types.KeyboardButton("✨ Промокоды"), types.KeyboardButton("📥 Выгрузка"))
-	keyboard.add(types.KeyboardButton("🌟 Модули"))
+def ads_menu() -> ReplyKeyboardMarkup:
+	keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+	keyboard.add(KeyboardButton("📍 Рассылка"), KeyboardButton("🪪 Текст рекламы"))
+	keyboard.add(KeyboardButton("🔙 Назад"))
 	return keyboard
 
 
-def ads_menu():
-	keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-	keyboard.add(types.KeyboardButton("📍 Рассылка"), types.KeyboardButton("🪪 Текст рекламы"))
-	keyboard.add(types.KeyboardButton("🔙 Назад"))
+def cancel() -> ReplyKeyboardMarkup:
+	keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+	keyboard.add(KeyboardButton("Отмена"))
 	return keyboard
 
 
-def cancel():
-	keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-	keyboard.add(types.KeyboardButton("Отмена"))
-	return keyboard
-
-
-def update_bot(forse=False):
+def update_bot(forse: bool = False) -> InlineKeyboardMarkup:
 	forse = 1 if forse else 0
-	keyboard = types.InlineKeyboardMarkup()
-	keyboard.add(types.InlineKeyboardButton("🐙 Обновить", callback_data=f"update-bot_{forse}"))
+	keyboard = InlineKeyboardMarkup()
+	keyboard.add(InlineKeyboardButton("🐙 Обновить", callback_data=f"update-bot_{forse}"))
 	return keyboard
 
 
-def promo_menu():
-	keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-	keyboard.add(types.KeyboardButton("📖 Создать промо"), types.KeyboardButton("🗑 Удалить промо"))
-	keyboard.add(types.KeyboardButton("ℹ️ Промо инфо"))
-	keyboard.add(types.KeyboardButton("🔙 Назад"))
+def promo_menu() -> ReplyKeyboardMarkup:
+	keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+	keyboard.add(KeyboardButton("📖 Создать промо"), KeyboardButton("🗑 Удалить промо"))
+	keyboard.add(KeyboardButton("ℹ️ Промо инфо"))
+	keyboard.add(KeyboardButton("🔙 Назад"))
 	return keyboard

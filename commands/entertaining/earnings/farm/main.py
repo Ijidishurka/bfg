@@ -1,14 +1,14 @@
 from aiogram import Dispatcher, types
+
 from assets import kb
 from assets.transform import transform_int as tr
 from assets.antispam import antispam_earning, new_earning, antispam
 from commands.entertaining.earnings.farm import db
-from bot import bot
 from user import BFGuser, BFGconst
 
 
 @antispam
-async def ferma_list(message: types.Message, user: BFGuser):
+async def ferma_list_cmd(message: types.Message, user: BFGuser):
     await message.answer(f'''{user.url}, с данного момента ты можешь сам построить свою ферму и улучшать её. Это очень весело и облегчит тебе работу.
 
 🪓 Для начала тебе нужно будет создать свою ферму, цена постройки 500.000.000$. Введите команду "Построить ферму" и после через команду "Моя ферма" вы сможете настраивать её и улучшать повышая свою прибыль.
@@ -17,7 +17,7 @@ async def ferma_list(message: types.Message, user: BFGuser):
 
 
 @antispam
-async def my_ferma(message: types.Message, user: BFGuser):
+async def my_ferma_cmd(message: types.Message, user: BFGuser):
     win, lose = BFGconst.emj()
     ferma = user.ferma
 
@@ -28,7 +28,7 @@ async def my_ferma(message: types.Message, user: BFGuser):
     await upd_ferma_text(message, user, action='send')
 
 
-async def upd_ferma_text(call: types.CallbackQuery, user: BFGuser, action='edit'):
+async def upd_ferma_text(call: types.CallbackQuery | types.Message, user: BFGuser, action='edit') -> None:
     ferma = user.ferma
     
     if action == 'edit':
@@ -47,16 +47,16 @@ async def upd_ferma_text(call: types.CallbackQuery, user: BFGuser, action='edit'
     
     try:
         if action == 'edit':
-            await call.message.edit_text(text=txt, reply_markup=kb.ferma(user.user_id))
+            await call.message.edit_text(text=txt, reply_markup=kb.ferma(user.id))
         else:
-            msg = await call.answer(text=txt, reply_markup=kb.ferma(user.user_id))
+            msg = await call.answer(text=txt, reply_markup=kb.ferma(user.id))
             await new_earning(msg)
     except:
         return
 
 
 @antispam
-async def buy_ferma(message: types.Message, user: BFGuser):
+async def buy_ferma_cmd(message: types.Message, user: BFGuser):
     win, lose = BFGconst.emj()
     ferma = user.ferma
     
@@ -68,12 +68,12 @@ async def buy_ferma(message: types.Message, user: BFGuser):
         await message.answer(f'{user.url}, у вас недостаточно денег для постройки фермы. Её стоимость 500.000.000$ {lose}')
         return
         
-    await db.buy_ferma(user.user_id)
+    await db.buy_ferma(user.id)
     await message.answer(f'{user.url}, вы успешно купили ферму для подробностей введите "Моя ферма" {win}')
 
 
 @antispam_earning
-async def buy_cards(call: types.CallbackQuery, user: BFGuser):
+async def buy_cards_cmd(call: types.CallbackQuery, user: BFGuser):
     win, lose = BFGconst.emj()
     ferma = user.ferma
 
@@ -83,16 +83,16 @@ async def buy_cards(call: types.CallbackQuery, user: BFGuser):
     ch = int(500_000_000 * (1 + 0.15) ** (ferma.cards.get() - 1))
     
     if int(user.balance) < ch:
-        await bot.answer_callback_query(call.id, f'{user.name}, у вас недостаточно денег для увеличения видеокарт. Её стоимость {tr(ch)}$ {lose}')
+        await call.answer(f'{user.name}, у вас недостаточно денег для увеличения видеокарт. Её стоимость {tr(ch)}$ {lose}')
         return
     
-    await db.buy_cards(user.user_id, ch)
-    await bot.answer_callback_query(call.id, text=f'{user.name}, вы успешно увеличили количество видеокарт в ферме за {tr(ch)}$ {win}')
+    await db.buy_cards(user.id, ch)
+    await call.answer(f'{user.name}, вы успешно увеличили количество видеокарт в ферме за {tr(ch)}$ {win}')
     await upd_ferma_text(call, user)
 
 
 @antispam_earning
-async def snyt_pribl_ferma(call: types.CallbackQuery, user: BFGuser):
+async def withdraw_profit_cmd(call: types.CallbackQuery, user: BFGuser):
     win, lose = BFGconst.emj()
     ferma = user.ferma
 
@@ -100,16 +100,16 @@ async def snyt_pribl_ferma(call: types.CallbackQuery, user: BFGuser):
         return
 
     if int(ferma.balance) == 0:
-        await bot.answer_callback_query(call.id, text=f'{user.name}, на данный момент на балансе вашей фермы нет прибыли {lose}')
+        await call.answer(f'{user.name}, на данный момент на балансе вашей фермы нет прибыли {lose}')
         return
     
-    await db.withdraw_profit(user.user_id, ferma.balance.get())
-    await bot.answer_callback_query(call.id, text=f'{user.name}, вы успешно сняли {ferma.balance.tr()}฿ с баланса вашей фермы {win}')
+    await db.withdraw_profit(user.id, ferma.balance.get())
+    await call.answer(f'{user.name}, вы успешно сняли {ferma.balance.tr()}฿ с баланса вашей фермы {win}')
     await upd_ferma_text(call, user)
 
 
 @antispam_earning
-async def oplata_nalogov_ferma(call: types.CallbackQuery, user: BFGuser):
+async def payment_taxes_cmd(call: types.CallbackQuery, user: BFGuser):
     win, lose = BFGconst.emj()
     ferma = user.ferma
 
@@ -117,20 +117,20 @@ async def oplata_nalogov_ferma(call: types.CallbackQuery, user: BFGuser):
         return
 
     if int(user.balance) < int(ferma.nalogs):
-        await bot.answer_callback_query(call.id, text=f'{user.name}, у вас недостаточно денег чтоб оплатить налоги {lose}')
+        await call.answer(f'{user.name}, у вас недостаточно денег чтоб оплатить налоги {lose}')
         return
 
     if int(ferma.nalogs) == 0:
-        await bot.answer_callback_query(call.id, text=f'{user.name}, у вас нет налогов чтобы их оплатить {win}')
+        await call.answer(f'{user.name}, у вас нет налогов чтобы их оплатить {win}')
         return
 
-    await db.pay_taxes(user.user_id, ferma.nalogs.get())
-    await bot.answer_callback_query(call.id, text=f'{user.name}, вы успешно оплатили налоги на сумму {ferma.nalogs.tr()}$ с вашего игрового баланса {win}')
+    await db.pay_taxes(user.id, ferma.nalogs.get())
+    await call.answer(f'{user.name}, вы успешно оплатили налоги на сумму {ferma.nalogs.tr()}$ с вашего игрового баланса {win}')
     await upd_ferma_text(call, user)
 
 
 @antispam
-async def sell_ferma(message: types.Message, user: BFGuser):
+async def sell_ferma_cmd(message: types.Message, user: BFGuser):
     win, lose = BFGconst.emj()
     ferma = user.ferma
     
@@ -143,15 +143,15 @@ async def sell_ferma(message: types.Message, user: BFGuser):
     for i in range(1, ferma.cards.get() + 1):  # Компенсация за видеокарты (50%)
         summ += int(500_000_000 * (1 + 0.15) ** (i - 1)) // 2
         
-    await db.sell_ferma(user.user_id, summ)
+    await db.sell_ferma(user.id, summ)
     await message.answer(f'{user.url}, Вы успешно продали свою ферму за {tr(summ)}$ {win}')
     
 
 def reg(dp: Dispatcher):
-    dp.register_message_handler(my_ferma, lambda message: message.text.lower() == 'моя ферма')
-    dp.register_message_handler(ferma_list, lambda message: message.text.lower() == ('ферма', 'фермы'))
-    dp.register_message_handler(buy_ferma, lambda message: message.text.lower() == 'построить ферму')
-    dp.register_callback_query_handler(buy_cards, text_startswith='ferma-bycards')
-    dp.register_callback_query_handler(snyt_pribl_ferma, text_startswith='ferma-sobrat')
-    dp.register_callback_query_handler(oplata_nalogov_ferma, text_startswith='ferma-nalog')
-    dp.register_message_handler(sell_ferma, lambda message: message.text.lower() == 'продать ферму')
+    dp.register_message_handler(my_ferma_cmd, lambda message: message.text.lower() == 'моя ферма')
+    dp.register_message_handler(ferma_list_cmd, lambda message: message.text.lower() == ('ферма', 'фермы'))
+    dp.register_message_handler(buy_ferma_cmd, lambda message: message.text.lower() == 'построить ферму')
+    dp.register_callback_query_handler(buy_cards_cmd, text_startswith='ferma-bycards')
+    dp.register_callback_query_handler(withdraw_profit_cmd, text_startswith='ferma-sobrat')
+    dp.register_callback_query_handler(payment_taxes_cmd, text_startswith='ferma-nalog')
+    dp.register_message_handler(sell_ferma_cmd, lambda message: message.text.lower() == 'продать ферму')

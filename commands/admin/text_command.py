@@ -1,7 +1,9 @@
-from assets.transform import transform_int as tr
-import re
-from aiogram import types, Dispatcher
 import time
+import re
+
+from aiogram import types, Dispatcher
+
+from assets.transform import transform_int as tr
 from assets.antispam import admin_only
 from commands.admin import db
 from commands.db import url_name
@@ -58,7 +60,7 @@ async def take_the_money(message: types.Message):
 
     try:
         summ = message.text.split()[1].replace('е', 'e')
-        summ = int(float(summ))
+        summ = str(float(summ))
     except:
         await message.answer(f'{url}, вы не ввели сумму которую хотите забрать.')
         return

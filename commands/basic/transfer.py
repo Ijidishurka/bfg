@@ -1,13 +1,14 @@
+from decimal import Decimal
+
 from aiogram import types, Dispatcher
+
 from commands.db import getperevod, url_name
 from commands.admin.db import give_bcoins_db, give_money_db
+from user import BFGuser, BFGconst
 from assets.transform import transform_int as tr
 from commands.admin.loger import new_log
 from assets.antispam import antispam, admin_only
-from decimal import Decimal
 import config as cfg
-
-from user import BFGuser, BFGconst
 
 
 def get_limit_cmd(status: int) -> int:
@@ -20,7 +21,7 @@ def get_limit_cmd(status: int) -> int:
         return 1_000_000_000_000_000
     elif status == 4:
         return 30_000_000_000_000_000
-    return 150_000_000_000_000  # Для статуса "игрок"
+    return 150_000_000_000_000  # Для статуса "игрок" (0)
 
 
 @antispam

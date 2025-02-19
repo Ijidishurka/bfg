@@ -164,28 +164,32 @@ def divorce(user_id):
 
 
 def clan(user_id):
+    print(user_id)
+    user_id = int(user_id)
     keyboards = InlineKeyboardMarkup()
     buttons = [
         InlineKeyboardButton("🛡 О клане", callback_data=f"clan-info|{user_id}"),
-        InlineKeyboardButton("👥 Участники", callback_data=f"clan-users:0|{user_id}"),
+        InlineKeyboardButton("👥 Участники", callback_data=f"clan-users|{user_id}"),
         InlineKeyboardButton("🛠 Настройким", callback_data=f"clan-settings|{user_id}"),
     ]
+    print(3444444444)
     keyboards.add(buttons[0], buttons[1])
     keyboards.add(buttons[2])
+    print(4354444444444)
     return keyboards
 
 
 def new_own_clan(user_id, cid, user_id_2):
     keyboards = InlineKeyboardMarkup(row_width=2)
-    k1 = InlineKeyboardButton("✅ Да, передать", callback_data=f"clan-new-owner_true|{user_id}|{cid}|{user_id_2}")
-    k2 = InlineKeyboardButton("❌ Нет, отменить", callback_data=f"clan-new-owner_false|{user_id}|{cid}|{user_id_2}")
+    k1 = InlineKeyboardButton("✅ Да, передать", callback_data=f"clan-new-owner_true|{user_id_2}|{cid}|{user_id}")
+    k2 = InlineKeyboardButton("❌ Нет, отменить", callback_data=f"clan-new-owner_false|{user_id_2}|{cid}|{user_id}")
     keyboards.add(k1, k2)
     return keyboards
 
 
 def dell_clan(user_id, cid):
     keyboards = InlineKeyboardMarkup(row_width=2)
-    k1 = InlineKeyboardButton("✅ Да, удалить", callback_data=f"clan-dell_true|{user_id}|{cid}")
-    k2 = InlineKeyboardButton("❌ Нет, оставить", callback_data=f"clan-dell_false|{user_id}|{cid}")
+    k1 = InlineKeyboardButton("✅ Да, удалить", callback_data=f"clan-dell_true|{cid}|{user_id}")
+    k2 = InlineKeyboardButton("❌ Нет, оставить", callback_data=f"clan-dell_false|{cid}|{user_id}")
     keyboards.add(k1, k2)
     return keyboards

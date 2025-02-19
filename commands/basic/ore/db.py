@@ -16,38 +16,6 @@ async def getkurs() -> int:
     return i[0]
 
 
-async def sellbtc_db(summ: int | str, summ_btc: int | str, user_id: int) -> None:
-    balance, btc = cursor.execute('SELECT balance, btc FROM users WHERE user_id = ?', (user_id,)).fetchone()
-    
-    summ = Decimal(balance) + Decimal(summ)
-    btc = Decimal(btc) - Decimal(summ_btc)
-    summ = "{:.0f}".format(summ)
-    btc = "{:.0f}".format(btc)
-    
-    cursor.execute('UPDATE users SET balance = ?, btc = ? WHERE user_id = ?', (summ, btc, user_id))
-    conn.commit()
-
-
-async def buybtc_db(summ: int | str, summ_btc: int | str, user_id: int) -> None:
-    balance, btc = cursor.execute('SELECT balance, btc FROM users WHERE user_id = ?', (user_id,)).fetchone()
-
-    summ = Decimal(balance) - Decimal(summ)
-    btc = Decimal(btc) + Decimal(summ_btc)
-    summ = "{:.0f}".format(summ)
-    btc = "{:.0f}".format(btc)
-
-    cursor.execute('UPDATE users SET balance = ?, btc = ? WHERE user_id = ?', (summ, btc, user_id))
-    conn.commit()
-
-
-async def buyratting_db(summ: int | str, r_summ: int | str, user_id) -> None:
-    balance = cursor.execute('SELECT balance FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]
-    summ = Decimal(balance) - Decimal(summ)
-    cursor.execute('UPDATE users SET balance = ? WHERE user_id = ?', (str(summ), user_id))
-    cursor.execute('UPDATE users SET rating = rating + ? WHERE user_id = ?', (int(r_summ), user_id))
-    conn.commit()
-
-
 async def digdb(i: int, user_id: int, r: str, op: int) -> None:
     cursor.execute('UPDATE users SET exp = exp + ? WHERE user_id = ?', (int(op), user_id))
     cursor.execute(f'UPDATE mine SET {r} = {r} + ? WHERE user_id = ?', (int(i), user_id))
@@ -61,18 +29,6 @@ async def sell_ruda_db(i: int | str, user_id: int, r: str, kolvo: int) -> None:
     summ = Decimal(balance) + Decimal(i)
     cursor.execute('UPDATE users SET balance = ? WHERE user_id = ?', (str(summ), user_id))
     conn.commit()
-
-
-async def sellrrating_db(summ: int | str, summ_r: int | str, user_id: int) -> None:
-    balance = cursor.execute('SELECT balance FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]
-    summ = Decimal(balance) + Decimal(summ)
-    cursor.execute('UPDATE users SET balance = ? WHERE user_id = ?', (str(summ), user_id))
-    cursor.execute('UPDATE users SET rating = rating - ? WHERE user_id = ?', (int(summ_r), user_id))
-    conn.commit()
-
-
-async def getcorn_garden(user_id: int) -> None:
-    return cursor.execute('SELECT corn FROM users WHERE user_id = ?', (user_id,)).fetchone()[0]
 
 
 async def autoenergy() -> None:
@@ -108,3 +64,4 @@ async def autokursbtc_new() -> None:
         conn.commit()
     except Exception as e:
         print(f'Error update btc price - {e}')
+    
