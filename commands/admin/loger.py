@@ -34,5 +34,5 @@ async def new_log(txt: str, log_type: str) -> None:
             print('указан не верный айди чата для логов')
 
     if logging_level == 2 or logging_level == 3:
-        with open('commands/admin/logs.txt', 'a', encoding='utf-8') as file:
+        with open('logs.txt', 'a', encoding='utf-8') as file:
             file.write(log_message + '\n\n')

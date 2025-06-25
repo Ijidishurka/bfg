@@ -35,19 +35,19 @@ def antispam(func):
         if message.forward_from:
             return
 
-        if message.chat.type == 'supergroup':
+        if message.chat.type == "supergroup":
             await db.upd_chat_db(message.chat.id)
 
         uid = message.from_user.id
 
-        ban = await ban_chek(uid)  # проверка бана
+        ban = await check_ban(uid)  # проверка бана
         if ban:
             return
 
         user = BFGuser(message=message)
         await user.update()
 
-        await FunEvent.emit(func.__name__, message, user, 'message')
+        await FunEvent.emit(func.__name__, message, user, "message")
         await func(message, user)
 
     return wrapper
@@ -56,14 +56,14 @@ def antispam(func):
 def antispam_earning(func):
     async def wrapper(call: types.CallbackQuery):
         uid = int(call.from_user.id)
-        mid = call.data.split('|')
+        mid = call.data.split("|")
         mid = mid[1] if len(mid) > 1 else None
 
         if mid and uid != int(mid):
-            await bot.answer_callback_query(call.id, text='❌ Это не Ваша кнопка!')
+            await bot.answer_callback_query(call.id, text="❌ Это не Ваша кнопка!")
             return
 
-        ban = await ban_chek(uid)  # проверка бана
+        ban = await check_ban(uid)  # проверка бана
         if ban:
             return
 
@@ -77,7 +77,7 @@ def antispam_earning(func):
                 if int(time.time() - 750) < int(data[1]):
 
                     if (time.time() - data[1]) < 1:  # антиспам (1сек)
-                        await bot.answer_callback_query(call.id, text='⏳ Не так быстро! (1 сек)')
+                        await bot.answer_callback_query(call.id, text="⏳ Не так быстро! (1 сек)")
                         return
 
                     earning_msg[chat, msg] = (data[0] + 1, int(time.time()))
@@ -102,30 +102,30 @@ def moderation(func):
         if message.forward_from:
             return
 
-        if message.chat.type != 'supergroup':
-            await message.answer('👇 <b>Эту команду можно использовать только в чатах.</b>')
+        if message.chat.type != "supergroup":
+            await message.answer("👇 <b>Эту команду можно использовать только в чатах.</b>")
             return
 
         member = await message.bot.get_chat_member(message.chat.id, message.from_user.id)
 
-        if member.status not in ['creator', 'administrator']:
-            await message.reply(f'😨 <b>Эту команду могут использовать только администраторы чата.</b>')
+        if member.status not in ["creator", "administrator"]:
+            await message.reply(f"😨 <b>Эту команду могут использовать только администраторы чата.</b>")
             return
 
-        bot = await message.chat.get_member(user_id=message.bot.id)
-        text = ''
+        bot_info = await message.chat.get_member(user_id=message.bot.id)
+        text = ""
 
-        if not isinstance(bot, (ChatMemberOwner, ChatMemberAdministrator)):
-            await message.reply('⚠️ <b>Боту необходимы права администратора в чате.</b>')
+        if not isinstance(bot_info, (ChatMemberOwner, ChatMemberAdministrator)):
+            await message.reply("⚠️ <b>Боту необходимы права администратора в чате.</b>")
             return
 
-        if not bot.can_delete_messages:
-            text += '- 🗑️ Удаление сообщений\n'
-        if not bot.can_restrict_members:
-            text += '- 📛 Блокировка пользователей\n'
+        if not bot_info.can_delete_messages:
+            text += "- 🗑️ Удаление сообщений\n"
+        if not bot_info.can_restrict_members:
+            text += "- 📛 Блокировка пользователей\n"
             
         if text:
-            await message.reply(f'⚠️ <b>Боту необходимы права администратора в чате:</b>\n\n{text}')
+            await message.reply(f"⚠️ <b>Боту необходимы права администратора в чате:</b>\n\n{text}")
             return
 
         await func(message, user)
@@ -133,12 +133,13 @@ def moderation(func):
     return wrapper
 
 
-async def ban_chek(uid: int) -> bool:
-    await db.reg_user(uid)
-    btime = await db.getban(uid)
-    if btime:
-        if time.time() < btime[1]:
-            return True
+async def check_ban(user_id: int) -> bool:
+    await db.reg_user(user_id=user_id)
+    ban_time = await db.getban(user_id=user_id)
+
+    if ban_time and time.time() < ban_time[1]:
+        return True
+    return False
 
 
 async def new_earning_msg(chat_id: int, message_id: int) -> None:

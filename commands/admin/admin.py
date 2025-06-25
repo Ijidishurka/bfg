@@ -54,14 +54,14 @@ async def unloading_db_cmd(message: types.Message):
 @admin_only(private=True)
 async def unloading_errors_cmd(message: types.Message):
     time = datetime.now().strftime("%Y-%m-%d в %H:%M:%S")
-    with open('commands/admin/bot_errors.txt', 'rb') as file:
+    with open('bot_errors.txt', 'rb') as file:
         await bot.send_document(message.chat.id, file, caption=f'‼️ Ошибки бота на момент <blockquote>{time}</blockquote>')
 
 
 @admin_only(private=True)
 async def unloading_logs_cmd(message: types.Message):
     time = datetime.now().strftime("%Y-%m-%d в %H:%M:%S")
-    with open('commands/admin/logs.txt', 'rb') as file:
+    with open('logs.txt', 'rb') as file:
         await bot.send_document(message.chat.id, file, caption=f'📋 Логи бота на момент <blockquote>{time}</blockquote>')
 
 

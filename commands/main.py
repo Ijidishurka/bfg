@@ -40,10 +40,5 @@ async def on_start(message: types.Message):
     await message.answer(CONFIG['hello_text2'], disable_web_page_preview=True)
 
 
-async def geturl(id, txt):
-    url = f'<a href="tg://user?id={id}">{txt}</a>'
-    return url
-
-
 def reg(dp: Dispatcher):
     dp.register_message_handler(on_start, commands=['start'])

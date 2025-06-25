@@ -26,10 +26,10 @@ print(f'{tr(summ)}$')
 Для работы с эмоджи (например, для отображения случайного грустного или весёлого лица) используйте функцию:
 
 ```python
-from commands.main import win_luser
+from user import BFGconst
 ```
 ```python
-win, lose = await win_luser()
+win, lose = BFGconst.emj()
 print(win, lose)
 ---------------------
 🤑😢
@@ -40,35 +40,36 @@ print(win, lose)
 #### 3. Использование дополнительных декораторов для безопасности и ограничений
 В дополнение к основным функциям, описанным ранее, в вашем модуле могут быть полезны следующие декораторы и функции для управления доступом и безопасностью. Эти элементы помогут вам защитить функционал бота от спама, зарегестрировать новых игроков, ограничить доступ только для администраторов и ограничить нажатия на кнопки.
 ```python
-from assets.antispam import antispam, antispam_earning, new_earning_msg, admin_only
+from assets.antispam import antispam, antispam_earning, new_earning, admin_only
+from user import BFGuser
 ```
 #### Декоратор *@antispam*
-Декоратор @antispam предназначен для обработки сообщений (*Message*). Он автоматически регистрирует новых пользователей и проверяет, не заблокирован ли пользователь в боте. Этот декоратор рекомендуется добавлять во все ваши хэндлеры для регистрации новых пользователей.
+Декоратор @antispam предназначен для обработки сообщений (*Message*). Он автоматически регистрирует новых пользователей, проверяет, не заблокирован ли пользователь в боте и возвращает всю информациюю о нем (user: BFGuser). Этот декоратор рекомендуется добавлять во все ваши хэндлеры для регистрации новых пользователей.
 
 ```python
 @antispam
-async def test(message: types.Message):
+async def test(message: types.Message, user: BFGuser):
     user_id = message.from_user.id
     keyboard = types.InlineKeyboardMarkup()
     keyboard.add(types.InlineKeyboardButton("🐙 Кальмар", callback_data=f"kalimar|{user_id}"))
     msg = await message.answer("Нажми на инлайн кнопку", reply_markup=keyboard)
-    await new_earning_msg(msg.chat.id, msg.message_id)  #  смотрите след пункт
+    await new_earning(msg)  #  смотрите след пункт
 ```
 
-#### Функция *new_earning_msg*
+#### Функция *new_earning*
 Эта функция используется для регистрации нового сообщения, которое будет защищено декоратором *@antispam_earning*. После отправки сообщения вызовите эту функцию, чтобы связать его с системой антиспама.
 
 ```python
 msg = await message.answer("Нажми на инлайн кнопку", reply_markup=keyboard)
-await new_earning_msg(msg.chat.id, msg.message_id)
+await new_earning(msg)
 ```
 
 #### Декоратор *@antispam_earning*
-Этот декоратор предназначен для обработки коллбеков (*CallbackQuery*). Он предотвращает нажатие кнопки другими пользователями и работает совместно с функцией *new_earning_msg*.
+Этот декоратор предназначен для обработки коллбеков (*CallbackQuery*). Он предотвращает нажатие кнопки другими пользователями и работает совместно с функцией *new_earning*.
 
 ```python
 @antispam_earning
-async def test2(call: types.CallbackQuery):
+async def test2(call: types.CallbackQuery, user: BFGuser):
     # Ваш код обработки коллбека
 ```
 
@@ -150,18 +151,18 @@ async def example(message: types.Message):
 from assets.antispam import antispam
 
 @antispam
-async def example(message: types.Message):
-    await message.answer("Привет!")
+async def example(message: types.Message, user: BFGuser):
+    await message.answer(f"Привет, {user.url}!")  # user.url - ссылка на пользователя
 ```
 
 #### Работа с CallbackQuery (кнопками)
 Если ваша функция должна обрабатывать нажатия на инлайн-кнопки, вы можете использовать декоратор *@antispam_earning* для того чтоб кнопка была доступна только определённому игроку.
 
 ```python
-from assets.antispam import antispam_earning, new_earning_msg
+from assets.antispam import antispam_earning, new_earning
 
 @antispam
-async def start_game(message: types.Message):
+async def start_game(message: types.Message, user: BFGuser):
     user_id = message.from_user.id
 
     keyboard = types.InlineKeyboardMarkup()
@@ -169,11 +170,11 @@ async def start_game(message: types.Message):
     #  Обязательно добавьте айди человека который может нажимать на кнопку |{user_id}
 
     msg = await message.answer("Нажмите кнопку!", reply_markup=keyboard)
-    await new_earning_msg(msg.chat.id, msg.message_id)  # Добавляем кнопку в antispam_earning
+    await new_earning(msg)  # Добавляем кнопку в antispam_earning
 
 
 @antispam_earning
-async def process_game(call: types.CallbackQuery):
+async def process_game(call: types.CallbackQuery, user: BFGuser):
     await call.message.answer("Вы нажали кнопку.")
 ```
 
@@ -190,7 +191,7 @@ async def process_game(call: types.CallbackQuery):
 ```python
 dp.register_message_handler(start_game, commands='start')
 ```
-В этом примере хэндлер start будет вызываться, когда пользователь отправляет команду "/start"
+В этом примере хэндлер start_game будет вызываться, когда пользователь отправляет команду "/start"
 
 **Объяснение:**
 
@@ -264,18 +265,18 @@ MODULE_DESCRIPTION = {
 
 ```python
 from aiogram import Dispatcher, types
-from commands.main import win_luser  # Импортируем случайные эмоджи
+from user import BFGconst             # Импортируем случайные эмоджи
 from assets.antispam import antispam  # Импортируем антиспам
 
 # Функция, которая отвечает на слово "привет"
 @antispam
-async def hello(message: types.Message):
-    await message.answer("Привет! Как дела?")
+async def hello(message: types.Message, user: BFGuser):
+    await message.answer(f"Привет, {user.url}! Как дела?")
 
 # Функция для отправки случайного эмоджи
 @antispam
-async def send_random_emoji(message: types.Message):
-    win, lose = await win_luser()  # Получаем случайные эмоджи
+async def send_random_emoji(message: types.Message, user: BFGuser):
+    win, lose = BFGconst.emj()       # Получаем случайные эмоджи
     await message.answer(win, lose)  # Отправляем случайные эмоджи
 
 # Функция для регистрации хэндлеров
@@ -292,7 +293,7 @@ MODULE_DESCRIPTION = {
 
 #### Пример работы модуля:
 *привет*  
-`Привет! Как дела?`  
+`Привет, skay! Как дела?`  
 */emj*  
 `😃😣`
 

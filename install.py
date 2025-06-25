@@ -16,7 +16,7 @@ def main(a='n'):
     time.sleep(0.5)
     cprint("Наш канал - @copybfg", "21db53")
 
-    if chek_config():
+    if check_config():
         a = cinput("Вы уверены что хотите удалить файл config.py и создать новый? Y/n", "FF9004")
 
     load_cfg(a)
@@ -24,7 +24,7 @@ def main(a='n'):
 
 def load_cfg(a):
     if a.lower() not in ['y', 'yes', 'да', 'д']:
-        if chek_config():
+        if check_config():
             return cprint("Конфиг найден! Можете запускать бота.", "FF0000")
         else:
             cprint("Конфиг не найден! Создаю новый.", "FF0000")
@@ -60,12 +60,14 @@ start_money = <edit>
 
 bot_name = '<edit>'
 chat = '<edit>'
-chanell = '<edit>'
+channel = '<edit>'
 admin_username = '<edit>'
 bot_username = 'bfgcopybot'
 
 chat_log = 0
-cleaning = 60"""
+cleaning = 60
+
+custom_modules = True"""
 
     replacements = [str(value) for value in data]
 
@@ -76,13 +78,13 @@ cleaning = 60"""
         f.write(config_template)
 
 
-def chek_config():
+def check_config():
     if not os.path.isfile('config.py'):
         return False
     return True
 
 
-def main_chek():
+def main_check():
     if not os.path.isfile('config.py'):
         a = cinput("Файл config.py не найден.\nХотите создать его сейчас? Y/n", "FF0000")
         if a.lower() in ['y', 'yes', 'да', 'д']:
@@ -100,4 +102,4 @@ async def update_db():
 if __name__ == '__main__':
     main()
 else:
-    main_chek()
+    main_check()

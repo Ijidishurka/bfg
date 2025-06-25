@@ -71,10 +71,10 @@ def cancel() -> ReplyKeyboardMarkup:
 	return keyboard
 
 
-def update_bot(forse: bool = False) -> InlineKeyboardMarkup:
-	forse = 1 if forse else 0
+def update_bot(force: bool = False) -> InlineKeyboardMarkup:
+	force = 1 if force else 0
 	keyboard = InlineKeyboardMarkup()
-	keyboard.add(InlineKeyboardButton("🐙 Обновить", callback_data=f"update-bot_{forse}"))
+	keyboard.add(InlineKeyboardButton("🐙 Обновить", callback_data=f"update-bot_{force}"))
 	return keyboard
 
 

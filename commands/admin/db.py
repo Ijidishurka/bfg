@@ -93,7 +93,7 @@ async def zap_sql(query: str) -> str | None:
         conn.commit()
     except Exception as e:
         conn.rollback()
-        return e
+        return str(e)
     
     
 async def new_ban(user_id: int, time_s: int, reason: str) -> None:
