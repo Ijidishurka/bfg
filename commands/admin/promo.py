@@ -142,10 +142,10 @@ async def activ_promo(message: types.Message, user: BFGuser):
         return
     
     try:
-        chanell = await bot.get_chat_member(chat_id="@"+cfg.chanell.replace("t.me/", ""), user_id=message.from_user.id)
+        chanell = await bot.get_chat_member(chat_id="@"+cfg.channel.replace("t.me/", ""), user_id=message.from_user.id)
     
         if chanell["status"] in ["left", "kicked"]:
-            await message.answer(f"Для активации промокода вам надо подписаться на <a href='{cfg.chanell}'>официальный канал бота</a> {lose}\n\n{BFGconst.ads}")
+            await message.answer(f"Для активации промокода вам надо подписаться на <a href='{cfg.channel}'>официальный канал бота</a> {lose}\n\n{BFGconst.ads}")
             return
     except Exception as e:
         print(f"Ошибка проверки подписки на канал {e}")

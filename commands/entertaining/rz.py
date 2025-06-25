@@ -145,7 +145,7 @@ async def stats_cmd(message: types.Message, user: BFGuser):
 @antispam
 async def chat_list(message: types.Message, user: BFGuser):
     await message.answer(f'''💭 Официальная беседа бота: {cfg.chat}
-💭 Официальный канал разработки: {cfg.chanell}
+💭 Официальный канал разработки: {cfg.channel}
 🏆 Официальный чат с розыгрышами: ...''', disable_web_page_preview=True)
 
 
