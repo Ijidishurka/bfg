@@ -4,6 +4,7 @@ from aiogram import types, Dispatcher
 
 from commands.db import getperevod, url_name
 from commands.admin.db import give_bcoins_db, give_money_db
+from filters.custom import TextIn, StartsWith
 from user import BFGuser, BFGconst
 from assets.transform import transform_int as tr
 from commands.admin.loger import new_log
@@ -142,7 +143,7 @@ async def give_bcoins(message: types.Message, user: BFGuser):
 
 
 def reg(dp: Dispatcher):
-    dp.register_message_handler(limit_cmd, lambda message: message.text.lower() == 'мой лимит')
-    dp.register_message_handler(transfer_cmd, lambda message: message.text.lower().startswith('дать'))
-    dp.register_message_handler(give_money, lambda message: message.text.lower().startswith('выдать'))
-    dp.register_message_handler(give_bcoins, lambda message: message.text.lower().startswith('бдать'))
+    dp.message.register(limit_cmd, TextIn("мой лимит"))
+    dp.message.register(transfer_cmd, StartsWith("дать"))
+    dp.message.register(give_money, StartsWith("выдать"))
+    dp.message.register(give_bcoins, StartsWith("бдать"))

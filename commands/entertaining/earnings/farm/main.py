@@ -1,9 +1,10 @@
 from aiogram import Dispatcher, types
 
-from assets import kb
+from assets import keyboards as kb
 from assets.transform import transform_int as tr
 from assets.antispam import antispam_earning, new_earning, antispam
 from commands.entertaining.earnings.farm import db
+from filters.custom import TextIn, StartsWith
 from user import BFGuser, BFGconst
 
 
@@ -47,9 +48,9 @@ async def upd_ferma_text(call: types.CallbackQuery | types.Message, user: BFGuse
     
     try:
         if action == 'edit':
-            await call.message.edit_text(text=txt, reply_markup=kb.ferma(user.id))
+            await call.message.edit_text(text=txt, reply_markup=kb.farm(user.id))
         else:
-            msg = await call.answer(text=txt, reply_markup=kb.ferma(user.id))
+            msg = await call.answer(text=txt, reply_markup=kb.farm(user.id))
             await new_earning(msg)
     except:
         return
@@ -148,10 +149,10 @@ async def sell_ferma_cmd(message: types.Message, user: BFGuser):
     
 
 def reg(dp: Dispatcher):
-    dp.register_message_handler(my_ferma_cmd, lambda message: message.text.lower() == 'моя ферма')
-    dp.register_message_handler(ferma_list_cmd, lambda message: message.text.lower() == ('ферма', 'фермы'))
-    dp.register_message_handler(buy_ferma_cmd, lambda message: message.text.lower() == 'построить ферму')
-    dp.register_callback_query_handler(buy_cards_cmd, text_startswith='ferma-bycards')
-    dp.register_callback_query_handler(withdraw_profit_cmd, text_startswith='ferma-sobrat')
-    dp.register_callback_query_handler(payment_taxes_cmd, text_startswith='ferma-nalog')
-    dp.register_message_handler(sell_ferma_cmd, lambda message: message.text.lower() == 'продать ферму')
+    dp.message.register(my_ferma_cmd, TextIn("моя ферма"))
+    dp.message.register(ferma_list_cmd, TextIn("ферма", "фермы"))
+    dp.message.register(buy_ferma_cmd, TextIn("построить ферму"))
+    dp.callback_query.register(buy_cards_cmd, StartsWith("ferma-bycards"))
+    dp.callback_query.register(withdraw_profit_cmd, StartsWith("ferma-sobrat"))
+    dp.callback_query.register(payment_taxes_cmd, StartsWith("ferma-nalog"))
+    dp.message.register(sell_ferma_cmd, TextIn("продать ферму"))

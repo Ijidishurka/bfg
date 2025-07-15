@@ -1,11 +1,13 @@
+import random
 from datetime import datetime
+
 from aiogram import Dispatcher, types
+from aiogram.filters import Command
 
 from assets.antispam import antispam
 from commands.db import getban
 from assets.classes import CustomEvent
-from assets import kb
-import random
+from assets import keyboards as kb
 import config as cfg
 from user import BFGuser
 
@@ -75,6 +77,6 @@ async def new_message(message: types.Message, user: BFGuser):
 
 
 def reg(dp: Dispatcher):
-    dp.register_message_handler(on_start, commands=['start'])
-    dp.register_message_handler(terms_cmd, commands=['terms'])
-    dp.register_message_handler(new_message)
+    dp.message.register(on_start, Command("start"))
+    dp.message.register(terms_cmd, Command("terms"))
+    dp.message.register(new_message)

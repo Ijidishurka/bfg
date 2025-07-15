@@ -4,6 +4,7 @@ import commands.basic.property.db as db
 from assets.antispam import antispam
 from commands.basic.property.lists import *
 from assets.transform import transform_int as tr
+from filters.custom import TextIn, StartsWith
 from user import BFGuser, BFGconst
 
 
@@ -518,30 +519,30 @@ async def sell_plane(message: types.Message, user: BFGuser):
 
 
 def reg(dp: Dispatcher):
-    dp.register_message_handler(helicopters_list, lambda message: message.text.lower().startswith(('вертолеты', 'вертолёты')))
-    dp.register_message_handler(cars_list, lambda message: message.text.lower().startswith('машины'))
-    dp.register_message_handler(yahta_list, lambda message: message.text.lower().startswith('дома'))
-    dp.register_message_handler(phone_list, lambda message: message.text.lower().startswith('телефоны'))
-    dp.register_message_handler(plane_list, lambda message: message.text.lower().startswith(('самолеты', 'самолёты')))
-    dp.register_message_handler(yahts_list, lambda message: message.text.lower().startswith('яхты'))
+    dp.message.register(helicopters_list, TextIn("вертолеты", "вертолёты"))
+    dp.message.register(cars_list, TextIn("машины"))
+    dp.message.register(yahta_list, TextIn("дома"))
+    dp.message.register(phone_list, TextIn("телефоны"))
+    dp.message.register(plane_list, TextIn("самолеты", "самолёты"))
+    dp.message.register(yahts_list, TextIn("яхты"))
 
-    dp.register_message_handler(my_helicopter, lambda message: message.text.lower().startswith(('мой вертолет', 'мой вертолёт')))
-    dp.register_message_handler(my_phone, lambda message: message.text.lower().startswith('мой телефон'))
-    dp.register_message_handler(my_car, lambda message: message.text.lower().startswith('моя машина'))
-    dp.register_message_handler(my_house, lambda message: message.text.lower().startswith('мой дом'))
-    dp.register_message_handler(my_yahta, lambda message: message.text.lower().startswith('моя яхта'))
-    dp.register_message_handler(my_plane, lambda message: message.text.lower().startswith(('мой самолет', 'мой самолёт')))
+    dp.message.register(my_helicopter, TextIn("мой вертолет", "мой вертолёт"))
+    dp.message.register(my_phone, TextIn("мой телефон"))
+    dp.message.register(my_car, TextIn("моя машина"))
+    dp.message.register(my_house, TextIn("мой дом"))
+    dp.message.register(my_yahta, TextIn("моя яхта"))
+    dp.message.register(my_plane, TextIn("мой самолет", "мой самолёт"))
 
-    dp.register_message_handler(buy_helicopter, lambda message: message.text.lower().startswith(('купить вертолет', 'купить вертолёт')))
-    dp.register_message_handler(buy_phone, lambda message: message.text.lower().startswith('купить телефон'))
-    dp.register_message_handler(buy_car, lambda message: message.text.lower().startswith('купить машину'))
-    dp.register_message_handler(buy_house, lambda message: message.text.lower().startswith('купить дом'))
-    dp.register_message_handler(buy_yahta, lambda message: message.text.lower().startswith('купить яхту'))
-    dp.register_message_handler(buy_plane, lambda message: message.text.lower().startswith(('купить самолет', 'купить самолёт')))
+    dp.message.register(buy_helicopter, StartsWith("купить вертолет", "купить вертолёт"))
+    dp.message.register(buy_phone, StartsWith("купить телефон"))
+    dp.message.register(buy_car, StartsWith("купить машину"))
+    dp.message.register(buy_house, StartsWith("купить дом"))
+    dp.message.register(buy_yahta, StartsWith("купить яхту"))
+    dp.message.register(buy_plane, StartsWith("купить самолет", "купить самолёт"))
 
-    dp.register_message_handler(sell_helicopter, lambda message: message.text.lower().startswith(('продать вертолет', 'продать вертолёт')))
-    dp.register_message_handler(sell_phone, lambda message: message.text.lower().startswith('продать телефон'))
-    dp.register_message_handler(sell_car, lambda message: message.text.lower().startswith('продать машину'))
-    dp.register_message_handler(sell_house, lambda message: message.text.lower().startswith('продать дом'))
-    dp.register_message_handler(sell_yahta, lambda message: message.text.lower().startswith('продать яхту'))
-    dp.register_message_handler(sell_plane, lambda message: message.text.lower().startswith(('продать самолет', 'продать самолёт')))
+    dp.message.register(sell_helicopter, TextIn("продать вертолет", "продать вертолёт"))
+    dp.message.register(sell_phone, TextIn("продать телефон"))
+    dp.message.register(sell_car, TextIn("продать машину"))
+    dp.message.register(sell_house, TextIn("продать дом"))
+    dp.message.register(sell_yahta, TextIn("продать яхту"))
+    dp.message.register(sell_plane, TextIn("продать самолет", "продать самолёт"))

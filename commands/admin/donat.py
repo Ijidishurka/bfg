@@ -1,5 +1,6 @@
 from aiogram import types, Dispatcher
 
+from filters.custom import TextIn, StartsWith
 from utils.settings import get_setting, update_setting
 from assets.antispam import admin_only, antispam_earning, new_earning
 from commands.admin import keyboards as kb
@@ -41,5 +42,5 @@ async def donat_set_cmd(call: types.CallbackQuery):
 
 
 def reg(dp: Dispatcher):
-    dp.register_message_handler(donat_menu_cmd, lambda message: message.text == "💰 Донат")
-    dp.register_callback_query_handler(donat_set_cmd, lambda call: call.data.startswith("adm-donat"))
+    dp.message.register(donat_menu_cmd, TextIn("💰 Донат"))
+    dp.callback_query.register(donat_set_cmd, StartsWith("adm-donat"))

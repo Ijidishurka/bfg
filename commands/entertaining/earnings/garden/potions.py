@@ -2,6 +2,7 @@ from aiogram import Dispatcher, types
 
 from commands.entertaining.earnings.garden import db
 from assets.antispam import antispam
+from filters.custom import TextIn, StartsWith
 from user import BFGuser, BFGconst
 
 
@@ -63,5 +64,5 @@ async def bay_potions(message: types.Message, user: BFGuser):
 
 
 def reg(dp: Dispatcher):
-    dp.register_message_handler(potions_list, lambda message: message.text.lower() == 'зелья')
-    dp.register_message_handler(bay_potions, lambda message: message.text.lower().startswith('создать зелье'))
+    dp.message.register(potions_list, TextIn("зелья"))
+    dp.message.register(bay_potions, StartsWith("создать зелье"))

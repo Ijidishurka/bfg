@@ -2,13 +2,14 @@ from aiogram import types, Dispatcher
 
 from commands.entertaining.earnings.tree import db
 from assets.transform import transform_int as tr
-from assets import kb
+from assets import keyboards as kb
 from assets.antispam import new_earning, antispam, antispam_earning
+from filters.custom import TextIn, StartsWith
 from user import BFGuser, BFGconst
 
 
 @antispam
-async def tree_cmd(message: types.Message, user: BFGuser):
+async def tree_cmd(message: types.Message):
     await message.answer('''🌳 Добро пожаловать в новую возможность заработка - денежное дерево! Теперь, помимо управления своим бизнесом, у вас есть шанс выращивать деньги прямо на своем участке.
 
 🏡 Для начала вам нужно создать участок под ваше денежное дерево. Используйте команду "Построить участок", чтобы купить небольшой участок земли для вашего нового источника дохода.
@@ -181,11 +182,11 @@ async def sell_tree(message: types.Message, user: BFGuser):
 
 
 def reg(dp: Dispatcher):
-    dp.register_message_handler(tree_cmd, lambda message: message.text.lower() == 'денежное дерево')
-    dp.register_message_handler(my_tree, lambda message: message.text.lower() in ['моё дерево', 'мое дерево'])
-    dp.register_message_handler(buy_tree, lambda message: message.text.lower() == 'построить участок')
-    dp.register_callback_query_handler(withdraw_profit, text_startswith='tree-sobrat')
-    dp.register_callback_query_handler(pay_taxes, text_startswith='tree-nalog')
-    dp.register_callback_query_handler(buy_tree_call, text_startswith='tree-tree')
-    dp.register_callback_query_handler(buy_ter, text_startswith='tree-ter')
-    dp.register_message_handler(sell_tree, lambda message: message.text.lower() == 'Продать участок')
+    dp.message.register(tree_cmd, TextIn("денежное дерево"))
+    dp.message.register(my_tree, TextIn("моё дерево", "мое дерево"))
+    dp.message.register(buy_tree, TextIn("построить участок"))
+    dp.callback_query.register(withdraw_profit, StartsWith("tree-sobrat"))
+    dp.callback_query.register(pay_taxes, StartsWith("tree-nalog"))
+    dp.callback_query.register(buy_tree_call, StartsWith("tree-tree"))
+    dp.callback_query.register(buy_ter, StartsWith("tree-ter"))
+    dp.message.register(sell_tree, TextIn("Продать участок"))

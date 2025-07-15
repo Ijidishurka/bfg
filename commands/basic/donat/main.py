@@ -1,11 +1,11 @@
 from aiogram import Dispatcher, types
-from aiogram.dispatcher import FSMContext
 
 from assets.antispam import antispam, new_earning, antispam_earning
 from assets.transform import transform_int as tr
 from commands.basic.donat.db import *
+from filters.custom import TextIn, StartsWith
 from user import BFGuser, BFGconst
-from assets import kb
+from assets import keyboards as kb
 import config as cfg
 
 CONFIG = {
@@ -257,14 +257,14 @@ async def buy_energy(message: types.Message, user: BFGuser):
 
 
 def reg(dp: Dispatcher):
-    dp.register_message_handler(donat_cmd, lambda message: message.text.lower() == "донат")
+    dp.message.register(donat_cmd, TextIn("донат"))
 
-    dp.register_callback_query_handler(our_store_cmd, lambda call: call.data.startswith("our-store"))
-    dp.register_callback_query_handler(donat_menu_cmd, lambda call: call.data.startswith("donat-menu"))
+    dp.callback_query.register(our_store_cmd, StartsWith("our-store"))
+    dp.callback_query.register(donat_menu_cmd, StartsWith("donat-menu"))
 
-    dp.register_message_handler(status_list, lambda message: message.text.lower() == "статусы")
-    dp.register_message_handler(my_status, lambda message: message.text.lower() == "мой статус")
-    dp.register_message_handler(buy_status, lambda message: message.text.lower().startswith("купить привилегию"))
-    dp.register_message_handler(exchange_value, lambda message: message.text.lower().startswith("обменять"))
-    dp.register_message_handler(buy_limit, lambda message: message.text.lower().startswith("купить лимит"))
-    dp.register_message_handler(buy_energy, lambda message: message.text.lower().startswith("купить флягу"))
+    dp.message.register(status_list, TextIn("статусы"))
+    dp.message.register(my_status, TextIn("мой статус"))
+    dp.message.register(buy_status, StartsWith("купить привилегию"))
+    dp.message.register(exchange_value, StartsWith("обменять"))
+    dp.message.register(buy_limit, StartsWith("купить лимит"))
+    dp.message.register(buy_energy, StartsWith("купить флягу"))

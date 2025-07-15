@@ -1,6 +1,7 @@
 import time, json, sys, os, shutil, requests, subprocess, tempfile
 from assets.antispam import admin_only
 from commands.admin import keyboards as kb
+from filters.custom import TextIn, StartsWith
 from install import update_db
 from aiogram import types, Dispatcher
 import config as cfg
@@ -147,6 +148,6 @@ async def restart_bot(message: types.Message):
 
 
 def reg(dp: Dispatcher):
-	dp.register_message_handler(restart_bot, lambda message: message.text in ["🔄 Перезагрузка", "/restartb"])
-	dp.register_message_handler(update_bot, lambda message: message.text in ["/updateb", "/updateb -f"])
-	dp.register_callback_query_handler(bot_update, text_startswith="update-bot")
+	dp.message.register(restart_bot, TextIn("🔄 Перезагрузка", "/restartb"))
+	dp.message.register(update_bot, TextIn("/updateb", "/updateb -f"))
+	dp.callback_query.register(bot_update, StartsWith("update-bot"))

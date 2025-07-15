@@ -3,9 +3,10 @@ import re
 from aiogram import Dispatcher, types
 
 from assets.antispam import antispam, antispam_earning, new_earning
+from filters.custom import StartsWith
 from user import BFGuser, BFGconst
 from commands.clans import db
-from assets import kb
+from assets import keyboards as kb
 
 
 @antispam
@@ -216,10 +217,10 @@ async def clan_settings(message: types.message, user: BFGuser):
 
 
 def reg(dp: Dispatcher):
-	dp.register_message_handler(clan_dell, lambda message: message.text.lower().startswith('клан удалить'))
-	dp.register_callback_query_handler(clan_dell_call, text_startswith='clan-dell')
-	dp.register_message_handler(clan_name, lambda message: message.text.lower().startswith('клан название'))
-	dp.register_message_handler(clan_new_owner, lambda message: message.text.lower().startswith('клан передать'))
-	dp.register_callback_query_handler(clan_new_owner_call, text_startswith='clan-new-owner')
-	dp.register_message_handler(clan_setting_type, lambda message: message.text.lower().startswith('клан настройки тип'))
-	dp.register_message_handler(clan_settings, lambda message: message.text.lower().startswith('клан настройки '))
+	dp.message.register(clan_dell, StartsWith("клан удалить"))
+	dp.callback_query.register(clan_dell_call, StartsWith("clan-dell"))
+	dp.message.register(clan_name, StartsWith("клан название"))
+	dp.message.register(clan_new_owner, StartsWith("клан передать"))
+	dp.callback_query.register(clan_new_owner_call, StartsWith("clan-new-owner"))
+	dp.message.register(clan_setting_type, StartsWith("клан настройки тип"))
+	dp.message.register(clan_settings, StartsWith("клан настройки "))

@@ -7,6 +7,7 @@ from commands.db import get_colvo_users, setname
 from assets.gettime import bonustime, kaznatime, lucktime
 from assets.transform import transform_int as tr
 import config as cfg
+from filters.custom import StartsWith, TextIn
 from user import BFGuser, BFGconst
 
 
@@ -155,14 +156,14 @@ async def my_name(message: types.Message, user: BFGuser):
 
 
 def reg(dp: Dispatcher):
-    dp.register_message_handler(shar_cmd, lambda message: message.text.lower().startswith('шар '))
-    dp.register_message_handler(vibor_cmd, lambda message: message.text.lower().startswith('выбери '))
-    dp.register_message_handler(shans_cmd, lambda message: message.text.lower().startswith('шанс '))
-    dp.register_message_handler(set_name_cmd, lambda message: message.text.lower().startswith('сменить ник'))
-    dp.register_message_handler(kazna_cmd, lambda message: message.text.lower().startswith('казна'))
-    dp.register_message_handler(stats_cmd, lambda message: message.text.lower().startswith('статистика бота'))
-    dp.register_message_handler(bonus_cmd, lambda message: message.text.lower().startswith('ежедневный бонус'))
-    dp.register_message_handler(try_luck_cmd, lambda message: message.text.lower().startswith('испытать удачу'))
-    dp.register_message_handler(ogr_kazna, lambda message: message.text.lower().startswith(('ограбить казну', 'ограбить мерию')))
-    dp.register_message_handler(my_name, lambda message: message.text.lower().startswith('мой ник'))
-    dp.register_message_handler(chat_list, lambda message: message.text.lower().startswith('!беседа'))
+    dp.message.register(shar_cmd, StartsWith("шар "))
+    dp.message.register(vibor_cmd, StartsWith("выбери "))
+    dp.message.register(shans_cmd, StartsWith("шанс "))
+    dp.message.register(set_name_cmd, StartsWith("сменить ник"))
+    dp.message.register(kazna_cmd, TextIn("казна"))
+    dp.message.register(stats_cmd, TextIn("статистика бота"))
+    dp.message.register(bonus_cmd, TextIn("ежедневный бонус"))
+    dp.message.register(try_luck_cmd, TextIn("испытать удачу"))
+    dp.message.register(ogr_kazna, TextIn("ограбить казну", "ограбить мерию"))
+    dp.message.register(my_name, TextIn("мой ник"))
+    dp.message.register(chat_list, TextIn("!беседа"))

@@ -1,8 +1,11 @@
 import random
+
 from aiogram import Dispatcher, types
+
 import commands.entertaining.case.db as db
 from assets.transform import transform_int as tr
 from assets.antispam import antispam
+from filters.custom import TextIn, StartsWith
 from user import BFGuser, BFGconst
 
 
@@ -203,6 +206,6 @@ async def open_case_logic(message: types.Message, amount: int, case: int, user: 
 
 
 def reg(dp: Dispatcher):
-    dp.register_message_handler(my_cases_cmd, lambda message: message.text.lower() == 'кейсы')
-    dp.register_message_handler(buy_case_cmd, lambda message: message.text.lower().startswith('купить кейс'))
-    dp.register_message_handler(open_case_cmd, lambda message: message.text.lower().startswith('открыть кейс'))
+    dp.message.register(my_cases_cmd, TextIn("кейсы"))
+    dp.message.register(buy_case_cmd, StartsWith("купить кейс"))
+    dp.message.register(open_case_cmd, StartsWith("открыть кейс"))

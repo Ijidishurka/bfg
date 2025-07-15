@@ -1,5 +1,5 @@
 from aiogram import types, Dispatcher
-from aiogram.dispatcher import FSMContext
+from aiogram.fsm.context import FSMContext
 
 from assets.transform import transform_int as tr
 from assets.antispam import antispam, admin_only
@@ -9,6 +9,7 @@ from commands.admin.loger import new_log
 from commands.admin import keyboards as kb
 import config as cfg
 from bot import bot
+from filters.custom import TextIn, StartsWith
 from user import BFGuser, BFGconst
 from states.admin import NewPromoState, DellPromoState, PromoInfoState
 
@@ -21,7 +22,7 @@ async def promo_menu(message: types.Message):
 @admin_only(private=True)
 async def new_promo(message, state: FSMContext, type="name"):
     if message.text == "Отмена":
-        await state.finish()
+        await state.clear()
         await promo_menu(message)
         return
 
@@ -60,7 +61,7 @@ async def new_promo(message, state: FSMContext, type="name"):
 
     await state.update_data(activ=summ)
     data = await state.get_data()
-    await state.finish()
+    await state.clear()
 
     data2 = (data["name"], data["summ"], data["activ"], data["txt"])
     
@@ -85,7 +86,7 @@ async def new_promo(message, state: FSMContext, type="name"):
 @admin_only(private=True)
 async def promo_info(message, state: FSMContext, type="name"):
     if message.text == "Отмена":
-        await state.finish()
+        await state.clear()
         await promo_menu(message)
         return
 
@@ -107,14 +108,14 @@ async def promo_info(message, state: FSMContext, type="name"):
 Название: <code>{res[0]}</code>
 Сумма: {summ}{emj}
 Осталось активаций: {res[2]}""")
-    await state.finish()
+    await state.clear()
     await promo_menu(message)
 
 
 @admin_only(private=True)
 async def dell_promo(message, state: FSMContext, type="name"):
     if message.text == "Отмена":
-        await state.finish()
+        await state.clear()
         await promo_menu(message)
         return
 
@@ -129,7 +130,7 @@ async def dell_promo(message, state: FSMContext, type="name"):
         await message.answer(f"❌ Промокод <b>{name}</b> не найден.")
     else:
         await message.answer(f"✅ Промокод <b>{name}</b> успешно удалён!")
-    await state.finish()
+    await state.clear()
     await promo_menu(message)
 
 
@@ -173,16 +174,16 @@ async def activ_promo(message: types.Message, user: BFGuser):
 
 
 def reg(dp: Dispatcher):
-    dp.register_message_handler(promo_menu, lambda message: message.text == "✨ Промокоды")
-    dp.register_message_handler(promo_info, lambda message: message.text == "ℹ️ Промо инфо")
-    dp.register_message_handler(lambda message, state: promo_info(message, state, type="finish"), state=PromoInfoState.name)
+    dp.message.register(promo_menu, TextIn("✨ Промокоды"))
+    dp.message.register(promo_info, TextIn("ℹ️ Промо инфо"))
+    dp.message.register(lambda message, state: promo_info(message, state, type="finish"), PromoInfoState.name)
 
-    dp.register_message_handler(new_promo, lambda message: message.text == "📖 Создать промо")
-    dp.register_message_handler(lambda message, state: new_promo(message, state, type="txt"), state=NewPromoState.txt)
-    dp.register_message_handler(lambda message, state: new_promo(message, state, type="summ"), state=NewPromoState.name)
-    dp.register_message_handler(lambda message, state: new_promo(message, state, type="activ"), state=NewPromoState.summ)
-    dp.register_message_handler(lambda message, state: new_promo(message, state, type="finish"), state=NewPromoState.activ)
+    dp.message.register(new_promo, TextIn("📖 Создать промо"))
+    dp.message.register(lambda message, state: new_promo(message, state, type="txt"), NewPromoState.txt)
+    dp.message.register(lambda message, state: new_promo(message, state, type="summ"), NewPromoState.name)
+    dp.message.register(lambda message, state: new_promo(message, state, type="activ"), NewPromoState.summ)
+    dp.message.register(lambda message, state: new_promo(message, state, type="finish"), NewPromoState.activ)
 
-    dp.register_message_handler(dell_promo, lambda message: message.text == "🗑 Удалить промо")
-    dp.register_message_handler(lambda message, state: dell_promo(message, state, type="finish"), state=DellPromoState.name)
-    dp.register_message_handler(activ_promo, lambda message: message.text.lower().startswith("промо"))
+    dp.message.register(dell_promo, TextIn("🗑 Удалить промо"))
+    dp.message.register(lambda message, state: dell_promo(message, state, type="finish"), DellPromoState.name)
+    dp.message.register(activ_promo, StartsWith("промо"))

@@ -2,11 +2,13 @@ import asyncio
 import requests
 import os
 
+from aiogram.filters import Command
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram import types, Dispatcher
 
 from assets.antispam import new_earning, antispam_earning, admin_only
 from commands.admin import keyboards as kb
+from filters.custom import TextIn, StartsWith
 from user import BFGuser
 import config as cfg
 from bot import dp
@@ -235,12 +237,12 @@ async def load_mod_cmd(message: types.Message):
 
 
 def reg(dp: Dispatcher):
-    dp.register_message_handler(modules_menu, lambda message: message.text == "🌟 Модули")
-    dp.register_message_handler(load_modules_cmd, lambda message: message.text == "🛎 Загруженые")
-    dp.register_callback_query_handler(load_modules_next, text_startswith="mymodules-list_")
-    dp.register_callback_query_handler(dell_mod, text_startswith="dell-modul_")
-    dp.register_message_handler(catalog_modules, lambda message: message.text == "📂 Каталог")
-    dp.register_callback_query_handler(catalog_type, text_startswith="mod-catalog_")
-    dp.register_callback_query_handler(catalog_modules_next, text_startswith="catalogmod-list_")
-    dp.register_callback_query_handler(load_mod, text_startswith="load-modul_")
-    dp.register_message_handler(load_mod_cmd, lambda message: message.text.startswith("/loadmodb "))
+    dp.message.register(modules_menu, TextIn("🌟 Модули"))
+    dp.message.register(load_modules_cmd, TextIn("🛎 Загруженые"))
+    dp.callback_query.register(load_modules_next, StartsWith("mymodules-list_"))
+    dp.callback_query.register(dell_mod, StartsWith("dell-modul_"))
+    dp.message.register(catalog_modules, TextIn("📂 Каталог"))
+    dp.callback_query.register(catalog_type, StartsWith("mod-catalog_"))
+    dp.callback_query.register(catalog_modules_next, StartsWith("catalogmod-list_"))
+    dp.callback_query.register(load_mod, StartsWith("load-modul_"))
+    dp.message.register(load_mod_cmd, Command("loadmodb"))

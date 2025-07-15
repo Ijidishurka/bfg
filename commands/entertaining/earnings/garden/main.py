@@ -2,8 +2,9 @@ from aiogram import types, Dispatcher
 
 import commands.entertaining.earnings.garden.db as db
 from assets.transform import transform_int as tr
-from assets import kb
+from assets import keyboards as kb
 from assets.antispam import antispam_earning, antispam, new_earning
+from filters.custom import TextIn, StartsWith
 from user import BFGuser, BFGconst
 
 
@@ -189,12 +190,12 @@ async def sell_garden(message: types.Message, user: BFGuser):
 
 
 def reg(dp: Dispatcher):
-    dp.register_message_handler(water_garden, lambda message: message.text.lower().startswith('сад полить'))
-    dp.register_message_handler(garden_info, lambda message: message.text.lower().startswith('сад'))
-    dp.register_message_handler(my_garden, lambda message: message.text.lower().startswith('мой сад'))
-    dp.register_message_handler(buy_garden, lambda message: message.text.lower().startswith('построить сад'))
-    dp.register_callback_query_handler(buy_tree, text_startswith='garden-buy-tree')
-    dp.register_callback_query_handler(water_garden_call, text_startswith='garden-polit')
-    dp.register_callback_query_handler(withdraw_profit, text_startswith='garden-sobrat')
-    dp.register_callback_query_handler(pay_taxes, text_startswith='garden-nalog')
-    dp.register_message_handler(sell_garden, lambda message: message.text.lower() == 'продать сад')
+    dp.message.register(water_garden, TextIn("сад полить"))
+    dp.message.register(garden_info, TextIn("сад"))
+    dp.message.register(my_garden, TextIn("мой сад"))
+    dp.message.register(buy_garden, TextIn("построить сад"))
+    dp.callback_query.register(buy_tree, StartsWith("garden-buy-tree"))
+    dp.callback_query.register(water_garden_call, StartsWith("garden-polit"))
+    dp.callback_query.register(withdraw_profit, StartsWith("garden-sobrat"))
+    dp.callback_query.register(pay_taxes, StartsWith("garden-nalog"))
+    dp.message.register(sell_garden, TextIn("продать сад"))

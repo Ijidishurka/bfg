@@ -1,8 +1,10 @@
 from aiogram import types, Dispatcher
+from aiogram.filters import Command
 
 from assets.antispam import antispam, admin_only, antispam_earning, new_earning_msg
+from filters.custom import TextIn, StartsWith
 from user import BFGuser
-from assets import kb
+from assets import keyboards as kb
 import config as cfg
 
 
@@ -194,8 +196,8 @@ async def help_callback(call: types.CallbackQuery, user: BFGuser):
 
 
 def reg(dp: Dispatcher):
-    dp.register_message_handler(help_adm, commands='help_adm')
-    dp.register_message_handler(help_cmd, lambda message: message.text.lower() in ['/help', 'помощь'])
-    dp.register_message_handler(help_game_msg, lambda message: message.text.lower() == 'игры')
-    dp.register_callback_query_handler(help_back, text_startswith='help_back')
-    dp.register_callback_query_handler(help_callback, text_startswith='help_')
+    dp.message.register(help_adm, Command("help_adm"))
+    dp.message.register(help_cmd, TextIn("/help", "помощь"))
+    dp.message.register(help_game_msg, TextIn("игры"))
+    dp.callback_query.register(help_back, StartsWith("help_back"))
+    dp.callback_query.register(help_callback, StartsWith("help_"))

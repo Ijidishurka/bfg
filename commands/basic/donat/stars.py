@@ -1,11 +1,12 @@
 from aiogram import Dispatcher, types
+from aiogram.filters import Command
 
 from assets.antispam import new_earning, antispam_earning, antispam
-from assets.classes import FunEvent
-from bot import bot
-from user import BFGuser
-from assets import kb
+from filters.custom import StartsWith
+from assets import keyboards as kb
 from utils.settings import get_setting
+from user import BFGuser
+from bot import bot
 
 buy_stars_messages = set()  # {(user_id, chat_id, message_id)}
 
@@ -91,8 +92,7 @@ async def buy_stars_cmd(call: types.CallbackQuery):
 
 
 def reg(dp: Dispatcher):
-    dp.register_message_handler(help_cmd, commands=['paysupport'])
-    dp.register_callback_query_handler(donat_cmd, lambda call: call.data.startswith("donat-stars"))
-    dp.register_callback_query_handler(check_keyboard_amount_cmd, lambda call: call.data.startswith("select-stars"))
-    FunEvent.subscribe("new_message", check_amount_cmd)
-    dp.register_callback_query_handler(buy_stars_cmd, lambda call: call.data.startswith("buy-stars"))
+    dp.message.register(help_cmd, Command("paysupport"))
+    dp.callback_query.register(donat_cmd, StartsWith("donat-stars"))
+    dp.callback_query.register(check_keyboard_amount_cmd, StartsWith("select-stars"))
+    dp.callback_query.register(buy_stars_cmd, StartsWith("buy-stars"))

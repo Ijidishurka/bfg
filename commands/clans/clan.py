@@ -5,7 +5,8 @@ from aiogram import Dispatcher, types
 from assets.antispam import antispam, antispam_earning, new_earning
 from commands.db import get_name
 from commands.clans import db
-from assets import kb
+from assets import keyboards as kb
+from filters.custom import TextIn, StartsWith
 from user import BFGuser, BFGconst
 
 
@@ -123,7 +124,7 @@ async def clan_settings(call: types.CallbackQuery, user: BFGuser):
 
 
 def reg(dp: Dispatcher):
-	dp.register_message_handler(my_clan, lambda message: message.text.lower() == 'мой клан')
-	dp.register_callback_query_handler(my_clan_call, text_startswith='clan-info')
-	dp.register_callback_query_handler(clan_users, text_startswith='clan-users')
-	dp.register_callback_query_handler(clan_settings, text_startswith='clan-settings')
+	dp.message.register(my_clan, TextIn("мой клан"))
+	dp.callback_query.register(my_clan_call, StartsWith("clan-info"))
+	dp.callback_query.register(clan_users, StartsWith("clan-users"))
+	dp.callback_query.register(clan_settings, StartsWith("clan-settings"))

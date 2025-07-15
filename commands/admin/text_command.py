@@ -2,11 +2,13 @@ import time
 import re
 
 from aiogram import types, Dispatcher
+from aiogram.filters import Command
 
 from assets.transform import transform_int as tr
 from assets.antispam import admin_only
 from commands.admin import db
 from commands.db import url_name
+from filters.custom import StartsWith
 
 
 @admin_only()
@@ -86,8 +88,8 @@ async def reset_the_money(message: types.Message):
 
 
 def reg(dp: Dispatcher):
-    dp.register_message_handler(sql, lambda message: message.text.lower().startswith('/sql'))
-    dp.register_message_handler(ban, lambda message: message.text.lower().startswith('/banb'))
-    dp.register_message_handler(unban, lambda message: message.text.lower().startswith('/unbanb'))
-    dp.register_message_handler(take_the_money, lambda message: message.text.lower().startswith('забрать'))
-    dp.register_message_handler(reset_the_money, lambda message: message.text.lower().startswith('обнулить'))
+    dp.message.register(sql, Command("sql"))
+    dp.message.register(ban, Command("banb"))
+    dp.message.register(unban, Command("unbanb"))
+    dp.message.register(take_the_money, StartsWith("забрать"))
+    dp.message.register(reset_the_money, StartsWith("обнулить"))

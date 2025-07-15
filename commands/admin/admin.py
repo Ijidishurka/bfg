@@ -2,9 +2,12 @@ import asyncio
 from datetime import datetime
 
 from aiogram import types, Dispatcher
-from aiogram.dispatcher import FSMContext
-from aiogram.types import InlineKeyboardMarkup, ReplyKeyboardRemove
+from aiogram.filters import Command
+from aiogram.fsm.context import FSMContext
+from aiogram.types import InlineKeyboardMarkup, ReplyKeyboardRemove, KeyboardButton
+from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
+from filters.custom import TextIn
 from states.admin import NewAdvState, MailingState
 from commands.admin import keyboards as kb
 from assets.antispam import admin_only
@@ -15,8 +18,9 @@ from bot import bot
 @admin_only(private=True)
 async def new_ads(message: types.Message, state: FSMContext, action=0):
     if action == 0:
-        keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        keyboard.add(types.KeyboardButton("Отмена"))
+        builder = ReplyKeyboardBuilder()
+        builder.add(KeyboardButton(text="Отмена"))
+        keyboard = builder.as_markup(resize_keyboard=True)
 
         await message.answer(
             text="⚙️ Введите новый текст рекламы ('-' чтобы удалить)\n\n"
@@ -28,7 +32,7 @@ async def new_ads(message: types.Message, state: FSMContext, action=0):
         return
 
     if message.text == "Отмена":
-        await state.finish()
+        await state.clear()
         await admin_menu_cmd(message)
         return
 
@@ -41,7 +45,7 @@ async def new_ads(message: types.Message, state: FSMContext, action=0):
     except:
         await message.answer(text="❌ Ошибка в разметке HTML")
 
-    await state.finish()
+    await state.clear()
     await admin_menu_cmd(message)
     
 
@@ -94,7 +98,7 @@ async def mailing_cmd(message: types.Message):
 
 async def process_mailing(message, state: FSMContext):
     if message.text == "Отмена":
-        await state.finish()
+        await state.clear()
         await message.answer("Отменено.")
         await admin_menu_cmd(message)
         return
@@ -111,7 +115,7 @@ async def process_mailing(message, state: FSMContext):
 
 async def process_mailing_2(message: types.Message, state: FSMContext):
     data = await state.get_data()
-    await state.finish()
+    await state.clear()
 
     if message.text.lower() != "да":
         await message.answer("Рассылка отменена.")
@@ -153,19 +157,19 @@ async def process_mailing_2(message: types.Message, state: FSMContext):
 
 
 def reg(dp: Dispatcher):
-    dp.register_message_handler(admin_menu_cmd, commands='adm')
-    dp.register_message_handler(admin_menu_cmd, lambda message: message.text == '🔙 Назад')
-    dp.register_message_handler(close_menu_cmd, lambda message: message.text == '🔙 Закрыть меню')
+    dp.message.register(admin_menu_cmd, Command("adm"))
+    dp.message.register(admin_menu_cmd, TextIn("🔙 Назад"))
+    dp.message.register(close_menu_cmd, TextIn("🔙 Закрыть меню"))
 
     
-    dp.register_message_handler(unloading_cmd, lambda message: message.text == '📥 Выгрузка')
-    dp.register_message_handler(unloading_logs_cmd, lambda message: message.text == '📋 Логи')
-    dp.register_message_handler(unloading_errors_cmd, lambda message: message.text == '❗️ Ошибки')
-    dp.register_message_handler(unloading_db_cmd, lambda message: message.text == '💾 Бд')
+    dp.message.register(unloading_cmd, TextIn("📥 Выгрузка"))
+    dp.message.register(unloading_logs_cmd, TextIn("📋 Логи"))
+    dp.message.register(unloading_errors_cmd, TextIn("❗️ Ошибки"))
+    dp.message.register(unloading_db_cmd, TextIn("💾 Бд"))
     
-    dp.register_message_handler(ads_menu_cmd, lambda message: message.text == '📣 Реклама')
-    dp.register_message_handler(new_ads, lambda message: message.text == '🪪 Текст рекламы')
-    dp.register_message_handler(lambda message, state: new_ads(message, state, action=1), state=NewAdvState.txt)
-    dp.register_message_handler(mailing_cmd, lambda message: message.text == '📍 Рассылка')
-    dp.register_message_handler(process_mailing, state=MailingState.mailing_text)
-    dp.register_message_handler(process_mailing_2, state=MailingState.mailing_conf)
+    dp.message.register(ads_menu_cmd, TextIn("📣 Реклама"))
+    dp.message.register(new_ads, TextIn("🪪 Текст рекламы"))
+    dp.message.register(lambda message, state: new_ads(message, state, action=1), NewAdvState.txt)
+    dp.message.register(mailing_cmd, TextIn("📍 Рассылка"))
+    dp.message.register(process_mailing, MailingState.mailing_text)
+    dp.message.register(process_mailing_2, MailingState.mailing_conf)

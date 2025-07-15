@@ -1,8 +1,11 @@
 from datetime import datetime, timedelta
+
 from aiogram import Dispatcher, types
+
 from assets.antispam import antispam
 from commands.basic.bank.db import *
 from assets.transform import transform_int as tr
+from filters.custom import StartsWith, TextIn
 from user import BFGuser, BFGconst
 
 
@@ -208,8 +211,8 @@ async def takeoff_depozit_cmd(message: types.Message, user: BFGuser):
 
 
 def reg(dp: Dispatcher):
-    dp.register_message_handler(put_bank_cmd, lambda message: message.text.lower().startswith('банк положить'))
-    dp.register_message_handler(takeoff_bank_cmd, lambda message: message.text.lower().startswith('банк снять'))
-    dp.register_message_handler(put_depozit_cmd, lambda message: message.text.lower().startswith('депозит положить'))
-    dp.register_message_handler(takeoff_depozit_cmd, lambda message: message.text.lower().startswith('депозит снять'))
-    dp.register_message_handler(bank_cmd, lambda message: message.text.lower() == 'банк')
+    dp.message.register(put_bank_cmd, StartsWith("банк положить"))
+    dp.message.register(takeoff_bank_cmd, StartsWith("банк снять"))
+    dp.message.register(put_depozit_cmd, StartsWith("депозит положить"))
+    dp.message.register(takeoff_depozit_cmd, StartsWith("депозит снять"))
+    dp.message.register(bank_cmd, TextIn("банк"))

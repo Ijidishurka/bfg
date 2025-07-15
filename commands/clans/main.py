@@ -4,6 +4,7 @@ from aiogram import Dispatcher, types
 
 from assets.transform import transform_int as tr
 from assets.antispam import antispam
+from filters.custom import StartsWith, TextIn
 from user import BFGuser, BFGconst
 from commands.db import url_name
 from commands.clans import db
@@ -235,14 +236,14 @@ async def clan_lower_rank(message: types.message, user: BFGuser):
 
 
 def reg(dp: Dispatcher):
-	dp.register_message_handler(new_clan, lambda message: message.text.lower().startswith('клан создать'))
-	dp.register_message_handler(clan_join, lambda message: message.text.lower().startswith('клан вступить'))
-	dp.register_message_handler(clan_leave, lambda message: message.text.lower().startswith('клан выйти'))
-	dp.register_message_handler(clan_kick, lambda message: message.text.lower().startswith('клан исключить'))
-	dp.register_message_handler(clan_kazna, lambda message: message.text.lower() == 'клан казна')
-	dp.register_message_handler(clan_kazna_up, lambda message: message.text.lower().startswith('клан казна'))
-	dp.register_message_handler(clan_increase_rank, lambda message: message.text.lower().startswith('клан повысить'))
-	dp.register_message_handler(clan_lower_rank, lambda message: message.text.lower().startswith('клан понизить'))
+	dp.message.register(new_clan, StartsWith("клан создать"))
+	dp.message.register(clan_join, StartsWith("клан вступить"))
+	dp.message.register(clan_leave, StartsWith("клан выйти"))
+	dp.message.register(clan_kick, StartsWith("клан исключить"))
+	dp.message.register(clan_kazna, TextIn("клан казна"))
+	dp.message.register(clan_kazna_up, StartsWith("клан казна"))
+	dp.message.register(clan_increase_rank, StartsWith("клан повысить"))
+	dp.message.register(clan_lower_rank, StartsWith("клан понизить"))
 
 	commands.clans.clan.reg(dp)
 	commands.clans.settings.reg(dp)

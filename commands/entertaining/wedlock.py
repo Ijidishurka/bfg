@@ -4,7 +4,8 @@ from assets.antispam import antispam
 from commands.db import url_name, get_name
 from commands.entertaining.db import *
 from bot import bot
-from assets import kb
+from assets import keyboards as kb
+from filters.custom import TextIn, StartsWith
 from user import BFGuser, BFGconst
 from assets.gettime import get_ptime
 
@@ -136,8 +137,10 @@ async def divorce_call(call: types.CallbackQuery):
 
 
 def reg(dp: Dispatcher):
-	dp.register_message_handler(my_wedlock, lambda message: message.text.lower() == 'мой брак')
-	dp.register_message_handler(wedlock, lambda message: message.text.lower() == 'свадьба')
-	dp.register_callback_query_handler(wedlock_call, text_startswith='wedlock-')
-	dp.register_message_handler(divorce, lambda message: message.text.lower() == 'развод')
-	dp.register_callback_query_handler(divorce_call, text_startswith='divorce-')
+	dp.message.register(my_wedlock, TextIn("мой брак"))
+
+	dp.message.register(wedlock, TextIn("свадьба"))
+	dp.callback_query.register(wedlock_call, StartsWith("wedlock-"))
+
+	dp.message.register(divorce, TextIn("развод"))
+	dp.callback_query.register(divorce_call, StartsWith("divorce-"))

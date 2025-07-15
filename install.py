@@ -99,6 +99,10 @@ async def update_db():
     ...
 
 
+def empty() -> None:
+    pass
+
+
 if __name__ == '__main__':
     main()
 else:

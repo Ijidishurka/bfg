@@ -71,11 +71,11 @@ async def rp_cmd(message: types.Message, user: BFGuser):
 	response = rplist[action_key].format(user.url, rname)
 	
 	await message.answer(response)
-	
-	
+
+
 rplist_keys = '|'.join(re.escape(key) for key in rplist.keys())
 pattern = rf'\b({rplist_keys})\b'
 
 
 def reg(dp: Dispatcher):
-	dp.register_message_handler(rp_cmd, regexp=pattern)
+	dp.message.register(rp_cmd, lambda message: (message.text and message.text.lower().strip() in rplist and message.reply_to_message))

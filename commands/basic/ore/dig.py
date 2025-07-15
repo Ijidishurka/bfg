@@ -3,6 +3,7 @@ import random
 from aiogram import types, Dispatcher
 
 from assets.transform import transform_int as tr
+from filters.custom import TextIn, StartsWith
 from user import BFGuser, BFGconst
 from assets.antispam import antispam
 from commands.basic.ore import db
@@ -233,10 +234,10 @@ ruds = ['железо', 'золото', 'алмазы', 'аметисты', 'а�
 
 
 def reg(dp: Dispatcher):
-    dp.register_message_handler(mine_cmd, lambda message: message.text.lower() == 'шахта')
-    dp.register_message_handler(energy_cmd, lambda message: message.text.lower() == 'энергия')
-    dp.register_message_handler(price_cmd, lambda message: message.text.lower() == 'курс руды')
-    dp.register_message_handler(my_mine_cmd, lambda message: message.text.lower() == 'моя шахта')
-    dp.register_message_handler(dig_mine_cmd, lambda message: message.text.lower().startswith('копать '))
-    dp.register_message_handler(sell_cmd, lambda message: message.text.lower().startswith('продать') and any(ruda in message.text.lower() for ruda in ruds))
-    dp.register_message_handler(inventary_cmd, lambda message: message.text.lower() == 'инвентарь')
+    dp.message.register(mine_cmd, TextIn("шахта"))
+    dp.message.register(energy_cmd, TextIn("энергия"))
+    dp.message.register(price_cmd, TextIn("курс руды"))
+    dp.message.register(my_mine_cmd, TextIn("моя шахта"))
+    dp.message.register(dig_mine_cmd, StartsWith("копать "))
+    dp.message.register(sell_cmd, lambda message: message.text.lower().startswith('продать') and any(ruda in message.text.lower() for ruda in ruds))
+    dp.message.register(inventary_cmd, TextIn("инвентарь"))

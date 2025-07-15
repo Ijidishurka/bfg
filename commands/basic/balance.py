@@ -3,8 +3,9 @@ from aiogram import Dispatcher, types
 from assets.antispam import antispam, new_earning_msg, antispam_earning
 from commands.db import getpofildb, chek_user
 from commands.basic.property import lists
+from filters.custom import TextIn, StartsWith
 from user import BFGuser, BFGconst
-from assets import kb
+from assets import keyboards as kb
 
 
 @antispam
@@ -63,7 +64,7 @@ async def profil_cmd(message: types.Message, user: BFGuser):
             pass
 
     text = await creat_help_msg(profil, user)
-    msg = await message.answer(text, reply_markup=kb.profil(user.user_id))
+    msg = await message.answer(text, reply_markup=kb.profile(user.user_id))
     await new_earning_msg(msg.chat.id, msg.message_id)
 
 
@@ -78,7 +79,7 @@ async def profil_busines(call: types.CallbackQuery, user: BFGuser):
     if business[3]: txt += '\n  ⛏ Генератор: Генератор'
     if txt == '': txt = '\n🥲 У вас нету бизнесов'
 
-    await call.message.edit_text(text=f'🧳 Ваши бизнесы:{txt}', reply_markup=kb.profil_back(call.from_user.id))
+    await call.message.edit_text(text=f'🧳 Ваши бизнесы:{txt}', reply_markup=kb.profile_back(call.from_user.id))
 
 
 @antispam_earning
@@ -112,19 +113,19 @@ async def profil_property(call: types.CallbackQuery, user: BFGuser):
 
     if txt == '': txt = '\n🥲 У вас нету имущества'
 
-    await call.message.edit_text(text=f'📦 Ваше имущество:{txt}', reply_markup=kb.profil_back(call.from_user.id))
+    await call.message.edit_text(text=f'📦 Ваше имущество:{txt}', reply_markup=kb.profile_back(call.from_user.id))
 
 
 @antispam_earning
 async def profil_back(call: types.CallbackQuery, user: BFGuser):
     text = await creat_help_msg('{0}, ваш профиль:', user)
-    await call.message.edit_text(text=text, reply_markup=kb.profil(call.from_user.id))
+    await call.message.edit_text(text=text, reply_markup=kb.profile(call.from_user.id))
 
 
 def reg(dp: Dispatcher):
-    dp.register_message_handler(balance_cmd, lambda message: message.text in ['б', 'Б', 'Баланс', 'баланс'])
-    dp.register_message_handler(btc_cmd, lambda message: message.text in ['биткоины', 'Биткоины'])
-    dp.register_message_handler(profil_cmd, lambda message: message.text.lower().startswith('профиль'))
-    dp.register_callback_query_handler(profil_busines, text_startswith='profil-busines')
-    dp.register_callback_query_handler(profil_back, text_startswith='profil-back')
-    dp.register_callback_query_handler(profil_property, text_startswith='profil-property')
+    dp.message.register(balance_cmd, TextIn("б", "баланс"))
+    dp.message.register(btc_cmd, TextIn("биткоины"))
+    dp.message.register(profil_cmd, StartsWith("профиль"))
+    dp.callback_query.register(profil_busines, StartsWith("profil-busines"))
+    dp.callback_query.register(profil_back, StartsWith("profil-back"))
+    dp.callback_query.register(profil_property, StartsWith("profil-property"))

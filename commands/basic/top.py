@@ -3,8 +3,9 @@ from aiogram import Dispatcher, types
 from assets.antispam import antispam_earning, new_earning, antispam
 from commands.db import url_name, top_db, get_name, top_clans_db
 from commands.clans.db import clan_full_info
+from filters.custom import TextIn, StartsWith
 from user import BFGuser, BFGconst
-from assets import kb
+from assets import keyboards as kb
 
 
 def get_num_user(num: list, user_position: int | None) -> str:
@@ -151,6 +152,6 @@ async def top_clans(message: types.Message, user: BFGuser):
 
 
 def reg(dp: Dispatcher):
-	dp.register_message_handler(top, lambda message: message.text.lower() == 'топ')
-	dp.register_callback_query_handler(top_call, text_startswith='top-')
-	dp.register_message_handler(top_clans, lambda message: message.text.lower() == 'клан топ')
+	dp.message.register(top, TextIn("топ"))
+	dp.callback_query.register(top_call, StartsWith("top-"))
+	dp.message.register(top_clans, TextIn("клан топ"))

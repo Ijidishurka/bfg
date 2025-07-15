@@ -1,8 +1,10 @@
 from aiogram import Dispatcher, types
-from assets import kb
+
+from assets import keyboards as kb
 from assets.transform import transform_int as tr
 from assets.antispam import antispam_earning, new_earning, antispam
 from commands.entertaining.earnings.business import db
+from filters.custom import TextIn, StartsWith
 from user import BFGuser, BFGconst
 
 
@@ -178,11 +180,11 @@ async def sell_business(message: types.Message, user: BFGuser):
 
 
 def reg(dp: Dispatcher):
-    dp.register_message_handler(my_business, lambda message: message.text.lower() == 'мой бизнес')
-    dp.register_message_handler(business_info, lambda message: message.text.lower() == 'бизнес')
-    dp.register_message_handler(buy_business, lambda message: message.text.lower() == 'построить бизнес')
-    dp.register_callback_query_handler(withdraw_profit, text_startswith='business-sobrat')
-    dp.register_callback_query_handler(buy_territory, text_startswith='business-ter')
-    dp.register_callback_query_handler(buy_bsterritory, text_startswith='business-bis')
-    dp.register_callback_query_handler(payment_taxes, text_startswith='business-nalog')
-    dp.register_message_handler(sell_business, lambda message: message.text.lower() == 'продать бизнес')
+    dp.message.register(my_business, TextIn("мой бизнес"))
+    dp.message.register(business_info, TextIn("бизнес"))
+    dp.message.register(buy_business, TextIn("построить бизнес"))
+    dp.callback_query.register(withdraw_profit, StartsWith("business-sobrat"))
+    dp.callback_query.register(buy_territory, StartsWith("business-ter"))
+    dp.callback_query.register(buy_bsterritory, StartsWith("business-bis"))
+    dp.callback_query.register(payment_taxes, StartsWith("business-nalog"))
+    dp.message.register(sell_business, TextIn("продать бизнес"))

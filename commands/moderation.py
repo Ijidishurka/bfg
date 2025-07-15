@@ -1,6 +1,7 @@
-from aiogram import types, Dispatcher
-from datetime import timedelta
+from aiogram import types, Dispatcher, F
 from aiogram.types import ChatPermissions
+
+from datetime import timedelta
 from assets.antispam import antispam, moderation
 from commands.db import chek_user
 from assets.gettime import get_ptime
@@ -137,7 +138,7 @@ async def unban_cmd(message: types.Message, user: BFGuser):
 
 
 def reg(dp: Dispatcher):
-	dp.register_message_handler(mute_cmd, commands=['mute', 'мут', 'заткнуть'])
-	dp.register_message_handler(unmute_cmd, commands=['unmute', 'размут', 'говори'])
-	dp.register_message_handler(ban_cmd, commands=['ban', 'бан'])
-	dp.register_message_handler(unban_cmd, commands=['unban', 'разбан'])
+	dp.message.register(mute_cmd, F.text.startswith(("mute", "мут", "заткнуть")))
+	dp.message.register(unmute_cmd, F.text.startswith(("unmute", "размут", "говори")))
+	dp.message.register(ban_cmd, F.text.startswith(("ban", "бан",)))
+	dp.message.register(unban_cmd, F.text.startswith(("unban", "разбан")))

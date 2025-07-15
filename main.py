@@ -1,11 +1,13 @@
+from install import empty
+import asyncio
 import importlib
-from assets.logger import check_log_size
+
+from utils.logger import check_log_size
 from commands.admin.module_manager import load_modules
-from aiogram import executor
 from assets.auto import automatisation
 from commands.basic.ore.db import autokursbtc_new
-from bot import dp
 from utils.settings import init_settings
+from bot import bot, dp
 
 MODULES = [
     'commands.basic.property.main',
@@ -41,13 +43,13 @@ MODULES = [
 ]
 
 
-async def main(dp):
+async def main():
     check_log_size()
     init_settings()
     load_modules(dp)
     reg_handlers()
     await autokursbtc_new()
-    await automatisation()
+    await asyncio.gather(dp.start_polling(bot), automatisation())
 
 
 def reg_handlers():
@@ -58,4 +60,5 @@ def reg_handlers():
 
 
 if __name__ == '__main__':
-    executor.start_polling(dp, on_startup=main, skip_updates=True)
+    asyncio.run(main())
+    empty()

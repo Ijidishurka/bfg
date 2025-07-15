@@ -3,12 +3,13 @@ from aiogram import types, Dispatcher
 from assets.antispam import new_earning, antispam, antispam_earning
 from assets.transform import transform_int as tr
 from commands.entertaining.earnings.quarry import db
-from assets import kb
+from assets import keyboards as kb
+from filters.custom import StartsWith, TextIn
 from user import BFGuser, BFGconst
 
 
 @antispam
-async def quarry_list(message: types.Message, user: BFGuser):
+async def quarry_list(message: types.Message):
     await message.answer(f'''Привет! 🚀 Готов покорить мир карьеров?
 
 🛠 Построй свой первый карьер всего за 25 палладия! Для этого напиши "<code>Построить карьер</code>". Палладий можно получить, открыв рудные кейсы.
@@ -143,9 +144,9 @@ async def up_level(call: types.CallbackQuery, user: BFGuser):
     
 
 def reg(dp: Dispatcher):
-    dp.register_message_handler(my_quarry, lambda message: message.text.lower().startswith('мой карьер'))
-    dp.register_message_handler(quarry_list, lambda message: message.text.lower().startswith('карьер'))
-    dp.register_message_handler(buy_quarry, lambda message: message.text.lower().startswith('построить карьер'))
-    dp.register_callback_query_handler(withdraw_profit, text_startswith='quarry-sobrat')
-    dp.register_callback_query_handler(payment_taxes, text_startswith='quarry-nalog')
-    dp.register_callback_query_handler(up_level, text_startswith='quarry-lvl')
+    dp.message.register(my_quarry, TextIn("мой карьер"))
+    dp.message.register(quarry_list, TextIn("карьер"))
+    dp.message.register(buy_quarry, TextIn("построить карьер"))
+    dp.callback_query.register(withdraw_profit, StartsWith("quarry-sobrat"))
+    dp.callback_query.register(payment_taxes, StartsWith("quarry-nalog"))
+    dp.callback_query.register(up_level, StartsWith("quarry-lvl"))

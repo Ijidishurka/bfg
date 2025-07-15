@@ -6,6 +6,7 @@ from assets.antispam import antispam
 from commands.basic.ore import db
 import commands.basic.ore.dig
 from assets.transform import transform_int as tr
+from filters.custom import StartsWith, TextIn
 from user import BFGuser, BFGconst
 
 
@@ -132,11 +133,11 @@ async def buy_ratting_cmd(message: types.Message, user: BFGuser):
 
 
 def reg(dp: Dispatcher):
-    dp.register_message_handler(sell_btc_cmd, lambda message: message.text.lower().startswith(('продать биткоин', 'биткоин продать')))
-    dp.register_message_handler(buy_btc_cmd, lambda message: message.text.lower().startswith(('купить биткоин', 'биткоин купить')))
-    dp.register_message_handler(price_btc_cmd, lambda message: message.text.lower() in ['курс биткоина', 'курс биткоин', 'биткоин курс'])
-    dp.register_message_handler(rating_cmd, lambda message: message.text.lower() == 'рейтинг')
-    dp.register_message_handler(buy_ratting_cmd, lambda message: message.text.lower().startswith('рейтинг'))
-    dp.register_message_handler(sell_rating_cmd, lambda message: message.text.lower().startswith('продать рейтинг'))
+    dp.message.register(sell_btc_cmd, StartsWith("продать биткоин", "биткоин продать"))
+    dp.message.register(buy_btc_cmd, StartsWith("купить биткоин", "биткоин купить"))
+    dp.message.register(price_btc_cmd, TextIn("курс биткоина", "курс биткоин", "биткоин курс"))
+    dp.message.register(rating_cmd, TextIn("рейтинг"))
+    dp.message.register(buy_ratting_cmd, StartsWith("рейтинг"))
+    dp.message.register(sell_rating_cmd, StartsWith("продать рейтинг"))
 
     commands.basic.ore.dig.reg(dp)

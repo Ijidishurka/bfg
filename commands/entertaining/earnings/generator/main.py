@@ -2,8 +2,9 @@ from aiogram import types, Dispatcher
 
 import commands.entertaining.earnings.generator.db as db
 from assets.transform import transform_int as tr
-from assets import kb
+from assets import keyboards as kb
 from assets.antispam import new_earning, antispam, antispam_earning
+from filters.custom import TextIn, StartsWith
 from user import BFGuser, BFGconst
 
 
@@ -148,10 +149,10 @@ async def sell_generator_cmd(message: types.Message, user: BFGuser):
 
 
 def reg(dp: Dispatcher):
-    dp.register_message_handler(my_generator_cmd, lambda message: message.text.lower().startswith('мой генератор'))
-    dp.register_message_handler(generator_list_cmd, lambda message: message.text.lower().startswith('генератор'))
-    dp.register_message_handler(buy_generator_cmd, lambda message: message.text.lower().startswith('построить генератор'))
-    dp.register_callback_query_handler(withdraw_profit_cmd, text_startswith='generator-sobrat')
-    dp.register_callback_query_handler(buy_turbine_cmd, text_startswith='generator-buy-turb')
-    dp.register_callback_query_handler(payment_taxes_cmd, text_startswith='generator-nalog')
-    dp.register_message_handler(sell_generator_cmd, lambda message: message.text.lower() == 'продать генератор')
+    dp.message.register(generator_list_cmd, TextIn("генератор"))
+    dp.message.register(my_generator_cmd, TextIn("мой генератор"))
+    dp.message.register(buy_generator_cmd, TextIn("построить генератор"))
+    dp.callback_query.register(withdraw_profit_cmd, StartsWith("generator-sobrat"))
+    dp.callback_query.register(buy_turbine_cmd, StartsWith("generator-buy-turb"))
+    dp.callback_query.register(payment_taxes_cmd, StartsWith("generator-nalog"))
+    dp.message.register(sell_generator_cmd, TextIn("продать генератор"))

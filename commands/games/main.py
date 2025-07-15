@@ -4,6 +4,7 @@ from assets.transform import transform_int as tr
 from commands.games.db import *
 from assets.antispam import antispam
 from assets.gettime import gametime
+from filters.custom import StartsWith
 from user import BFGuser, BFGconst
 
 
@@ -22,20 +23,21 @@ async def game_check(message: types.Message, user: BFGuser, index=1) -> int | No
         summ = get_summ(message, int(user.balance), index)
     except:
         await message.answer(f'{user.url}, вы не ввели ставку для игры {lose}')
-        return
+        return None
 
     if int(user.balance) < summ:
         await message.answer(f'{user.url}, ваша ставка не может быть больше вашего баланса {lose}')
-        return
+        return None
 
     if summ < 10:
         await message.answer(f'{user.url}, ваша ставка не может быть меньше 10$ {lose}')
-        return
+        return None
 
     gt = await gametime(user.id)
+
     if gt == 1:
         await message.answer(f'{user.url}, играть можно каждые 5 секунды. Подождите немного {lose}')
-        return
+        return None
 
     return summ
 
@@ -258,11 +260,11 @@ async def trade_cmd(message: types.Message, user: BFGuser):
 
 
 def reg(dp: Dispatcher):
-    dp.register_message_handler(darts_cmd, lambda message: message.text.lower().startswith('дартс'))
-    dp.register_message_handler(dice_cmd, lambda message: message.text.lower().startswith('кубик'))
-    dp.register_message_handler(basketball_cmd, lambda message: message.text.lower().startswith('баскетбол'))
-    dp.register_message_handler(football_cmd, lambda message: message.text.lower().startswith('футбол'))
-    dp.register_message_handler(bowling_cmd, lambda message: message.text.lower().startswith('боулинг'))
-    dp.register_message_handler(casino_cmd, lambda message: message.text.lower().startswith('казино'))
-    dp.register_message_handler(spin_cmd, lambda message: message.text.lower().startswith('спин'))
-    dp.register_message_handler(trade_cmd, lambda message: message.text.lower().startswith(("трейд вверх", "трейд вниз")))
+    dp.message.register(darts_cmd, StartsWith("дартс"))
+    dp.message.register(dice_cmd, StartsWith("кубик"))
+    dp.message.register(basketball_cmd, StartsWith("баскетбол"))
+    dp.message.register(football_cmd, StartsWith("футбол"))
+    dp.message.register(bowling_cmd, StartsWith("боулинг"))
+    dp.message.register(casino_cmd, StartsWith("казино"))
+    dp.message.register(spin_cmd, StartsWith("спин"))
+    dp.message.register(trade_cmd, StartsWith("трейд вверх", "трейд вниз"))
