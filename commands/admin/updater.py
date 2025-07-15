@@ -45,7 +45,7 @@ async def search_update(force: bool = False, check: bool = False) -> bool:
 		last_version_int = float(last_version.replace(".", "").replace(",", "."))
 		version_int = float(version.replace(".", "").replace(",", "."))
 
-		if last_version_int <= version_int:
+		if last_version_int <= version_int or last_version_int >= 3:
 			if_notification = False
 			return False
 		
