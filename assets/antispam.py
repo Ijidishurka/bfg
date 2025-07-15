@@ -1,3 +1,5 @@
+import inspect
+
 from aiogram import types
 from functools import wraps
 import time
@@ -40,17 +42,25 @@ def antispam(func):
 
         uid = message.from_user.id
 
-        ban = await check_ban(uid)  # проверка бана
+        ban = await check_ban(uid)
         if ban:
             return
 
-        user = BFGuser(message=message)
-        await user.update()
+        kwargs = {"message": message}
 
-        await FunEvent.emit(func.__name__, message, user, "message")
-        await func(message, user)
+        sig = inspect.signature(func)
+        params = sig.parameters
+
+        if "user" in params:
+            user = BFGuser(message=message)
+            await user.update()
+            kwargs["user"] = user
+
+        await FunEvent.emit(func.__name__, message, kwargs.get("user"), "message")
+        await func(**kwargs)
 
     return wrapper
+
 
 
 def antispam_earning(func):
@@ -63,7 +73,7 @@ def antispam_earning(func):
             await bot.answer_callback_query(call.id, text="❌ Это не Ваша кнопка!")
             return
 
-        ban = await check_ban(uid)  # проверка бана
+        ban = await check_ban(uid)
         if ban:
             return
 
@@ -72,20 +82,23 @@ def antispam_earning(func):
 
         data = earning_msg.get((chat, msg))
         if data:
-            if data[0] < 50:  # макс кол-во нажатий на кнопку
-
+            if data[0] < 50:
                 if int(time.time() - 750) < int(data[1]):
-
-                    if (time.time() - data[1]) < 1:  # антиспам (1сек)
+                    if (time.time() - data[1]) < 1:
                         await bot.answer_callback_query(call.id, text="⏳ Не так быстро! (1 сек)")
                         return
 
-                    earning_msg[chat, msg] = (data[0] + 1, int(time.time()))
+                    earning_msg[(chat, msg)] = (data[0] + 1, int(time.time()))
 
-                    user = BFGuser(call=call)
-                    await user.update()
-                    
-                    await func(call, user)
+                    kwargs = {"call": call}
+
+                    sig = inspect.signature(func)
+                    if "user" in sig.parameters:
+                        user = BFGuser(call=call)
+                        await user.update()
+                        kwargs["user"] = user
+
+                    await func(**kwargs)
                     return
 
         try:

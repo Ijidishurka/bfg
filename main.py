@@ -5,7 +5,7 @@ from aiogram import executor
 from assets.auto import automatisation
 from commands.basic.ore.db import autokursbtc_new
 from bot import dp
-
+from utils.settings import init_settings
 
 MODULES = [
     'commands.basic.property.main',
@@ -14,6 +14,7 @@ MODULES = [
     'commands.admin.promo',
     'commands.admin.updater',
     'commands.admin.text_command',
+    'commands.admin.donat',
     'commands.entertaining.earnings.farm.main',
     'commands.entertaining.earnings.business.main',
     'commands.entertaining.earnings.garden.main',
@@ -21,7 +22,8 @@ MODULES = [
     'commands.entertaining.earnings.tree.main',
     'commands.entertaining.earnings.quarry.main',
     'commands.basic.balance',
-    'commands.basic.status.main',
+    'commands.basic.donat.main',
+    'commands.basic.donat.stars',
     'commands.basic.ore.main',
     'commands.help',
     'commands.entertaining.rz',
@@ -40,6 +42,8 @@ MODULES = [
 
 
 async def main(dp):
+    check_log_size()
+    init_settings()
     load_modules(dp)
     reg_handlers()
     await autokursbtc_new()

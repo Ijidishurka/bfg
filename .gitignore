@@ -69,6 +69,7 @@ db.sqlite3-journal
 config.py
 bot_errors.txt
 logs.txt
+settings.json
 
 # Flask stuff:
 instance/

@@ -1,5 +1,16 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
 
+from utils.settings import get_setting
+
+
+def admin_menu() -> ReplyKeyboardMarkup:
+	keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+	keyboard.add(KeyboardButton("💰 Донат"))
+	keyboard.add(KeyboardButton("📣 Реклама"), KeyboardButton("🔄 Перезагрузка"))
+	keyboard.add(KeyboardButton("✨ Промокоды"), KeyboardButton("📥 Выгрузка"))
+	keyboard.add(KeyboardButton("🌟 Модули"), KeyboardButton("🔙 Закрыть меню"))
+	return keyboard
+
 
 def my_modules_kb(module_keys: list, index: int, user_id: int, mod: str) -> InlineKeyboardMarkup:
 	keyboard = InlineKeyboardMarkup(row_width=3)
@@ -28,7 +39,7 @@ def load_modules_kb(module_keys: list, index: int, user_id: int, mod: str, MODUL
 		InlineKeyboardButton(text=f"{index+1}/{len(module_keys)}", callback_data="userbotik"),
 		InlineKeyboardButton(text="›", callback_data=f"catalogmod-list_{index}_up|{user_id}")
 	)
-	
+
 	if mod in MODULES:
 		keyboard.add(InlineKeyboardButton(text="✅ Загружен", callback_data="userbotik"))
 	else:
@@ -47,14 +58,6 @@ def unloading_menu() -> ReplyKeyboardMarkup:
 	keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
 	keyboard.add(KeyboardButton("💾 Бд"), KeyboardButton("❗️ Ошибки"), KeyboardButton("📋 Логи"))
 	keyboard.add(KeyboardButton("🔙 Назад"))
-	return keyboard
-
-
-def admin_menu() -> ReplyKeyboardMarkup:
-	keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
-	keyboard.add(KeyboardButton("📣 Реклама"), KeyboardButton("🔄 Перезагрузка"))
-	keyboard.add(KeyboardButton("✨ Промокоды"), KeyboardButton("📥 Выгрузка"))
-	keyboard.add(KeyboardButton("🌟 Модули"))
 	return keyboard
 
 
@@ -84,3 +87,18 @@ def promo_menu() -> ReplyKeyboardMarkup:
 	keyboard.add(KeyboardButton("ℹ️ Промо инфо"))
 	keyboard.add(KeyboardButton("🔙 Назад"))
 	return keyboard
+
+
+def donat_menu(user_id: int) -> InlineKeyboardMarkup:
+	keyboards = InlineKeyboardMarkup()
+
+	donat_emj= "✅" if get_setting(key="stars_donat", default=False) else "❌"
+	donat_action = "false" if get_setting(key="stars_donat", default=False) else "true"
+
+	refund_emj = "✅" if get_setting(key="refund", default=False) else "❌"
+	refund_action = "false" if get_setting(key="refund", default=False) else "true"
+
+	keyboards.add(InlineKeyboardButton(text=f"{donat_emj} Донат через звёзды", callback_data=f"adm-donat_1_{donat_action}|{user_id}"))
+	keyboards.add(InlineKeyboardButton(text=f"{refund_emj} Возврат средств", callback_data=f"adm-donat_2_{refund_action}|{user_id}"))
+
+	return keyboards

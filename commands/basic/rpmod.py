@@ -78,5 +78,4 @@ pattern = rf'\b({rplist_keys})\b'
 
 
 def reg(dp: Dispatcher):
-    dp.register_message_handler(rp_cmd, regexp=pattern)
-	
+	dp.register_message_handler(rp_cmd, regexp=pattern)

@@ -32,5 +32,6 @@ class FunEventManager:
                 await listener(*args, **kwargs)
                 
                 
-CastomEvent = EventManager()
+CustomEvent = EventManager()
+CastomEvent = CustomEvent  # чтоб модули продолжали работать
 FunEvent = FunEventManager()

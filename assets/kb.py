@@ -1,6 +1,6 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 import config as cfg
-import random
+from utils.settings import get_setting
 
 
 def help_menu(user_id):
@@ -192,4 +192,56 @@ def dell_clan(user_id, cid):
     k1 = InlineKeyboardButton("✅ Да, удалить", callback_data=f"clan-dell_true|{cid}|{user_id}")
     k2 = InlineKeyboardButton("❌ Нет, оставить", callback_data=f"clan-dell_false|{cid}|{user_id}")
     keyboards.add(k1, k2)
+    return keyboards
+
+
+def donat_menu(user_id: int) -> InlineKeyboardMarkup:
+    keyboards = InlineKeyboardMarkup()
+
+    keyboards.add(InlineKeyboardButton(text="🛒 Наш магазин", callback_data=f"our-store|{user_id}"))
+
+    if get_setting(key="stars_donat", default=False):
+        keyboards.add(InlineKeyboardButton(text="⭐️ Донат через звёзды", callback_data=f"donat-stars|{user_id}"))
+
+    if get_setting(key="refund", default=False):
+        keyboards.add(InlineKeyboardButton(text="⚡️ Возврат средств", callback_data=f"refund|{user_id}"))
+
+    keyboards.add(InlineKeyboardButton(text="🍀 Донат через админа", url=f"t.me/{cfg.admin_username.replace('@', '')}"))
+
+    return keyboards
+
+
+def donat_back(user_id: int) -> InlineKeyboardMarkup:
+    keyboards = InlineKeyboardMarkup()
+    keyboards.add(InlineKeyboardButton(text="🔙 Назад", callback_data=f"donat-menu|{user_id}"))
+    return keyboards
+
+
+def donat_select_amount(user_id: int) -> InlineKeyboardMarkup:
+    keyboards = InlineKeyboardMarkup()
+
+    keyboards.add(
+        InlineKeyboardButton(text="100⭐️", callback_data=f"select-stars_100|{user_id}"),
+        InlineKeyboardButton(text="250⭐️", callback_data=f"select-stars_250|{user_id}")
+    )
+
+    keyboards.add(
+        InlineKeyboardButton(text="500⭐️", callback_data=f"select-stars_500|{user_id}"),
+        InlineKeyboardButton(text="750⭐️", callback_data=f"select-stars_750|{user_id}")
+    )
+
+    keyboards.add(
+        InlineKeyboardButton(text="1000⭐️", callback_data=f"select-stars_1000|{user_id}"),
+        InlineKeyboardButton(text="1500⭐️", callback_data=f"select-stars_1500|{user_id}")
+    )
+
+    keyboards.add(InlineKeyboardButton(text="🔙 Назад", callback_data=f"donat-menu|{user_id}"))
+
+    return keyboards
+
+
+def confirm_donat(user_id: int, stars: int) -> InlineKeyboardMarkup:
+    keyboards = InlineKeyboardMarkup()
+    keyboards.add(InlineKeyboardButton(text="✅ Подтвердить", callback_data=f"buy-stars_{stars}|{user_id}"))
+    keyboards.add(InlineKeyboardButton(text="🔙 Назад", callback_data=f"donat-menu|{user_id}"))
     return keyboards

@@ -10,7 +10,7 @@ from commands.admin import keyboards as kb
 import config as cfg
 from bot import bot
 from user import BFGuser, BFGconst
-from commands.admin.state import NewPromoState, DellPromoState, PromoInfoState
+from states.admin import NewPromoState, DellPromoState, PromoInfoState
 
 
 @admin_only(private=True)
