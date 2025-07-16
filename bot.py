@@ -1,4 +1,4 @@
-# bot version: 3.0.0,0
+# bot version: 3.0.0,1
 from aiogram.client.default import DefaultBotProperties
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram import Bot, Dispatcher

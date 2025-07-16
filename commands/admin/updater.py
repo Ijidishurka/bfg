@@ -6,6 +6,8 @@ import time
 import sys
 import os
 
+from aiogram.types import FSInputFile
+
 from assets.antispam import admin_only
 from assets import keyboards as kb
 from utils.settings import get_setting, update_setting
@@ -111,9 +113,9 @@ async def bot_update(call: types.CallbackQuery) -> None:
 	if not check and force == 0:
 		await bot.answer_callback_query(call.id, show_alert=True, text="🤩 У вас уже установлена последняя версия.")
 		return
-	
-	with open("users.db", "rb") as file:
-		await bot.send_document(call.message.chat.id, file, caption=f"🛡 Резервная копия базы данных")
+
+	file = FSInputFile("users.db")
+	await bot.send_document(call.message.chat.id, file, caption=f"🛡 Резервная копия базы данных")
 	
 	await call.message.edit_text("<i>🎩 Установка обновления...</i>")
 	
