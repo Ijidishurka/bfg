@@ -321,7 +321,7 @@ async def upd_chat_db(chat_id: int) -> None:
     else:
         res = res[0]
 
-    count = await bot.get_chat_members_count(chat_id)
+    count = await bot.get_chat_member_count(chat_id)
     if res != count:
         cursor.execute("UPDATE chats SET users = ? WHERE chat_id = ?", (count, chat_id))
         conn.commit()

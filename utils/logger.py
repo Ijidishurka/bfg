@@ -1,7 +1,7 @@
 import logging
 import os
 
-log_level = logging.INFO
+log_level = logging.ERROR
 log_file_path = "bot_errors.txt"
 max_log_size = 1024 * 100
 

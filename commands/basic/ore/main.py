@@ -22,20 +22,20 @@ async def sell_btc_cmd(message: types.Message, user: BFGuser):
     summ_btc = Decimal(str(summ_btc))
     btc = Decimal(str(user.btc))
 
-    kurs = await db.getkurs()
+    kurs = await db.get_rate()
     summ = summ_btc * kurs
     
     if btc < summ_btc:
-        await message.answer(f'{user.url}, вы не можете продать столько BTC {lose}')
+        await message.answer(f"{user.url}, вы не можете продать столько BTC {lose}")
         return
     
     if summ_btc <= 0:
-        await message.answer(f'{user.url}, нельзя продавать отрицательно или же нулевое количество BTC {lose}')
+        await message.answer(f"{user.url}, нельзя продавать отрицательно или же нулевое количество BTC {lose}")
         return
         
-    await message.answer(f'{user.url}, вы успешно продали {tr(summ_btc)} BTC за {tr(summ)}$ {win}')
-    await user.btc.upd(summ_btc, '-')
-    await user.balance.upd(summ, '+')
+    await message.answer(f"{user.url}, вы успешно продали {tr(summ_btc)} BTC за {tr(summ)}$ {win}")
+    await user.btc.upd(summ_btc, "-")
+    await user.balance.upd(summ, "+")
 
 
 @antispam
@@ -45,36 +45,36 @@ async def buy_btc_cmd(message: types.Message, user: BFGuser):
     try:
         summ_btc = int(message.text.split()[2])
     except:
-        await message.answer(f'{user.url}, вы не ввели количество BTC которое хотите купить {lose}')
+        await message.answer(f"{user.url}, вы не ввели количество BTC которое хотите купить {lose}")
         return
 
     summ_btc = Decimal(summ_btc)
 
-    kurs = await db.getkurs()
+    kurs = await db.get_rate()
     summ = summ_btc * kurs
 
     if Decimal(str(user.balance)) < summ:
-        await message.answer(f'{user.url}, у вас недостаточно денег для покупки BTC {lose}')
+        await message.answer(f"{user.url}, у вас недостаточно денег для покупки BTC {lose}")
         return
         
     if summ_btc <= 0:
-        await message.answer(f'{user.url}, нельзя покупать отрицательно или же нулевое количество BTC {lose}')
+        await message.answer(f"{user.url}, нельзя покупать отрицательно или же нулевое количество BTC {lose}")
         return
 
-    await message.answer(f'{user.url}, вы успешно купили {tr(summ_btc)} BTC за {tr(summ)}$ {win}')
-    await user.btc.upd(summ_btc, '+')
-    await user.balance.upd(summ, '-')
+    await message.answer(f"{user.url}, вы успешно купили {tr(summ_btc)} BTC за {tr(summ)}$ {win}")
+    await user.btc.upd(summ_btc, "+")
+    await user.balance.upd(summ, "-")
 
 
 @antispam
 async def price_btc_cmd(message: types.Message, user: BFGuser):
-    kurs = await db.getkurs()
-    await message.answer(f'{user.url}, на данный момент курс 1 BTC составляет - {tr(kurs)}$ 🌐\n\n{BFGconst.ads}', disable_web_page_preview=True)
+    kurs = await db.get_rate()
+    await message.answer(f"{user.url}, на данный момент курс 1 BTC составляет - {tr(kurs)}$ 🌐\n\n{BFGconst.ads}", disable_web_page_preview=True)
 
 
 @antispam
 async def rating_cmd(message: types.Message, user: BFGuser):
-    await message.answer(f'''{user.url}, ваш рейтинг {user.rating.tr()}👑\n\n{BFGconst.ads}''', disable_web_page_preview=True)
+    await message.answer(f"""{user.url}, ваш рейтинг {user.rating.tr()}👑\n\n{BFGconst.ads}""", disable_web_page_preview=True)
 
 
 @antispam
@@ -93,16 +93,16 @@ async def sell_rating_cmd(message: types.Message, user: BFGuser):
     rating = Decimal(str(user.rating))
 
     if rating < summ_r:
-        await message.answer(f'{user.url}, у вас недостаточно рейтинга для его продажи {lose}')
+        await message.answer(f"{user.url}, у вас недостаточно рейтинга для его продажи {lose}")
         return
     
     if rating - summ_r < 0 and summ_r <= 0:
-        await message.answer(f'{user.url}, вы неправильно ввели число рейтинга которое хотите продать {lose}')
+        await message.answer(f"{user.url}, вы неправильно ввели число рейтинга которое хотите продать {lose}")
         return
 
-    await message.answer(f'{user.url}, вы понизили количество вашего рейтинга на {tr(summ_r)}👑 за {tr(summ)}$ {win}')
-    await user.rating.upd(summ_r, '-')
-    await user.balance.upd(summ, '+')
+    await message.answer(f"{user.url}, вы понизили количество вашего рейтинга на {tr(summ_r)}👑 за {tr(summ)}$ {win}")
+    await user.rating.upd(summ_r, "-")
+    await user.balance.upd(summ, "+")
 
 
 @antispam
@@ -112,7 +112,7 @@ async def buy_ratting_cmd(message: types.Message, user: BFGuser):
     try:
         r_summ = int(message.text.split()[1])
     except:
-        await message.answer(f'{user.url},  вы неправильно ввели число рейтинга которое хотите купить {lose}')
+        await message.answer(f"{user.url},  вы неправильно ввели число рейтинга которое хотите купить {lose}")
         return
 
     r_summ = Decimal(r_summ)
@@ -120,16 +120,16 @@ async def buy_ratting_cmd(message: types.Message, user: BFGuser):
     summ = r_summ * kurs
     
     if Decimal(str(user.balance)) < summ:
-        await message.answer(f'{user.url}, у вас недостаточно денег для покупки рейтинга {lose}')
+        await message.answer(f"{user.url}, у вас недостаточно денег для покупки рейтинга {lose}")
         return
     
     if r_summ <= 0:
-        await message.answer(f'{user.url}, вы неправильно ввели число рейтинга которое хотите купить {lose}')
+        await message.answer(f"{user.url}, вы неправильно ввели число рейтинга которое хотите купить {lose}")
         return
 
-    await message.answer(f'{user.url}, вы повысили количество вашего рейтинга на {tr(r_summ)}👑 за {tr(summ)}$ {win}')
-    await user.rating.upd(r_summ, '+')
-    await user.balance.upd(summ, '-')
+    await message.answer(f"{user.url}, вы повысили количество вашего рейтинга на {tr(r_summ)}👑 за {tr(summ)}$ {win}")
+    await user.rating.upd(r_summ, "+")
+    await user.balance.upd(summ, "-")
 
 
 def reg(dp: Dispatcher):

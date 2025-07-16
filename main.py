@@ -5,7 +5,7 @@ import importlib
 from utils.logger import check_log_size
 from commands.admin.module_manager import load_modules
 from assets.auto import automatisation
-from commands.basic.ore.db import autokursbtc_new
+from commands.basic.ore.db import auto_rate_btc_new
 from utils.settings import init_settings
 from bot import bot, dp
 
@@ -48,7 +48,7 @@ async def main():
     init_settings()
     load_modules(dp)
     reg_handlers()
-    await autokursbtc_new()
+    await auto_rate_btc_new()
     await asyncio.gather(dp.start_polling(bot), automatisation())
 
 

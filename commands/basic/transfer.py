@@ -35,36 +35,36 @@ async def transfer_cmd(message: types.Message, user: BFGuser):
         reply_user_id = message.reply_to_message.from_user.id
         url2 = await url_name(reply_user_id)
     except:
-        await message.reply(f'{user.url}, чтобы передать деньги нужно ответить на сообщение пользователя {lose}')
+        await message.reply(f"{user.url}, чтобы передать деньги нужно ответить на сообщение пользователя {lose}")
         return
 
     if user_id == reply_user_id:
         return
 
     try:
-        summ = message.text.split()[1].replace('е', 'e')
+        summ = message.text.split()[1].replace("е", "e")
         summ = int(float(summ))
     except:
-        await message.reply(f'{user.url}, вы не ввели сумму которую хотите передать игроку {lose}')
+        await message.reply(f"{user.url}, вы не ввели сумму которую хотите передать игроку {lose}")
         return
 
     limit = Decimal(str(limit)) + Decimal(int(user.perlimit))
     d_per = Decimal(int(user.per)) + Decimal(str(summ))
 
     if d_per > limit:
-        await message.reply(f'{user.url}, вы уже исчерпали свой дневной лимит передачи денег')
+        await message.reply(f"{user.url}, вы уже исчерпали свой дневной лимит передачи денег")
         return
 
     if summ > 0:
         if int(user.balance) >= summ:
-            await message.answer(f'Вы передали {tr(summ)}$ игроку {url2} {win}')
+            await message.answer(f"Вы передали {tr(summ)}$ игроку {url2} {win}")
             await getperevod(summ, user_id, reply_user_id)
-            await new_log(f'#перевод\n{user_id}\nСумма: {tr(summ)}\nПередал: {reply_user_id}', 'money_transfers')
+            await new_log(f"#перевод\n{user_id}\nСумма: {tr(summ)}\nПередал: {reply_user_id}", "money_transfers")
         else:
-            await message.reply(f'{user.url}, вы не можете передать больше чем у вас есть на балансе {lose}')
+            await message.reply(f"{user.url}, вы не можете передать больше чем у вас есть на балансе {lose}")
 
     else:
-        await message.reply(f'{user.url}, вы не можете передать отрицательное число игроку {lose}')
+        await message.reply(f"{user.url}, вы не можете передать отрицательное число игроку {lose}")
 
 
 @antispam
@@ -75,9 +75,9 @@ async def limit_cmd(message: types.Message, user: BFGuser):
     per = int(user.per)
     ost = limit - per
 
-    await message.reply(f'''{user.url}, здесь ваш лимит на сегодня: {tr(limit)}$
+    await message.reply(f"""{user.url}, здесь ваш лимит на сегодня: {tr(limit)}$
 💫 Вы уже передали: {tr(per)}$
-🚀 У вас осталось: {tr(ost)}$ для передачи!''')
+🚀 У вас осталось: {tr(ost)}$ для передачи!""")
 
 
 @antispam
@@ -86,40 +86,40 @@ async def give_money(message: types.Message, user: BFGuser):
 
     if not (user.user_id in cfg.admin or user.status == 4):
         await message.answer(
-            '👮‍♂️ Вы не являетесь администратором бота чтобы использовать данную команду.\n'
-            'Для покупки введи команду "Донат"')
+            "👮‍♂️ Вы не являетесь администратором бота чтобы использовать данную команду.\n"
+            "Для покупки введи команду \"Донат\"")
         return
 
     try:
         r_user_id = message.reply_to_message.from_user.id
         r_url = await url_name(r_user_id)
     except:
-        await message.answer(f'{user.url}, чтобы выдать деньги нужно ответить на сообщение пользователя {lose}')
+        await message.answer(f"{user.url}, чтобы выдать деньги нужно ответить на сообщение пользователя {lose}")
         return
 
     try:
-        summ = message.text.split()[1].replace('е', 'e')
+        summ = message.text.split()[1].replace("е", "e")
         summ = int(float(summ))
     except:
-        await message.answer(f'{user.url}, вы не ввели сумму которую хотите выдать {lose}')
+        await message.answer(f"{user.url}, вы не ввели сумму которую хотите выдать {lose}")
         return
 
     if user.user_id in cfg.admin:
-        await give_money_db(user.user_id, r_user_id, summ, 'rab')
-        await message.answer(f'{user.url}, вы выдали {tr(summ)}$ пользователю {r_url}  {win}')
+        await give_money_db(user.user_id, r_user_id, summ, "rab")
+        await message.answer(f"{user.url}, вы выдали {tr(summ)}$ пользователю {r_url}  {win}")
     else:
-        res = await give_money_db(user.user_id, r_user_id, summ, 'adm')
-        if res == 'limit':
-            await message.answer(f'{user.url}, вы достигли лимита на выдачу денег  {lose}')
+        res = await give_money_db(user.user_id, r_user_id, summ, "adm")
+        if res == "limit":
+            await message.answer(f"{user.url}, вы достигли лимита на выдачу денег  {lose}")
             return
 
-        await message.answer(f'{user.url}, вы выдали {tr(summ)}$ пользователю {r_url}  {win}')
+        await message.answer(f"{user.url}, вы выдали {tr(summ)}$ пользователю {r_url}  {win}")
 
-    await new_log(f'#выдача\nИгрок {user.user_id}\nСумма: {tr(summ)}$\nИгроку {r_user_id}', 'issuance_money')  # new log
+    await new_log(f"#выдача\nИгрок {user.user_id}\nСумма: {tr(summ)}$\nИгроку {r_user_id}", "issuance_money")  # new log
 
 
 @admin_only()
-async def give_bcoins(message: types.Message, user: BFGuser):
+async def give_bcoins(message: types.Message):
     user_id = message.from_user.id
     win, lose = BFGconst.emj()
 
@@ -127,19 +127,19 @@ async def give_bcoins(message: types.Message, user: BFGuser):
         r_user_id = message.reply_to_message.from_user.id
         r_url = await url_name(user_id)
     except:
-        await message.answer(f'{user.url}, чтобы выдать деньги нужно ответить на сообщение пользователя {lose}')
+        await message.answer(f"Админ, чтобы выдать деньги нужно ответить на сообщение пользователя {lose}")
         return
 
     try:
-        summ = message.text.split()[1].replace('е', 'e')
+        summ = message.text.split()[1].replace("е", "e")
         summ = int(float(summ))
     except:
-        await message.answer(f'{user.url}, вы не ввели сумму которую хотите выдать {lose}')
+        await message.answer(f"Админ, вы не ввели сумму которую хотите выдать {lose}")
         return
 
     await give_bcoins_db(r_user_id, summ)
-    await message.answer(f'{user.url}, вы выдали {tr(summ)}💳 пользователю {r_url}  {win}')
-    await new_log(f'#бкоин-выдача\nАдмин {user_id}\nСумма: {tr(summ)}$\nПользователю {r_user_id}', 'issuance_bcoins')
+    await message.answer(f"Админ, вы выдали {tr(summ)}💳 пользователю {r_url}  {win}")
+    await new_log(f"#бкоин-выдача\nАдмин {user_id}\nСумма: {tr(summ)}$\nПользователю {r_user_id}", "issuance_bcoins")
 
 
 def reg(dp: Dispatcher):

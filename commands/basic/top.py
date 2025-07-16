@@ -11,8 +11,8 @@ from assets import keyboards as kb
 def get_num_user(num: list, user_position: int | None) -> str:
 	if user_position is not None and user_position <= 999:
 		emojis = ["0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣"]
-		return ''.join(emojis[int(digit)] for digit in num)
-	return '➡️9️⃣9️⃣9️⃣'
+		return "".join(emojis[int(digit)] for digit in num)
+	return "➡️9️⃣9️⃣9️⃣"
 
 
 async def get_user_position(top_players: list, user_id) -> int | None:
@@ -28,11 +28,11 @@ def transform(summ: int) -> str:
 	summ = int(summ)
 	if summ > 100_000_000_000_000:
 		return "{:.2e}".format(float(summ))
-	return "{:,}".format(summ).replace(',', '.')
+	return "{:,}".format(summ).replace(",", ".")
 
 
 async def get_username(tab: str, data: tuple) -> str:
-	if tab != 'users':
+	if tab != "users":
 		return await get_name(data[0])
 	return data[1]
 
@@ -91,38 +91,38 @@ async def handle_top_earning(call, tab, st, index, top, top_emj) -> None:
 
 @antispam
 async def top(message: types.Message, user: BFGuser):
-	msg = await message.answer(f'{user.url}, выберите ниже топ который хотите открыть', reply_markup=kb.top(user.user_id, 'None'))
+	msg = await message.answer(f"{user.url}, выберите ниже топ который хотите открыть", reply_markup=kb.top(user.user_id, "None"))
 	await new_earning(msg)
 
 
 @antispam_earning
 async def top_call(call: types.CallbackQuery, user: BFGuser):
-	tab = call.data.split('-')[1].split('|')[0]
-	type = call.data.split('|')[2]
+	tab = call.data.split("-")[1].split("|")[0]
+	type = call.data.split("|")[2]
 	
 	if tab == type:
 		return
 
-	if tab == 'rating':
-		await handle_top(call, 'users', 'rating', 13, 'рейтингу', '👑')
-	elif tab == 'balance':
-		await handle_top(call, 'users', 'balance', 2, 'балансу', '💲')
-	elif tab == 'exp':
-		await handle_top(call, 'users', 'exp', 7, 'опыту', '🏆')
-	elif tab == 'yen':
-		await handle_top(call, 'users', 'yen', 22, 'йенам', '💴')
-	elif tab == 'case1':
-		await handle_top(call, 'users', 'case1', 9, 'обычным кейсам', '📦')
-	elif tab == 'case2':
-		await handle_top(call, 'users', 'case2', 10, 'золотым кейсам', '🏵')
-	elif tab == 'case3':
-		await handle_top(call, 'users', 'case3', 11, 'рудным кейсам', '🏺')
-	elif tab == 'case4':
-		await handle_top(call, 'users', 'case4', 12, 'материальным кейсам', '🌌')
-	elif tab == 'cards':
-		await handle_top_earning(call, 'ferma', 'cards', 3, 'фермам', '🧰')
-	elif tab == 'bsterritory':
-		await handle_top_earning(call, 'business', 'bsterritory', 4, 'бизнесам', '🗄')
+	if tab == "rating":
+		await handle_top(call, "users", "rating", 13, "рейтингу", "👑")
+	elif tab == "balance":
+		await handle_top(call, "users", "balance", 2, "балансу", "💲")
+	elif tab == "exp":
+		await handle_top(call, "users", "exp", 7, "опыту", "🏆")
+	elif tab == "yen":
+		await handle_top(call, "users", "yen", 22, "йенам", "💴")
+	elif tab == "case1":
+		await handle_top(call, "users", "case1", 9, "обычным кейсам", "📦")
+	elif tab == "case2":
+		await handle_top(call, "users", "case2", 10, "золотым кейсам", "🏵")
+	elif tab == "case3":
+		await handle_top(call, "users", "case3", 11, "рудным кейсам", "🏺")
+	elif tab == "case4":
+		await handle_top(call, "users", "case4", 12, "материальным кейсам", "🌌")
+	elif tab == "cards":
+		await handle_top_earning(call, "ferma", "cards", 3, "фермам", "🧰")
+	elif tab == "bsterritory":
+		await handle_top_earning(call, "business", "bsterritory", 4, "бизнесам", "🗄")
 
 
 @antispam
@@ -146,7 +146,7 @@ async def top_clans(message: types.Message, user: BFGuser):
 		emoji = get_num_user(str(user_position), user_position)
 		top_message += f"{emoji} {d[2]} — {d[12]}👑"
 
-	top_message += f'\n\n{BFGconst.ads}'
+	top_message += f"\n\n{BFGconst.ads}"
 
 	await message.answer(top_message)
 

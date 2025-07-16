@@ -5,7 +5,7 @@ from commands.entertaining.earnings.business.db import autobusiness
 from commands.entertaining.earnings.garden.db import autogarden
 from commands.entertaining.earnings.generator.db import autogen
 from commands.entertaining.earnings.tree.db import autotree
-from commands.basic.ore.db import autoenergy, autokursbtc_new
+from commands.basic.ore.db import auto_energy, auto_rate_btc_new
 from commands.basic.bank.db import autobank
 from commands.admin.updater import search_update, check_updates
 from commands.db import reset_limit, update_ads_const
@@ -32,14 +32,14 @@ async def autocommands() -> None:
 async def autocommands2() -> None:
     """Каждые 15 минут"""
     await search_update()
-    await autoenergy()
+    await auto_energy()
 
 
 async def autocommands3() -> None:
     """Каждые 5 минут"""
     # await autokursbtc() изменение курса на рандом число
     # Сейчас курс идет за настоящим BTC (autokursbtc_new())
-    await autokursbtc_new()
+    await auto_rate_btc_new()
 
 
 async def autocommands4() -> None:

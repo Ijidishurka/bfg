@@ -62,7 +62,7 @@ async def take_the_money(message: types.Message):
 
     try:
         summ = message.text.split()[1].replace('е', 'e')
-        summ = str(float(summ))
+        summ = int(float(summ))
     except:
         await message.answer(f'{url}, вы не ввели сумму которую хотите забрать.')
         return
