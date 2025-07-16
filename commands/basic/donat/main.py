@@ -1,4 +1,5 @@
 from aiogram import Dispatcher, types
+from aiogram.fsm.context import FSMContext
 
 from assets.antispam import antispam, new_earning, antispam_earning
 from assets.transform import transform_int as tr
@@ -43,7 +44,10 @@ async def donat_cmd(message: types.Message):
 
 
 @antispam_earning
-async def donat_menu_cmd(call: types.CallbackQuery):
+async def donat_menu_cmd(call: types.CallbackQuery, state: FSMContext):
+    if state:
+        await state.clear()
+
     user_id = call.from_user.id
     await call.message.edit_text(
         text="💸 Выберите ниже, что вы хотите сделать.",

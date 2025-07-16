@@ -33,7 +33,20 @@ def admin_only(private=False):
 
 
 def antispam(func):
-    async def wrapper(message: types.Message):
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        message = None
+
+        for arg in args:
+            if isinstance(arg, types.Message):
+                message = arg
+                break
+        if not message and 'message' in kwargs:
+            message = kwargs['message']
+
+        if not message:
+            raise ValueError("antispam: argument not found message: types.Message")
+
         if message.forward_from:
             return
 
@@ -46,25 +59,34 @@ def antispam(func):
         if ban:
             return
 
-        kwargs = {"message": message}
-
         sig = inspect.signature(func)
-        params = sig.parameters
-
-        if "user" in params:
+        if "user" in sig.parameters and "user" not in kwargs:
             user = BFGuser(message=message)
             await user.update()
             kwargs["user"] = user
 
         await FunEvent.emit(func.__name__, message, kwargs.get("user"), "message")
-        await func(**kwargs)
+
+        return await func(*args, **kwargs)
 
     return wrapper
 
 
-
 def antispam_earning(func):
-    async def wrapper(call: types.CallbackQuery):
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        call = None
+
+        for arg in args:
+            if isinstance(arg, types.CallbackQuery):
+                call = arg
+                break
+        if not call and 'call' in kwargs:
+            call = kwargs['call']
+
+        if not call:
+            raise ValueError("antispam_earning: argument not found call: CallbackQuery")
+
         uid = int(call.from_user.id)
         mid = call.data.split("|")
         mid = mid[1] if len(mid) > 1 else None
@@ -90,16 +112,13 @@ def antispam_earning(func):
 
                     earning_msg[(chat, msg)] = (data[0] + 1, int(time.time()))
 
-                    kwargs = {"call": call}
-
                     sig = inspect.signature(func)
-                    if "user" in sig.parameters:
+                    if "user" in sig.parameters and "user" not in kwargs:
                         user = BFGuser(call=call)
                         await user.update()
                         kwargs["user"] = user
 
-                    await func(**kwargs)
-                    return
+                    return await func(*args, **kwargs)
 
         try:
             await bot.delete_message(chat_id=chat, message_id=msg)

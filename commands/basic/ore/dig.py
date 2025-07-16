@@ -239,5 +239,5 @@ def reg(dp: Dispatcher):
     dp.message.register(price_cmd, TextIn("курс руды"))
     dp.message.register(my_mine_cmd, TextIn("моя шахта"))
     dp.message.register(dig_mine_cmd, StartsWith("копать "))
-    dp.message.register(sell_cmd, lambda message: message.text.lower().startswith('продать') and any(ruda in message.text.lower() for ruda in ruds))
+    dp.message.register(sell_cmd, StartsWith("продать"))
     dp.message.register(inventary_cmd, TextIn("инвентарь"))

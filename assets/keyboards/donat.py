@@ -1,3 +1,5 @@
+import time
+
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
@@ -14,7 +16,7 @@ def donat_menu(user_id: int) -> InlineKeyboardMarkup:
         keyboard.row(InlineKeyboardButton(text="⭐️ Донат через звёзды", callback_data=f"donat-stars|{user_id}"))
 
     if get_setting(key="refund", default=False):
-        keyboard.row(InlineKeyboardButton(text="⚡️ Возврат средств", callback_data=f"refund|{user_id}"))
+        keyboard.row(InlineKeyboardButton(text="⚡️ Возврат средств", callback_data=f"refund_1|{user_id}"))
 
     keyboard.row(InlineKeyboardButton(text="🍀 Донат через админа", url=f"t.me/{cfg.admin_username.replace('@', '')}"))
 
@@ -54,4 +56,42 @@ def confirm_donat(user_id: int, stars: int) -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardBuilder()
     keyboard.row(InlineKeyboardButton(text="✅ Подтвердить", callback_data=f"buy-stars_{stars}|{user_id}"))
     keyboard.row(InlineKeyboardButton(text="🔙 Назад", callback_data=f"donat-menu|{user_id}"))
+    return keyboard.as_markup()
+
+
+def time_until(timestamp: int) -> str:
+    diff = 24 * 3600 - (int(time.time()) - timestamp)
+
+    if diff <= 0:
+        return "0с"
+    elif diff >= 3600:
+        hours = diff // 3600
+        return f"{hours}ч"
+    elif diff >= 60:
+        minutes = diff // 60
+        return f"{minutes}м"
+    else:
+        return f"{diff}с"
+
+
+def donat_select_refund(user_id: int, transactions: list, page: int) -> InlineKeyboardMarkup:
+    keyboard = InlineKeyboardBuilder()
+
+    max_page = (len(transactions) + 4) // 5 if transactions else 1
+    start_idx = (page - 1) * 5
+    stop_idx = page * 5
+
+    for tr in transactions[start_idx:stop_idx]:
+        timer = time_until(timestamp=tr[4])
+        keyboard.row(InlineKeyboardButton(text=f"{tr[2]}⭐️ — {timer}", callback_data=f"start-refund_{tr[0]}|{user_id}"))
+
+    if len(transactions) > 5:
+        keyboard.row(
+            InlineKeyboardButton(text="⬅️", callback_data=f"refund_{page-1}|{user_id}"),
+            InlineKeyboardButton(text=f"{page}/{max_page}", callback_data="@copybfg"),
+            InlineKeyboardButton(text="➡️", callback_data=f"refund_{page+1}|{user_id}")
+        )
+
+    keyboard.row(InlineKeyboardButton(text="🔙 Назад", callback_data=f"donat-menu|{user_id}"))
+
     return keyboard.as_markup()

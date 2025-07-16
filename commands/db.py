@@ -176,7 +176,6 @@ cursor.execute('''CREATE TABLE IF NOT EXISTS chats (
     chat_id INTEGER,
     users INTEGER
 )''')
-conn.commit()
 
 
 cursor.execute('''CREATE TABLE IF NOT EXISTS property (
@@ -190,9 +189,21 @@ cursor.execute('''CREATE TABLE IF NOT EXISTS property (
 )''')
 
 
+cursor.execute('''CREATE TABLE IF NOT EXISTS donat (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER,
+    amount INTEGER,
+    transaction_id TEXT,
+    time INTEGER,
+    refund INTEGER
+)''')
+conn.commit()
+
+
 current_kurs = cursor.execute('SELECT kursbtc FROM sett').fetchone()
 if current_kurs is None:
     cursor.execute('INSERT INTO sett (ads, kursbtc) VALUES (?, ?)', ('', 65000))
+    conn.commit()
     
     
 async def get_user_info(user_id: int) -> tuple:
