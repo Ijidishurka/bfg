@@ -3,7 +3,7 @@ from aiogram import types, Dispatcher
 from filters.custom import TextIn, StartsWith
 from utils.settings import get_setting, update_setting
 from assets.antispam import admin_only, antispam_earning, new_earning
-from commands.admin import keyboards as kb
+from assets import keyboards as kb
 
 
 @admin_only(private=True)

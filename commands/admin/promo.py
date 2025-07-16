@@ -1,12 +1,13 @@
 from aiogram import types, Dispatcher
+from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
 
 from assets.transform import transform_int as tr
 from assets.antispam import antispam, admin_only
 from commands.admin.admin import admin_menu_cmd
 from commands.admin.db import *
-from commands.admin.loger import new_log
-from commands.admin import keyboards as kb
+from commands.admin.game_log import new_log
+from assets import keyboards as kb
 import config as cfg
 from bot import bot
 from filters.custom import TextIn, StartsWith
@@ -20,30 +21,32 @@ async def promo_menu(message: types.Message):
 
 
 @admin_only(private=True)
-async def new_promo(message, state: FSMContext, type="name"):
+async def new_promo(message, state: FSMContext):
+    current = await state.get_state()
+
     if message.text == "Отмена":
         await state.clear()
         await promo_menu(message)
         return
 
-    if type == "name":
+    if not current:
         await message.answer("😄 Введите название промо", reply_markup=kb.cancel())
-        await NewPromoState.txt.set()
+        await state.set_state(NewPromoState.txt)
         return
 
-    if type == "txt":
+    if current == NewPromoState.txt:
         await state.update_data(name=message.text.split()[0])
         await message.answer("📟 Введите валюту которую будет выдавать промокод (таблица/столбик эмодзи)\n\n"
                              "Пример для промо на йены: <code>users/yen 💴</code>\n\n"
                              "<i>Для создания промокода на деньги используйте \"-\"</i>")
-        await NewPromoState.name.set()
+        await state.set_state(NewPromoState.summ)
         return
 
-    if type == "summ":
+    if current == NewPromoState.summ:
         txt = "users/balance $" if message.text == "-" else message.text
         await state.update_data(txt=txt)
         await message.answer("😃 Введите сумму $ за активацию")
-        await NewPromoState.summ.set()
+        await state.set_state(NewPromoState.activ)
         return
 
     try:
@@ -53,10 +56,10 @@ async def new_promo(message, state: FSMContext, type="name"):
         await message.answer("😔 Значение должно быть числом...")
         return
 
-    if type == "activ":
+    if current == NewPromoState.activ:
         await state.update_data(summ=summ)
         await message.answer("😊 Введите количество активаций")
-        await NewPromoState.activ.set()
+        await state.set_state(NewPromoState.name)
         return
 
     await state.update_data(activ=summ)
@@ -84,15 +87,17 @@ async def new_promo(message, state: FSMContext, type="name"):
 
 
 @admin_only(private=True)
-async def promo_info(message, state: FSMContext, type="name"):
+async def promo_info(message, state: FSMContext):
+    current = await state.get_state()
+
     if message.text == "Отмена":
         await state.clear()
         await promo_menu(message)
         return
 
-    if type == "name":
+    if not current:
         await message.answer("💻 Введите название промо", reply_markup=kb.cancel())
-        await PromoInfoState.name.set()
+        await state.set_state(PromoInfoState.name)
         return
 
     name = message.text.split()[0]
@@ -113,23 +118,27 @@ async def promo_info(message, state: FSMContext, type="name"):
 
 
 @admin_only(private=True)
-async def dell_promo(message, state: FSMContext, type="name"):
+async def dell_promo(message, state: FSMContext):
+    current = await state.get_state()
+
     if message.text == "Отмена":
         await state.clear()
         await promo_menu(message)
         return
 
-    if type == "name":
+    if not current:
         await message.answer("🗑 Введите название промо который вы хотите удалить", reply_markup=kb.cancel())
-        await DellPromoState.name.set()
+        await state.set_state(DellPromoState.name)
         return
 
     name = message.text.split()[0]
     res = await dell_promo_db(name)
+
     if res:
         await message.answer(f"❌ Промокод <b>{name}</b> не найден.")
     else:
         await message.answer(f"✅ Промокод <b>{name}</b> успешно удалён!")
+
     await state.clear()
     await promo_menu(message)
 
@@ -175,15 +184,14 @@ async def activ_promo(message: types.Message, user: BFGuser):
 
 def reg(dp: Dispatcher):
     dp.message.register(promo_menu, TextIn("✨ Промокоды"))
+
     dp.message.register(promo_info, TextIn("ℹ️ Промо инфо"))
-    dp.message.register(lambda message, state: promo_info(message, state, type="finish"), PromoInfoState.name)
+    dp.message.register(promo_info, PromoInfoState.name)
 
     dp.message.register(new_promo, TextIn("📖 Создать промо"))
-    dp.message.register(lambda message, state: new_promo(message, state, type="txt"), NewPromoState.txt)
-    dp.message.register(lambda message, state: new_promo(message, state, type="summ"), NewPromoState.name)
-    dp.message.register(lambda message, state: new_promo(message, state, type="activ"), NewPromoState.summ)
-    dp.message.register(lambda message, state: new_promo(message, state, type="finish"), NewPromoState.activ)
+    dp.message.register(new_promo, StateFilter(NewPromoState.txt, NewPromoState.name, NewPromoState.summ, NewPromoState.activ))
 
     dp.message.register(dell_promo, TextIn("🗑 Удалить промо"))
-    dp.message.register(lambda message, state: dell_promo(message, state, type="finish"), DellPromoState.name)
+    dp.message.register(dell_promo, DellPromoState.name)
+
     dp.message.register(activ_promo, StartsWith("промо"))

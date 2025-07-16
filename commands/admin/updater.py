@@ -1,8 +1,15 @@
-import time, json, sys, os, shutil, requests, subprocess, tempfile
+import subprocess
+import tempfile
+import requests
+import shutil
+import time
+import sys
+import os
+
 from assets.antispam import admin_only
-from commands.admin import keyboards as kb
+from assets import keyboards as kb
+from utils.settings import get_setting, update_setting
 from filters.custom import TextIn, StartsWith
-from install import update_db
 from aiogram import types, Dispatcher
 import config as cfg
 from bot import bot, dp
@@ -12,21 +19,22 @@ if_notification = False
 
 
 async def check_updates() -> None:
-	if os.path.exists("updates.json"):
-		with open("updates.json", "r") as json_file:
-			data = json.load(json_file)
-			
-		os.remove("updates.json")
-		ctime = time.time() - data["time"]
-		
-		if data["type"] == "update":
-			txt = f"<b>🏖 Обновление загружено!</b>\n<i>Обновление заняло {ctime:.1f}сек</i>\n\n<tg-spoiler>Официальный канал разработки бота - @copybfg</tg-spoiler>"
-			await update_db()
-		else:
-			txt = f"<b>💫 Бот перезагружен!</b>\n\n<i>Перезагрузка заняла {ctime:.1f}сек</i>"
-		
-		await bot.edit_message_text(chat_id=data["message"][0], message_id=data["message"][1], text=txt)
-	
+	update = get_setting(key="update_flag", default={})
+	restart = get_setting(key="restart_flag", default={})
+
+	if update and "time" in update and "chat_id" in update and "message_id" in update:
+		ctime = time.time() - update["time"]
+		txt = f"<b>🏖 Обновление загружено!</b>\n<i>Обновление заняло {ctime:.1f}сек</i>\n\n<tg-spoiler>Официальный канал разработки бота - @copybfg</tg-spoiler>"
+		await bot.edit_message_text(chat_id=update["chat_id"], message_id=update["message_id"], text=txt)
+
+	if restart and "time" in restart and "chat_id" in restart and "message_id" in restart:
+		ctime = time.time() - restart["time"]
+		txt = f"<b>💫 Бот перезагружен!</b>\n\n<i>Перезагрузка заняла {ctime:.1f}сек</i>"
+		await bot.edit_message_text(chat_id=restart["chat_id"], message_id=restart["message_id"], text=txt)
+
+	update_setting(key="update_flag", value={})
+	update_setting(key="restart_flag", value={})
+
 
 async def search_update(force: bool = False, check: bool = False) -> bool:
 	global if_notification
@@ -34,7 +42,7 @@ async def search_update(force: bool = False, check: bool = False) -> bool:
 		if not check and if_notification and not force:
 			return False
 		
-		response = requests.get("https://raw.githubusercontent.com/Ijidishurka/bfg/refs/heads/main/bot.py")
+		response = requests.get("https://raw.githubusercontent.com/Ijidishurka/bfg/refs/heads/V3/bot.py")
 		response.raise_for_status()
 		
 		content = response.text
@@ -55,7 +63,7 @@ async def search_update(force: bool = False, check: bool = False) -> bool:
 		
 		if_notification = True
 		
-		response = requests.get("https://raw.githubusercontent.com/Ijidishurka/bfg/refs/heads/main/update_list.txt")
+		response = requests.get("https://raw.githubusercontent.com/Ijidishurka/bfg/refs/heads/V3/update_list.txt")
 		
 		txt = f"<b>🔍 Доступно обновление 🛎</b>\nЧто нового?\n\n<i>{response.text}</i>"
 		
@@ -85,7 +93,7 @@ async def update_bot(message: types.Message):
 		txt = "⚠️ У вас уже установлена последняя версия бота.\n<i>Нажмите на кнопку ниже, если вы хотите</i> <a href='https://github.com/Ijidishurka/bfg'>обновить файлы бота</a>"
 		force = True
 	else:
-		response = requests.get("https://raw.githubusercontent.com/Ijidishurka/bfg/refs/heads/main/update_list.txt")
+		response = requests.get("https://raw.githubusercontent.com/Ijidishurka/bfg/refs/heads/V3/update_list.txt")
 		txt = f"<b>🔍 Доступно обновление 🛎</b>\nЧто нового?\n\n<i>{response.text}</i>"
 
 	await message.answer(txt, reply_markup=kb.update_bot(force=force))
@@ -110,8 +118,7 @@ async def bot_update(call: types.CallbackQuery) -> None:
 	await call.message.edit_text("<i>🎩 Установка обновления...</i>")
 	
 	with tempfile.TemporaryDirectory() as temp_dir:
-		subprocess.run(["git", "clone", "https://github.com/Ijidishurka/bfg.git", temp_dir], check=True)
-
+		subprocess.run(["git", "clone", "--branch", "V3", "--single-branch", "https://github.com/Ijidishurka/bfg.git", temp_dir], check=True)
 		for item in os.listdir(temp_dir):
 			if item in ["config_ex.py", "modules"]:
 				continue
@@ -125,9 +132,7 @@ async def bot_update(call: types.CallbackQuery) -> None:
 			else:
 				shutil.copy2(src_path, dest_path)
 
-	with open("updates.json", "w") as json_file:
-		data = {"type": "update", "message": (call.message.chat.id, call.message.message_id), "time": time.time()}
-		json.dump(data, json_file, indent=4)
+	update_setting(key="update_flag", value={"time": time.time(), "chat_id": call.message.chat.id, "message_id": call.message.message_id})
 
 	os.execv(sys.executable, [sys.executable] + sys.argv)
 
@@ -135,11 +140,9 @@ async def bot_update(call: types.CallbackQuery) -> None:
 @admin_only()
 async def restart_bot(message: types.Message):
 	msg = await message.answer("<i>🔄 Перезагрузка бота...</i>")
-	
-	with open("updates.json", "w") as json_file:
-		data = {"type": "restart", "message": (msg.chat.id, msg.message_id), "time": time.time()}
-		json.dump(data, json_file, indent=4)
-	
+
+	update_setting(key="restart_flag", value={"time": time.time(), "chat_id": msg.chat.id, "message_id": msg.message_id})
+
 	await asyncio.sleep(2)
 	await bot.close()
 	await dp.storage.close()

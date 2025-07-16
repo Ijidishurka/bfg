@@ -7,7 +7,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram import types, Dispatcher
 
 from assets.antispam import new_earning, antispam_earning, admin_only
-from commands.admin import keyboards as kb
+from assets import keyboards as kb
 from filters.custom import TextIn, StartsWith
 from user import BFGuser
 import config as cfg
@@ -129,7 +129,7 @@ async def catalog_modules(message: types.Message):
     global CATALOG
     
     try:
-        response = requests.get("https://raw.githubusercontent.com/Ijidishurka/bfg-modules/refs/heads/main/modules.json")
+        response = requests.get("https://raw.githubusercontent.com/Ijidishurka/bfg-modules/refs/heads/V3/modules.json")
         CATALOG = response.json()
     except:
         pass

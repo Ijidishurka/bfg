@@ -93,10 +93,6 @@ def main_check():
             main()
     else:
         return True
-    
-
-async def update_db():
-    ...
 
 
 def empty() -> None:

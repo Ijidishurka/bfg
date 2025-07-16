@@ -7,7 +7,7 @@ from commands.admin.db import give_bcoins_db, give_money_db
 from filters.custom import TextIn, StartsWith
 from user import BFGuser, BFGconst
 from assets.transform import transform_int as tr
-from commands.admin.loger import new_log
+from commands.admin.game_log import new_log
 from assets.antispam import antispam, admin_only
 import config as cfg
 

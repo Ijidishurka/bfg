@@ -4,20 +4,22 @@ from datetime import datetime
 from aiogram import types, Dispatcher
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
-from aiogram.types import InlineKeyboardMarkup, ReplyKeyboardRemove, KeyboardButton
+from aiogram.types import InlineKeyboardMarkup, ReplyKeyboardRemove, KeyboardButton, FSInputFile
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
 from filters.custom import TextIn
 from states.admin import NewAdvState, MailingState
-from commands.admin import keyboards as kb
+from assets import keyboards as kb
 from assets.antispam import admin_only
 from commands.admin.db import *
 from bot import bot
 
 
 @admin_only(private=True)
-async def new_ads(message: types.Message, state: FSMContext, action=0):
-    if action == 0:
+async def new_ads(message: types.Message, state: FSMContext):
+    current = await state.get_state()
+
+    if not current:
         builder = ReplyKeyboardBuilder()
         builder.add(KeyboardButton(text="Отмена"))
         keyboard = builder.as_markup(resize_keyboard=True)
@@ -28,7 +30,7 @@ async def new_ads(message: types.Message, state: FSMContext, action=0):
             reply_markup=keyboard
         )
 
-        await NewAdvState.txt.set()
+        await state.set_state(NewAdvState.txt)
         return
 
     if message.text == "Отмена":
@@ -36,12 +38,11 @@ async def new_ads(message: types.Message, state: FSMContext, action=0):
         await admin_menu_cmd(message)
         return
 
-    message.text = "" if message.text == "-" else message.text
     try:
-        ads = message.text.replace(r"\n", "\n")
-        text = "⚙️ Реклама в сообщениях удалена" if message.text == "" else "⚙️ Установлен новый текст рекламы:\n\n" + ads
+        ads = "" if message.text == "-" else message.text.replace(r"\n", "\n")
+        text = "⚙️ Реклама в сообщениях удалена" if ads == "" else "⚙️ Установлен новый текст рекламы:\n\n" + ads
         await message.answer(text=text, disable_web_page_preview=True)
-        await upd_ads(message.text)
+        await upd_ads(ads)
     except:
         await message.answer(text="❌ Ошибка в разметке HTML")
 
@@ -57,22 +58,22 @@ async def unloading_cmd(message: types.Message):
 @admin_only(private=True)
 async def unloading_db_cmd(message: types.Message):
     time = datetime.now().strftime("%Y-%m-%d в %H:%M:%S")
-    with open("users.db", "rb") as file:
-        await bot.send_document(chat_id=message.chat.id, document=file, caption=f"🛡 Копия бд создана <blockquote>{time}</blockquote>")
+    file = FSInputFile("users.db")
+    await bot.send_document(chat_id=message.chat.id, document=file, caption=f"🛡 Копия бд создана <blockquote>{time}</blockquote>")
         
 
 @admin_only(private=True)
 async def unloading_errors_cmd(message: types.Message):
     time = datetime.now().strftime("%Y-%m-%d в %H:%M:%S")
-    with open("bot_errors.txt", "rb") as file:
-        await bot.send_document(chat_id=message.chat.id, document=file, caption=f"‼️ Ошибки бота на момент <blockquote>{time}</blockquote>")
+    file = FSInputFile("bot_errors.txt")
+    await bot.send_document(chat_id=message.chat.id, document=file, caption=f"‼️ Ошибки бота на момент <blockquote>{time}</blockquote>")
 
 
 @admin_only(private=True)
 async def unloading_logs_cmd(message: types.Message):
     time = datetime.now().strftime("%Y-%m-%d в %H:%M:%S")
-    with open("logs.txt", "rb") as file:
-        await bot.send_document(chat_id=message.chat.id, document=file, caption=f"📋 Логи бота на момент <blockquote>{time}</blockquote>")
+    file = FSInputFile("logs.txt")
+    await bot.send_document(chat_id=message.chat.id, document=file, caption=f"📋 Логи бота на момент <blockquote>{time}</blockquote>")
 
 
 @admin_only(private=True)
@@ -91,8 +92,8 @@ async def ads_menu_cmd(message: types.Message):
 
 
 @admin_only(private=True)
-async def mailing_cmd(message: types.Message):
-    await MailingState.mailing_text.set()
+async def mailing_cmd(message: types.Message, state: FSMContext):
+    await state.set_state(MailingState.mailing_text)
     await message.answer(text="📂 Пришлите мне готовое сообщение для рассылки:", reply_markup=kb.cancel())
 
 
@@ -110,7 +111,7 @@ async def process_mailing(message, state: FSMContext):
 
     await state.update_data(text=message.text, inline_keyboard=inline_keyboard)
     await message.answer(text="✅ Сообщение сохранено.\nВы уверены что хотите начать рассылку? (да/нет)")
-    await MailingState.mailing_conf.set()
+    await state.set_state(MailingState.mailing_conf)
 
 
 async def process_mailing_2(message: types.Message, state: FSMContext):
@@ -169,7 +170,8 @@ def reg(dp: Dispatcher):
     
     dp.message.register(ads_menu_cmd, TextIn("📣 Реклама"))
     dp.message.register(new_ads, TextIn("🪪 Текст рекламы"))
-    dp.message.register(lambda message, state: new_ads(message, state, action=1), NewAdvState.txt)
+    dp.message.register(new_ads, NewAdvState.txt)
+
     dp.message.register(mailing_cmd, TextIn("📍 Рассылка"))
     dp.message.register(process_mailing, MailingState.mailing_text)
     dp.message.register(process_mailing_2, MailingState.mailing_conf)
