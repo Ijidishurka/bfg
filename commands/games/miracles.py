@@ -262,7 +262,7 @@ async def enter_word_cmd(message: types.Message, user: BFGuser):
 
 async def auto_stop() -> None:
     now = int(time.time())
-    expired_chats = [chat_id for chat_id, game in games_list.items() if now - game["last_update"] > 10]
+    expired_chats = [chat_id for chat_id, game in games_list.items() if now - game["last_update"] > 600]
 
     for chat_id in expired_chats:
         del games_list[chat_id]
