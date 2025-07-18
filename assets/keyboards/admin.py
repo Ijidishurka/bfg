@@ -92,7 +92,7 @@ def promo_menu() -> ReplyKeyboardMarkup:
 	return keyboard.as_markup(resize_keyboard=True)
 
 
-def donat_menu(user_id: int) -> InlineKeyboardMarkup:
+def admin_donat_menu(user_id: int) -> InlineKeyboardMarkup:
 	keyboards = InlineKeyboardBuilder()
 
 	donat_emj= "✅" if get_setting(key="stars_donat", default=False) else "❌"

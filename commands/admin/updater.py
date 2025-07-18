@@ -146,7 +146,12 @@ async def restart_bot(message: types.Message):
 	update_setting(key="restart_flag", value={"time": time.time(), "chat_id": msg.chat.id, "message_id": msg.message_id})
 
 	await asyncio.sleep(2)
-	await bot.close()
+
+	try:
+		await bot.close()
+	except Exception as e:
+		await message.answer(f"‼️ Не удалось закрыть соединение с сервером: <code>{e}</code>")
+
 	await dp.storage.close()
 	
 	os.execl(sys.executable, sys.executable, *sys.argv)

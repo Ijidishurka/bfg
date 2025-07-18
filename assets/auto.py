@@ -12,7 +12,7 @@ from commands.db import reset_limit, update_ads_const
 
 from bot import bot
 import config as cfg
-
+from commands.games.miracles import auto_stop
 
 scheduler = AsyncIOScheduler()
 
@@ -64,6 +64,7 @@ async def automatisation() -> None:
     scheduler.add_job(autocommands, 'interval', hours=1)
     scheduler.add_job(autocommands2, 'interval', minutes=15)
     scheduler.add_job(autocommands3, 'interval', minutes=5)
+    scheduler.add_job(auto_stop, 'interval', seconds=5)    # commands/games/miracles.py
     scheduler.add_job(autocommands4, 'cron', hour=00, minute=00)
     scheduler.start()
     

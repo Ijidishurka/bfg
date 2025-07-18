@@ -33,6 +33,7 @@ MODULES = [
     'commands.entertaining.wedlock',
     'commands.clans.main',
     'commands.games.main',
+    'commands.games.miracles',
     'commands.basic.bank.main',
     'commands.entertaining.case.main',
     'commands.entertaining.earnings.garden.potions',

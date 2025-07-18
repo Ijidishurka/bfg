@@ -14,7 +14,7 @@ async def donat_menu_cmd(message: types.Message):
     if get_setting(key="stars_donat", default=False):
         text += "\n<a href='t.me/copybfg/123'>· Как вывести звёзды с бота?</a>"
 
-    msg = await message.answer(text=text, reply_markup=kb.donat_menu(user_id=user_id))
+    msg = await message.answer(text=text, reply_markup=kb.admin_donat_menu(user_id=user_id))
     await new_earning(msg)
 
 
@@ -36,7 +36,7 @@ async def donat_set_cmd(call: types.CallbackQuery):
         text += "\n<a href='t.me/copybfg/124'>· Как вывести звёзды с бота?</a>"
 
     try:
-        await call.message.edit_text(text=text, reply_markup=kb.donat_menu(user_id=user_id))
+        await call.message.edit_text(text=text, reply_markup=kb.admin_donat_menu(user_id=user_id))
     except:
         pass
 
